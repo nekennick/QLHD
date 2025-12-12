@@ -1,0 +1,126 @@
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+
+async function getUsers() {
+    return prisma.user.findMany({
+        orderBy: { createdAt: "desc" },
+        select: {
+            id: true,
+            username: true,
+            hoTen: true,
+            role: true,
+            createdAt: true,
+            _count: {
+                select: {
+                    hopDongThucHien: true,
+                },
+            },
+        },
+    });
+}
+
+export default async function UsersPage() {
+    const session = await auth();
+
+    // Chỉ User1 (lãnh đạo) mới được xem
+    if (session?.user?.role !== "USER1") {
+        redirect("/");
+    }
+
+    const users = await getUsers();
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">Người dùng</h1>
+                    <p className="text-slate-400 mt-1">Quản lý tài khoản người dùng</p>
+                </div>
+                <Link
+                    href="/nguoi-dung/tao-moi"
+                    className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-500/25"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                    Thêm người dùng
+                </Link>
+            </div>
+
+            {/* Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                    <p className="text-3xl font-bold text-white">{users.length}</p>
+                    <p className="text-sm text-slate-400">Tổng người dùng</p>
+                </div>
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                    <p className="text-3xl font-bold text-white">
+                        {users.filter((u) => u.role === "USER1").length}
+                    </p>
+                    <p className="text-sm text-slate-400">Lãnh đạo</p>
+                </div>
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                    <p className="text-3xl font-bold text-white">
+                        {users.filter((u) => u.role === "USER2").length}
+                    </p>
+                    <p className="text-sm text-slate-400">Người thực hiện</p>
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+                <div className="overflow-x-auto">
+                    <table className="w-full">
+                        <thead>
+                            <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
+                                <th className="px-6 py-4 font-medium">Tên đăng nhập</th>
+                                <th className="px-6 py-4 font-medium">Họ tên</th>
+                                <th className="px-6 py-4 font-medium">Vai trò</th>
+                                <th className="px-6 py-4 font-medium">Số HĐ thực hiện</th>
+                                <th className="px-6 py-4 font-medium">Ngày tạo</th>
+                            </tr>
+                        </thead>
+                        <tbody className="text-slate-300">
+                            {users.map((user) => (
+                                <tr
+                                    key={user.id}
+                                    className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+                                >
+                                    <td className="px-6 py-4 font-medium text-white">{user.username}</td>
+                                    <td className="px-6 py-4">{user.hoTen}</td>
+                                    <td className="px-6 py-4">
+                                        {user.role === "USER1" ? (
+                                            <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 rounded-full">
+                                                Lãnh đạo
+                                            </span>
+                                        ) : (
+                                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
+                                                Người thực hiện
+                                            </span>
+                                        )}
+                                    </td>
+                                    <td className="px-6 py-4">{user._count.hopDongThucHien}</td>
+                                    <td className="px-6 py-4">
+                                        {new Date(user.createdAt).toLocaleDateString("vi-VN")}
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            {/* Info */}
+            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                <h3 className="text-blue-400 font-medium mb-2">💡 Phân quyền</h3>
+                <ul className="text-sm text-slate-400 space-y-1">
+                    <li>• <strong>Lãnh đạo (User1)</strong>: Tạo hợp đồng, giao việc, xem tất cả báo cáo</li>
+                    <li>• <strong>Người thực hiện (User2)</strong>: Nhập thông tin HĐ được giao, xem báo cáo cá nhân</li>
+                </ul>
+            </div>
+        </div>
+    );
+}

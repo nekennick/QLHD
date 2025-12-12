@@ -1,0 +1,212 @@
+import { auth } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+import Link from "next/link";
+
+async function getContracts(searchParams: { status?: string; nguoiThucHien?: string }) {
+    const where: Record<string, unknown> = {};
+
+    if (searchParams.status === "incomplete") {
+        where.OR = [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }];
+    } else if (searchParams.status === "delivering") {
+        where.giaTriGiaoNhan = { not: null };
+        where.ngayDuyetThanhToan = null;
+    } else if (searchParams.status === "paid") {
+        where.ngayDuyetThanhToan = { not: null };
+    }
+
+    if (searchParams.nguoiThucHien) {
+        where.nguoiThucHienId = searchParams.nguoiThucHien;
+    }
+
+    return prisma.hopDong.findMany({
+        where,
+        orderBy: { createdAt: "desc" },
+        include: {
+            nguoiGiao: { select: { hoTen: true } },
+            nguoiThucHien: { select: { hoTen: true } },
+        },
+    });
+}
+
+async function getUsers() {
+    return prisma.user.findMany({
+        where: { role: "USER2" },
+        select: { id: true, hoTen: true },
+    });
+}
+
+export default async function HopDongPage({
+    searchParams,
+}: {
+    searchParams: Promise<{ status?: string; nguoiThucHien?: string }>;
+}) {
+    const session = await auth();
+    const params = await searchParams;
+    const contracts = await getContracts(params);
+    const users = await getUsers();
+    const isAdmin = session?.user?.role === "USER1";
+
+    const statusFilters = [
+        { value: "", label: "Tất cả" },
+        { value: "incomplete", label: "Chưa hoàn thiện" },
+        { value: "delivering", label: "Đang giao nhận" },
+        { value: "paid", label: "Đã thanh toán" },
+    ];
+
+    return (
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="flex items-center justify-between">
+                <div>
+                    <h1 className="text-3xl font-bold text-white">Hợp đồng</h1>
+                    <p className="text-slate-400 mt-1">Quản lý danh sách hợp đồng</p>
+                </div>
+                {isAdmin && (
+                    <Link
+                        href="/hop-dong/tao-moi"
+                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-500/25"
+                    >
+                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                        </svg>
+                        Tạo HĐ mới
+                    </Link>
+                )}
+            </div>
+
+            {/* Filters */}
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+                <div className="flex flex-wrap gap-4">
+                    {/* Status Filter */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-400">Trạng thái:</span>
+                        <div className="flex gap-1">
+                            {statusFilters.map((filter) => (
+                                <Link
+                                    key={filter.value}
+                                    href={`/hop-dong${filter.value ? `?status=${filter.value}` : ""}`}
+                                    className={`px-3 py-1.5 text-sm rounded-lg transition-all ${params.status === filter.value || (!params.status && !filter.value)
+                                            ? "bg-purple-600 text-white"
+                                            : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                                        }`}
+                                >
+                                    {filter.label}
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+
+                    {/* User Filter */}
+                    <div className="flex items-center gap-2">
+                        <span className="text-sm text-slate-400">Người thực hiện:</span>
+                        <select
+                            defaultValue={params.nguoiThucHien || ""}
+                            className="px-3 py-1.5 text-sm bg-slate-700 text-slate-300 rounded-lg border-none focus:ring-2 focus:ring-purple-500"
+                        >
+                            <option value="">Tất cả</option>
+                            {users.map((user) => (
+                                <option key={user.id} value={user.id}>
+                                    {user.hoTen}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            {/* Table */}
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+                {contracts.length === 0 ? (
+                    <div className="text-center py-16">
+                        <div className="text-6xl mb-4">📋</div>
+                        <p className="text-slate-400 text-lg">Không có hợp đồng nào</p>
+                        {isAdmin && (
+                            <Link
+                                href="/hop-dong/tao-moi"
+                                className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all"
+                            >
+                                Tạo hợp đồng đầu tiên
+                            </Link>
+                        )}
+                    </div>
+                ) : (
+                    <div className="overflow-x-auto">
+                        <table className="w-full">
+                            <thead>
+                                <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
+                                    <th className="px-6 py-4 font-medium">Số HĐ</th>
+                                    <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
+                                    <th className="px-6 py-4 font-medium">Giá trị</th>
+                                    <th className="px-6 py-4 font-medium">Ngày ký</th>
+                                    <th className="px-6 py-4 font-medium">Người thực hiện</th>
+                                    <th className="px-6 py-4 font-medium">Trạng thái</th>
+                                    <th className="px-6 py-4 font-medium"></th>
+                                </tr>
+                            </thead>
+                            <tbody className="text-slate-300">
+                                {contracts.map((contract) => (
+                                    <tr
+                                        key={contract.id}
+                                        className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+                                    >
+                                        <td className="px-6 py-4 font-medium text-white">
+                                            {contract.soHopDong}
+                                        </td>
+                                        <td className="px-6 py-4">{contract.tenHopDong || "—"}</td>
+                                        <td className="px-6 py-4">
+                                            {contract.giaTriHopDong
+                                                ? new Intl.NumberFormat("vi-VN", {
+                                                    style: "currency",
+                                                    currency: "VND",
+                                                }).format(contract.giaTriHopDong)
+                                                : "—"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {contract.ngayKy
+                                                ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
+                                                : "—"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {contract.nguoiThucHien?.hoTen || "—"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {!contract.tenHopDong ? (
+                                                <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
+                                                    Chưa hoàn thiện
+                                                </span>
+                                            ) : contract.ngayDuyetThanhToan ? (
+                                                <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
+                                                    Đã thanh toán
+                                                </span>
+                                            ) : contract.giaTriNghiemThu ? (
+                                                <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
+                                                    Đã nghiệm thu
+                                                </span>
+                                            ) : contract.giaTriGiaoNhan ? (
+                                                <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
+                                                    Đang giao nhận
+                                                </span>
+                                            ) : (
+                                                <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full">
+                                                    Mới tạo
+                                                </span>
+                                            )}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            <Link
+                                                href={`/hop-dong/${contract.id}`}
+                                                className="text-purple-400 hover:text-purple-300 text-sm"
+                                            >
+                                                Chi tiết →
+                                            </Link>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+                )}
+            </div>
+        </div>
+    );
+}

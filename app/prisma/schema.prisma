@@ -1,0 +1,72 @@
+// Prisma schema for Quản lý thực hiện hợp đồng
+// https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+// ==========================================
+// Module 1: Quản lý người dùng & phân quyền
+// ==========================================
+
+model User {
+  id        String   @id @default(cuid())
+  username  String   @unique
+  password  String
+  hoTen     String
+  role      String   @default("USER2") // USER1: Lãnh đạo, USER2: Người thực hiện
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Hợp đồng được giao (User1 giao)
+  hopDongGiao HopDong[] @relation("NguoiGiao")
+  // Hợp đồng thực hiện (User2 thực hiện)
+  hopDongThucHien HopDong[] @relation("NguoiThucHien")
+}
+
+// ==========================================
+// Module 2-4: Quản lý Hợp đồng
+// ==========================================
+
+model HopDong {
+  id        String   @id @default(cuid())
+  
+  // Thông tin cơ bản (User1 tạo)
+  soHopDong String   @unique
+  
+  // Thông tin chi tiết (User2 nhập)
+  tenHopDong      String?
+  giaTriHopDong   Float?
+  ngayKy          DateTime?
+  ngayHieuLuc     DateTime?
+  hieuLucBaoDam   DateTime?  // Thời hạn bảo đảm thực hiện HĐ
+  ngayGiaoHang    DateTime?  // Ngày giao hàng kế hoạch
+  tuChinhHopDong  String?    // Thông tin tu chỉnh (nếu có)
+
+  // Relationships
+  nguoiGiaoId     String
+  nguoiGiao       User     @relation("NguoiGiao", fields: [nguoiGiaoId], references: [id])
+  nguoiThucHienId String?
+  nguoiThucHien   User?    @relation("NguoiThucHien", fields: [nguoiThucHienId], references: [id])
+
+  // ==========================================
+  // Module 3: Giao nhận - Nghiệm thu - Thanh toán
+  // ==========================================
+  giaTriGiaoNhan     Float?     // Giá trị hàng giao nhận
+  giaTriNghiemThu    Float?     // Giá trị hàng đã nghiệm thu
+  ngayDuyetThanhToan DateTime?  // Ngày duyệt thanh toán
+
+  // ==========================================
+  // Module 4: Bảo hành
+  // ==========================================
+  hanBaoHanh DateTime? // Hạn bảo hành hàng hóa
+
+  // Metadata
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
