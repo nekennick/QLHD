@@ -170,6 +170,103 @@ rm -rf node_modules
 npm install
 ```
 
+## 🔄 Cập nhật code mới
+
+Nếu bạn đã clone repo trước đó và muốn cập nhật code mới nhất:
+
+```bash
+# Di chuyển vào thư mục project
+cd QLHD
+
+# Lấy code mới nhất từ GitHub
+git pull
+```
+
+### Các lệnh Git hữu ích:
+
+| Lệnh | Mô tả |
+|------|-------|
+| `git pull` | Cập nhật code mới nhất từ remote |
+| `git pull origin main` | Cập nhật từ branch `main` |
+| `git fetch` | Lấy thông tin mới nhưng chưa merge |
+| `git status` | Kiểm tra trạng thái hiện tại |
+
+### Sau khi pull code mới:
+
+**Nếu có thay đổi dependencies** (file `package.json` được cập nhật):
+```bash
+cd app
+npm install
+```
+
+**Nếu có thay đổi database schema** (file `prisma/schema.prisma` thay đổi):
+```bash
+cd app
+npx prisma generate
+npx prisma db push
+```
+
+## 🏭 Chạy ứng dụng Production
+
+Để chạy ứng dụng ở chế độ production (dành cho người dùng cuối):
+
+### Bước 1: Build ứng dụng
+
+```bash
+cd app
+npm run build
+```
+
+Quá trình build sẽ tạo thư mục `.next` chứa ứng dụng đã được tối ưu hóa.
+
+### Bước 2: Chạy ứng dụng
+
+```bash
+npm run start
+```
+
+Ứng dụng sẽ chạy tại: **http://localhost:3000**
+
+### Chạy trên port khác:
+
+```bash
+npm run start -- -p 8080
+```
+
+### Chạy ở chế độ nền (Windows):
+
+Sử dụng [PM2](https://pm2.io/) để quản lý ứng dụng:
+
+```bash
+# Cài đặt PM2 (chỉ cần làm 1 lần)
+npm install -g pm2
+
+# Chạy ứng dụng với PM2
+cd app
+pm2 start npm --name "qlhd" -- start
+
+# Các lệnh quản lý PM2
+pm2 status          # Xem trạng thái
+pm2 logs qlhd       # Xem logs
+pm2 restart qlhd    # Khởi động lại
+pm2 stop qlhd       # Dừng ứng dụng
+pm2 delete qlhd     # Xóa khỏi PM2
+```
+
+### Cấu hình cho môi trường Production:
+
+Cập nhật file `.env` với các giá trị an toàn hơn:
+
+```env
+# Database (có thể dùng PostgreSQL, MySQL cho production)
+DATABASE_URL="file:./prisma/prod.db"
+
+# NextAuth Secret (BẮT BUỘC phải thay đổi!)
+AUTH_SECRET="your-very-long-random-secret-key-at-least-32-chars"
+```
+
+> ⚠️ **Quan trọng:** Không bao giờ commit file `.env` lên GitHub!
+
 ## 📞 Liên hệ
 
 Nếu gặp vấn đề, vui lòng tạo issue tại: https://github.com/nekennick/QLHD/issues
