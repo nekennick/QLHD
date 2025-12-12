@@ -19,19 +19,19 @@ export async function GET() {
                 {
                     username: "lanhdao",
                     password: hashedPassword,
-                    hoTen: "Nguyễn Văn Lãnh Đạo",
+                    hoTen: "Lãnh Đạo",
                     role: "USER1",
                 },
                 {
                     username: "nhanvien1",
                     password: hashedPassword,
-                    hoTen: "Trần Thị Nhân Viên",
+                    hoTen: "Nhân Viên 1",
                     role: "USER2",
                 },
                 {
                     username: "nhanvien2",
                     password: hashedPassword,
-                    hoTen: "Lê Văn Thực Hiện",
+                    hoTen: "Nhân Viên 2",
                     role: "USER2",
                 },
             ],
