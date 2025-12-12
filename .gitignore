@@ -41,3 +41,7 @@ Thumbs.db
 # Prisma
 app/prisma/*.db
 app/prisma/*.db-journal
+
+# Build Artifacts
+QLHD-app/
+*.zip
