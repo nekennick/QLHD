@@ -14,6 +14,13 @@ async function getContract(id: string) {
     });
 }
 
+async function getUsers() {
+    return prisma.user.findMany({
+        where: { role: "USER2" },
+        select: { id: true, hoTen: true },
+    });
+}
+
 export default async function ContractDetailPage({
     params,
 }: {
@@ -21,7 +28,10 @@ export default async function ContractDetailPage({
 }) {
     const session = await auth();
     const { id } = await params;
-    const contract = await getContract(id);
+    const [contract, users] = await Promise.all([
+        getContract(id),
+        getUsers(),
+    ]);
 
     if (!contract) {
         notFound();
@@ -79,7 +89,12 @@ export default async function ContractDetailPage({
             </div>
 
             {/* Contract Detail Component */}
-            <ContractDetail contract={contractData} canEdit={canEdit} userRole={session?.user?.role} />
+            <ContractDetail
+                contract={contractData}
+                canEdit={canEdit}
+                userRole={session?.user?.role}
+                users={users}
+            />
         </div>
     );
 }

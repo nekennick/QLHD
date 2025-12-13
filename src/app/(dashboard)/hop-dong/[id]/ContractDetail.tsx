@@ -21,15 +21,21 @@ interface Contract {
     nguoiThucHien: { hoTen: string } | null;
 }
 
+interface User {
+    id: string;
+    hoTen: string;
+}
+
 interface Props {
     contract: Contract;
     canEdit: boolean;
     userRole?: string;
+    users?: User[];
 }
 
 type TabType = "info" | "delivery" | "acceptance" | "payment" | "warranty";
 
-export default function ContractDetail({ contract, canEdit, userRole }: Props) {
+export default function ContractDetail({ contract, canEdit, userRole, users = [] }: Props) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>("info");
     const [loading, setLoading] = useState(false);
@@ -195,7 +201,33 @@ export default function ContractDetail({ contract, canEdit, userRole }: Props) {
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderReadOnlyField("Số hợp đồng", contract.soHopDong)}
                             {renderReadOnlyField("Người giao", contract.nguoiGiao?.hoTen)}
-                            {renderReadOnlyField("Người thực hiện", contract.nguoiThucHien?.hoTen)}
+
+                            {/* Logic chọn người thực hiện (chỉ chọn 1 lần nếu chưa có) */}
+                            {contract.nguoiThucHien ? (
+                                renderReadOnlyField("Người thực hiện", contract.nguoiThucHien.hoTen)
+                            ) : (
+                                <div>
+                                    <label htmlFor="nguoiThucHienId" className="block text-sm font-medium text-slate-300 mb-2">
+                                        Người thực hiện
+                                    </label>
+                                    <select
+                                        id="nguoiThucHienId"
+                                        name="nguoiThucHienId"
+                                        disabled={!canEdit}
+                                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                                    >
+                                        <option value="">-- Chọn người thực hiện --</option>
+                                        {users.map((user) => (
+                                            <option key={user.id} value={user.id}>
+                                                {user.hoTen}
+                                            </option>
+                                        ))}
+                                    </select>
+                                    <p className="text-xs text-blue-400 mt-1">
+                                        * Lưu ý: Sau khi chọn và lưu, bạn sẽ không thể thay đổi người thực hiện.
+                                    </p>
+                                </div>
+                            )}
                         </div>
 
                         <hr className="border-slate-700" />
