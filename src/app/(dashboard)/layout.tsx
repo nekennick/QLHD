@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Sidebar from "@/components/layout/Sidebar";
+import MobileSidebar from "@/components/layout/MobileSidebar";
 import PasswordEnforcement from "@/components/layout/PasswordEnforcement";
 
 export default async function DashboardLayout({
@@ -16,10 +17,12 @@ export default async function DashboardLayout({
 
     return (
         <div className="min-h-screen bg-slate-950">
+            <MobileSidebar />
             <Sidebar />
-            <main className="ml-64 min-h-screen">
+
+            <main className="min-h-screen transition-all pt-16 md:pt-0 md:ml-64">
                 <PasswordEnforcement>
-                    <div className="p-8">{children}</div>
+                    <div className="p-4 md:p-8">{children}</div>
                 </PasswordEnforcement>
             </main>
         </div>
