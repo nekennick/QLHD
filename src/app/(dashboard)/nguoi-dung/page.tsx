@@ -24,8 +24,9 @@ async function getUsers() {
 export default async function UsersPage() {
     const session = await auth();
 
-    // Chỉ User1 (lãnh đạo) mới được xem
-    if (session?.user?.role !== "USER1") {
+    // Tiêu đề thay đổi nếu là admin?
+    // Chỉ User1 và Admin mới được xem
+    if (session?.user?.role !== "USER1" && session?.user?.role !== "ADMIN") {
         redirect("/");
     }
 
@@ -96,6 +97,10 @@ export default async function UsersPage() {
                                             <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 rounded-full">
                                                 Lãnh đạo
                                             </span>
+                                        ) : user.role === "ADMIN" ? (
+                                            <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded-full">
+                                                Quản trị viên
+                                            </span>
                                         ) : (
                                             <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
                                                 Người thực hiện
@@ -119,6 +124,7 @@ export default async function UsersPage() {
                 <ul className="text-sm text-slate-400 space-y-1">
                     <li>• <strong>Lãnh đạo (User1)</strong>: Tạo hợp đồng, giao việc, xem tất cả báo cáo</li>
                     <li>• <strong>Người thực hiện (User2)</strong>: Nhập thông tin HĐ được giao, xem báo cáo cá nhân</li>
+                    <li>• <strong>Admin</strong>: Toàn quyền quản trị hệ thống</li>
                 </ul>
             </div>
         </div>

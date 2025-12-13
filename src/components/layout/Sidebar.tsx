@@ -47,7 +47,7 @@ const menuItems = [
 export default function Sidebar() {
     const pathname = usePathname();
     const { data: session } = useSession();
-    const isAdmin = session?.user?.role === "USER1";
+    const isAdmin = session?.user?.role === "USER1" || session?.user?.role === "ADMIN";
 
     return (
         <aside className="fixed left-0 top-0 h-screen w-64 bg-slate-900 border-r border-slate-800 flex flex-col">
@@ -79,8 +79,8 @@ export default function Sidebar() {
                             key={item.href}
                             href={item.href}
                             className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                    ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30"
-                                    : "text-slate-400 hover:text-white hover:bg-slate-800"
+                                ? "bg-gradient-to-r from-purple-600/20 to-pink-600/20 text-white border border-purple-500/30"
+                                : "text-slate-400 hover:text-white hover:bg-slate-800"
                                 }`}
                         >
                             {item.icon}
@@ -92,21 +92,24 @@ export default function Sidebar() {
 
             {/* User info */}
             <div className="p-4 border-t border-slate-800">
-                <div className="flex items-center gap-3 mb-3">
-                    <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center">
+                <Link
+                    href="/thong-tin-ca-nhan"
+                    className="flex items-center gap-3 mb-3 hover:bg-slate-800 p-2 rounded-lg transition-colors group"
+                >
+                    <div className="w-10 h-10 bg-slate-700 rounded-full flex items-center justify-center group-hover:bg-slate-600 transition-colors">
                         <span className="text-sm font-medium text-white">
                             {session?.user?.name?.charAt(0) || "U"}
                         </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-white truncate">
+                        <p className="text-sm font-medium text-white truncate group-hover:text-purple-400 transition-colors">
                             {session?.user?.name || "User"}
                         </p>
                         <p className="text-xs text-slate-500">
-                            {session?.user?.role === "USER1" ? "Lãnh đạo" : "Người thực hiện"}
+                            {session?.user?.role === "USER1" ? "Lãnh đạo" : session?.user?.role === "ADMIN" ? "Quản trị viên" : "Người thực hiện"}
                         </p>
                     </div>
-                </div>
+                </Link>
                 <button
                     onClick={() => signOut({ callbackUrl: "/login" })}
                     className="w-full flex items-center justify-center gap-2 px-4 py-2 text-sm text-slate-400 hover:text-white hover:bg-slate-800 rounded-lg transition-all"

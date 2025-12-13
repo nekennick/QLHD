@@ -61,12 +61,18 @@ export async function POST(request: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
+        // Nếu là USER1, chỉ được tạo USER2
+        let newRole = role;
+        if (session.user.role === "USER1") {
+            newRole = "USER2";
+        }
+
         const user = await prisma.user.create({
             data: {
                 username,
                 password: hashedPassword,
                 hoTen,
-                role: role || "USER2",
+                role: newRole || "USER2",
             },
         });
 

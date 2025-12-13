@@ -1,12 +1,22 @@
 "use client";
 
+import { useSession } from "next-auth/react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, redirect } from "next/navigation";
 
 export default function CreateUserPage() {
+    const { data: session } = useSession({
+        required: true,
+        onUnauthenticated() {
+            redirect("/login");
+        },
+    });
+
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
+
+    const isUser1 = session?.user?.role === "USER1";
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -101,20 +111,22 @@ export default function CreateUserPage() {
                         />
                     </div>
 
-                    <div>
-                        <label htmlFor="role" className="block text-sm font-medium text-slate-300 mb-2">
-                            Vai trò <span className="text-red-400">*</span>
-                        </label>
-                        <select
-                            id="role"
-                            name="role"
-                            required
-                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="USER2">Người thực hiện</option>
-                            <option value="USER1">Lãnh đạo</option>
-                        </select>
-                    </div>
+                    {!isUser1 && (
+                        <div>
+                            <label htmlFor="role" className="block text-sm font-medium text-slate-300 mb-2">
+                                Vai trò <span className="text-red-400">*</span>
+                            </label>
+                            <select
+                                id="role"
+                                name="role"
+                                required
+                                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            >
+                                <option value="USER2">Người thực hiện</option>
+                                <option value="USER1">Lãnh đạo</option>
+                            </select>
+                        </div>
+                    )}
 
                     <div className="flex gap-4 pt-4">
                         <button

@@ -13,8 +13,8 @@ async function getUsers() {
 export default async function CreateContractPage() {
     const session = await auth();
 
-    // Chỉ User1 (lãnh đạo) mới được tạo hợp đồng
-    if (session?.user?.role !== "USER1") {
+    // Chỉ User1 (lãnh đạo) và Admin mới được tạo hợp đồng
+    if (session?.user?.role !== "USER1" && session?.user?.role !== "ADMIN") {
         redirect("/hop-dong");
     }
 

@@ -32,8 +32,8 @@ export async function POST(request: Request) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
         }
 
-        // Chỉ User1 mới được tạo HĐ
-        if (session.user.role !== "USER1") {
+        // Chỉ User1 và Admin mới được tạo HĐ
+        if (session.user.role !== "USER1" && session.user.role !== "ADMIN") {
             return NextResponse.json(
                 { message: "Chỉ lãnh đạo mới có thể tạo hợp đồng" },
                 { status: 403 }

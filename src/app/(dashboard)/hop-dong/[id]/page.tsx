@@ -41,6 +41,7 @@ export default async function ContractDetailPage({
     // User1 được sửa tất cả, User2 chỉ sửa HĐ được giao
     const canEdit =
         session?.user?.role === "USER1" ||
+        session?.user?.role === "ADMIN" ||
         contract.nguoiThucHienId === session?.user?.id;
 
     // Format contract data for client component
