@@ -24,11 +24,12 @@ interface Contract {
 interface Props {
     contract: Contract;
     canEdit: boolean;
+    userRole?: string;
 }
 
 type TabType = "info" | "delivery" | "acceptance" | "payment" | "warranty";
 
-export default function ContractDetail({ contract, canEdit }: Props) {
+export default function ContractDetail({ contract, canEdit, userRole }: Props) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>("info");
     const [loading, setLoading] = useState(false);
@@ -100,6 +101,13 @@ export default function ContractDetail({ contract, canEdit }: Props) {
         value: string | number | null,
         placeholder?: string
     ) => {
+        // Kiểm tra quyền sửa đặc biệt:
+        // User 2 (người thực hiện) không được sửa Tên HĐ và Ngày ký nếu đã có dữ liệu
+        const isUser2 = userRole === "USER2";
+        const isRestrictedField = name === "tenHopDong" || name === "ngayKy";
+        const hasData = value !== null && value !== "";
+        const isDisabled = !canEdit || (isUser2 && isRestrictedField && hasData);
+
         const inputClass =
             "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 
@@ -112,7 +120,7 @@ export default function ContractDetail({ contract, canEdit }: Props) {
                     <textarea
                         name={name}
                         defaultValue={value || ""}
-                        disabled={!canEdit}
+                        disabled={isDisabled}
                         placeholder={placeholder}
                         rows={3}
                         className={inputClass}
@@ -122,11 +130,16 @@ export default function ContractDetail({ contract, canEdit }: Props) {
                         type={type}
                         name={name}
                         defaultValue={type === "date" ? formatDate(value as string) : (value || "")}
-                        disabled={!canEdit}
+                        disabled={isDisabled}
                         placeholder={placeholder}
                         step={type === "number" ? "0.01" : undefined}
                         className={inputClass}
                     />
+                )}
+                {isDisabled && isUser2 && isRestrictedField && hasData && (
+                    <p className="text-xs text-orange-400 mt-1">
+                        * Chỉ quản lý mới có thể chỉnh sửa thông tin này
+                    </p>
                 )}
             </div>
         );
@@ -150,8 +163,8 @@ export default function ContractDetail({ contract, canEdit }: Props) {
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
                         className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id
-                                ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                                : "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
+                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                            : "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
                             }`}
                     >
                         <span>{tab.icon}</span>
@@ -164,8 +177,8 @@ export default function ContractDetail({ contract, canEdit }: Props) {
             {message && (
                 <div
                     className={`p-4 rounded-lg ${message.type === "success"
-                            ? "bg-green-500/10 border border-green-500/50 text-green-400"
-                            : "bg-red-500/10 border border-red-500/50 text-red-400"
+                        ? "bg-green-500/10 border border-green-500/50 text-green-400"
+                        : "bg-red-500/10 border border-red-500/50 text-red-400"
                         }`}
                 >
                     {message.text}

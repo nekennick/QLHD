@@ -79,7 +79,7 @@ export default async function ContractDetailPage({
             </div>
 
             {/* Contract Detail Component */}
-            <ContractDetail contract={contractData} canEdit={canEdit} />
+            <ContractDetail contract={contractData} canEdit={canEdit} userRole={session?.user?.role} />
         </div>
     );
 }
