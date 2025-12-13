@@ -1,6 +1,6 @@
 "use client";
 
-import { useSession } from "next-auth/react";
+import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
@@ -47,6 +47,11 @@ export default function ProfilePage() {
 
             if (!res.ok) {
                 throw new Error(data.message || "Có lỗi xảy ra");
+            }
+
+            if (formData.newPassword) {
+                await signOut({ callbackUrl: "/login" });
+                return;
             }
 
             setMessage({ type: "success", text: "Cập nhật thông tin thành công!" });

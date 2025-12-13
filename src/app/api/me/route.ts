@@ -13,18 +13,34 @@ export async function PUT(request: Request) {
         const body = await request.json();
         const { hoTen, password, newPassword } = body;
 
-        // Cơ bản: Cho phép đổi tên hiển thị
         const updateData: {
             hoTen: string;
             password?: string;
+            mustChangePassword?: boolean;
         } = {
             hoTen,
         };
 
         // Nếu có đổi mật khẩu
         if (newPassword) {
+            // Lấy thông tin user hiện tại để kiểm tra mật khẩu cũ
+            const currentUser = await prisma.user.findUnique({
+                where: { id: session.user.id },
+            });
+
+            if (currentUser) {
+                const isSamePassword = await bcrypt.compare(newPassword, currentUser.password);
+                if (isSamePassword) {
+                    return NextResponse.json(
+                        { message: "Mật khẩu mới không được trùng với mật khẩu hiện tại" },
+                        { status: 400 }
+                    );
+                }
+            }
+
             const hashedPassword = await bcrypt.hash(newPassword, 10);
             updateData.password = hashedPassword;
+            updateData.mustChangePassword = false;
         }
 
         const user = await prisma.user.update({

@@ -38,6 +38,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
                     name: user.hoTen,
                     email: user.username,
                     role: user.role,
+                    mustChangePassword: user.mustChangePassword,
                 };
             },
         }),
@@ -46,6 +47,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         async jwt({ token, user }) {
             if (user) {
                 token.role = user.role;
+                token.mustChangePassword = user.mustChangePassword;
                 if (user.id) {
                     token.id = user.id;
                 }
@@ -56,6 +58,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             if (session.user) {
                 session.user.role = token.role as string;
                 session.user.id = token.id as string;
+                session.user.mustChangePassword = token.mustChangePassword as boolean;
             }
             return session;
         },

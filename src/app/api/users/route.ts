@@ -73,6 +73,7 @@ export async function POST(request: Request) {
                 password: hashedPassword,
                 hoTen,
                 role: newRole || "USER2",
+                mustChangePassword: true,
             },
         });
 
