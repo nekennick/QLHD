@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import ResetPasswordButton from "@/components/users/ResetPasswordButton";
 
 async function getUsers() {
     return prisma.user.findMany({
@@ -82,6 +83,7 @@ export default async function UsersPage() {
                                 <th className="px-6 py-4 font-medium">Vai trò</th>
                                 <th className="px-6 py-4 font-medium">Số HĐ thực hiện</th>
                                 <th className="px-6 py-4 font-medium">Ngày tạo</th>
+                                <th className="px-6 py-4 font-medium text-right">Reset mật khẩu</th>
                             </tr>
                         </thead>
                         <tbody className="text-slate-300">
@@ -110,6 +112,13 @@ export default async function UsersPage() {
                                     <td className="px-6 py-4">{user._count.hopDongThucHien}</td>
                                     <td className="px-6 py-4">
                                         {new Date(user.createdAt).toLocaleDateString("vi-VN")}
+                                    </td>
+                                    <td className="px-6 py-4 text-right">
+                                        <ResetPasswordButton
+                                            userId={user.id}
+                                            userName={user.hoTen}
+                                            targetRole={user.role}
+                                        />
                                     </td>
                                 </tr>
                             ))}
