@@ -7,7 +7,11 @@ import bcrypt from "bcryptjs";
 export async function GET() {
     try {
         const session = await auth();
-        if (!session?.user || session.user.role !== "USER1") {
+        // ADMIN và USER1 đều được xem danh sách
+        if (
+            !session?.user ||
+            (session.user.role !== "USER1" && session.user.role !== "ADMIN")
+        ) {
             return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
         }
 
@@ -33,9 +37,13 @@ export async function GET() {
 export async function POST(request: Request) {
     try {
         const session = await auth();
-        if (!session?.user || session.user.role !== "USER1") {
+        // ADMIN và USER1 đều được tạo user
+        if (
+            !session?.user ||
+            (session.user.role !== "USER1" && session.user.role !== "ADMIN")
+        ) {
             return NextResponse.json(
-                { message: "Chỉ lãnh đạo mới có thể tạo người dùng" },
+                { message: "Bạn không có quyền tạo người dùng" },
                 { status: 403 }
             );
         }
@@ -61,9 +69,13 @@ export async function POST(request: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Nếu là USER1, chỉ được tạo USER2
+        // Nếu là USER1, chỉ được tạo USER2. Nếu là ADMIN, được tạo role tùy ý (hoặc theo body passed)
         let newRole = role;
         if (session.user.role === "USER1") {
+            newRole = "USER2";
+        }
+        // Nếu ADMIN không truyền role, mặc định là USER2
+        if (session.user.role === "ADMIN" && !newRole) {
             newRole = "USER2";
         }
 
