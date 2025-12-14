@@ -5,7 +5,7 @@ import bcrypt from "bcryptjs";
 
 export async function POST(
     request: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
     try {
         const session = await auth();
@@ -18,7 +18,7 @@ export async function POST(
             return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }
 
-        const userId = params.id;
+        const { id: userId } = await params;
 
         // Hash password mặc định '123456'
         const hashedPassword = await bcrypt.hash("123456", 10);
