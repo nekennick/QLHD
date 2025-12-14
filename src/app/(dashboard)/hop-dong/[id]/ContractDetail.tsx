@@ -338,7 +338,7 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
                         <h3 className="text-lg font-semibold text-white">Thông tin bảo hành & đảm bảo</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {renderInputField("Hiệu lực bảo đảm thực hiện HĐ", "hieuLucBaoDam", "date", contract.hieuLucBaoDam)}
+                            {/* {renderInputField("Hiệu lực bảo đảm thực hiện HĐ", "hieuLucBaoDam", "date", contract.hieuLucBaoDam)} */}
                             {renderInputField("Hạn bảo hành hàng hóa", "hanBaoHanh", "date", contract.hanBaoHanh)}
                         </div>
 

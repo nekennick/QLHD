@@ -98,7 +98,7 @@ export default async function ReportPage({
     ]);
 
     const reportTypes: { value: ReportType; label: string; count: number; color: string }[] = [
-        { value: "all", label: "Tất cả", count: stats.total, color: "bg-slate-600" },
+        { value: "all", label: "Tổng số lượng hợp đồng", count: stats.total, color: "bg-slate-600" },
         { value: "incomplete", label: "Chưa hoàn thiện", count: stats.incomplete, color: "bg-yellow-600" },
         { value: "delivering", label: "Đang giao nhận", count: stats.delivering, color: "bg-blue-600" },
         { value: "late", label: "Giao chậm", count: stats.late, color: "bg-red-600" },
