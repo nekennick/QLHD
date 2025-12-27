@@ -101,15 +101,23 @@ export default async function UsersPage() {
                                     <td className="px-6 py-4">
                                         {user.role === "USER1" ? (
                                             <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 rounded-full">
-                                                Lãnh đạo
+                                                Lãnh đạo HĐ
                                             </span>
                                         ) : user.role === "ADMIN" ? (
                                             <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded-full">
                                                 Quản trị viên
                                             </span>
+                                        ) : user.role === "USER1_TCKT" ? (
+                                            <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
+                                                Lãnh đạo TCKT
+                                            </span>
+                                        ) : user.role === "USER2_TCKT" ? (
+                                            <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
+                                                Nhân viên TCKT
+                                            </span>
                                         ) : (
                                             <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
-                                                Người thực hiện
+                                                Người thực hiện HĐ
                                             </span>
                                         )}
                                     </td>

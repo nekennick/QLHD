@@ -29,6 +29,8 @@ model User {
   hopDongGiao HopDong[] @relation("NguoiGiao")
   // Hợp đồng thực hiện (User2 thực hiện)
   hopDongThucHien HopDong[] @relation("NguoiThucHien")
+  // Hợp đồng được giao thanh toán (User2_TCKT thực hiện)
+  hopDongThanhToan HopDong[] @relation("NguoiThanhToan")
 }
 
 // ==========================================
@@ -67,6 +69,13 @@ model HopDong {
   // Module 4: Bảo hành
   // ==========================================
   hanBaoHanh DateTime? // Hạn bảo hành hàng hóa
+
+  // ==========================================
+  // Module 5: Thanh toán (TCKT)
+  // ==========================================
+  nguoiThanhToanId String?
+  nguoiThanhToan   User?    @relation("NguoiThanhToan", fields: [nguoiThanhToanId], references: [id])
+  daThanhToan      Boolean  @default(false)
 
   // Metadata
   createdAt DateTime @default(now())

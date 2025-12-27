@@ -54,11 +54,19 @@ export async function PUT(
             );
         }
 
-        // User2 chỉ được sửa HĐ được giao cho mình
-        if (
-            session.user.role === "USER2" &&
-            existing.nguoiThucHienId !== session.user.id
-        ) {
+        const role = session.user.role;
+
+        // Kiểm tra quyền dựa trên role
+        // USER2 chỉ được sửa HĐ được giao cho mình
+        if (role === "USER2" && existing.nguoiThucHienId !== session.user.id) {
+            return NextResponse.json(
+                { message: "Bạn không có quyền sửa hợp đồng này" },
+                { status: 403 }
+            );
+        }
+
+        // USER2_TCKT chỉ được sửa HĐ được giao thanh toán cho mình
+        if (role === "USER2_TCKT" && existing.nguoiThanhToanId !== session.user.id) {
             return NextResponse.json(
                 { message: "Bạn không có quyền sửa hợp đồng này" },
                 { status: 403 }
@@ -68,19 +76,35 @@ export async function PUT(
         // Parse dates từ string
         const updateData: Record<string, unknown> = {};
 
-        // Các trường text/number
-        if (body.tenHopDong !== undefined) updateData.tenHopDong = body.tenHopDong;
-        if (body.giaTriHopDong !== undefined) updateData.giaTriHopDong = body.giaTriHopDong ? parseFloat(body.giaTriHopDong) : null;
-        if (body.giaTriGiaoNhan !== undefined) updateData.giaTriGiaoNhan = body.giaTriGiaoNhan ? parseFloat(body.giaTriGiaoNhan) : null;
-        if (body.giaTriNghiemThu !== undefined) updateData.giaTriNghiemThu = body.giaTriNghiemThu ? parseFloat(body.giaTriNghiemThu) : null;
-        if (body.tuChinhHopDong !== undefined) updateData.tuChinhHopDong = body.tuChinhHopDong;
-        if (body.nguoiThucHienId !== undefined) updateData.nguoiThucHienId = body.nguoiThucHienId || null;
+        // Các trường text/number (chỉ USER1, USER2, ADMIN được sửa)
+        if (["USER1", "USER2", "ADMIN"].includes(role)) {
+            if (body.tenHopDong !== undefined) updateData.tenHopDong = body.tenHopDong;
+            if (body.giaTriHopDong !== undefined) updateData.giaTriHopDong = body.giaTriHopDong ? parseFloat(body.giaTriHopDong) : null;
+            if (body.giaTriGiaoNhan !== undefined) updateData.giaTriGiaoNhan = body.giaTriGiaoNhan ? parseFloat(body.giaTriGiaoNhan) : null;
+            if (body.giaTriNghiemThu !== undefined) updateData.giaTriNghiemThu = body.giaTriNghiemThu ? parseFloat(body.giaTriNghiemThu) : null;
+            if (body.tuChinhHopDong !== undefined) updateData.tuChinhHopDong = body.tuChinhHopDong;
+            if (body.nguoiThucHienId !== undefined) updateData.nguoiThucHienId = body.nguoiThucHienId || null;
 
-        // Các trường date
-        const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh'];
-        for (const field of dateFields) {
-            if (body[field] !== undefined) {
-                updateData[field] = body[field] ? new Date(body[field]) : null;
+            // Các trường date
+            const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh'];
+            for (const field of dateFields) {
+                if (body[field] !== undefined) {
+                    updateData[field] = body[field] ? new Date(body[field]) : null;
+                }
+            }
+        }
+
+        // USER1_TCKT được giao việc thanh toán (set nguoiThanhToanId)
+        if (["USER1_TCKT", "ADMIN"].includes(role)) {
+            if (body.nguoiThanhToanId !== undefined) {
+                updateData.nguoiThanhToanId = body.nguoiThanhToanId || null;
+            }
+        }
+
+        // USER2_TCKT được đánh dấu đã thanh toán
+        if (["USER2_TCKT", "ADMIN"].includes(role)) {
+            if (body.daThanhToan !== undefined) {
+                updateData.daThanhToan = body.daThanhToan;
             }
         }
 
