@@ -40,14 +40,33 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-      <div className="absolute inset-0 bg-gradient-to-br from-purple-900/20 to-pink-900/20"></div>
+      {/* Overlay with explicit rgba for iOS Safari */}
+      <div
+        className="absolute inset-0"
+        style={{
+          background: 'linear-gradient(to bottom right, rgba(88, 28, 135, 0.25), rgba(131, 24, 67, 0.25))',
+          backgroundBlendMode: 'normal'
+        }}
+      ></div>
 
       <div className="relative w-full max-w-md mx-4">
-        {/* Glow effect */}
-        <div className="absolute -inset-1 bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl blur-lg opacity-30 animate-pulse"></div>
+        {/* Glow effect with explicit rgba */}
+        <div
+          className="absolute -inset-1 rounded-2xl blur-lg animate-pulse"
+          style={{
+            background: 'linear-gradient(to right, rgba(147, 51, 234, 0.35), rgba(236, 72, 153, 0.35))'
+          }}
+        ></div>
 
-        {/* Card */}
-        <div className="relative bg-slate-800/80 backdrop-blur-xl rounded-2xl shadow-2xl border border-slate-700/50 p-8">
+        {/* Card with explicit rgba */}
+        <div
+          className="relative backdrop-blur-xl rounded-2xl shadow-2xl p-8"
+          style={{
+            backgroundColor: 'rgba(30, 41, 59, 0.85)',
+            borderWidth: '1px',
+            borderColor: 'rgba(51, 65, 85, 0.5)'
+          }}
+        >
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-2xl mb-4 shadow-lg">

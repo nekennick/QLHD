@@ -138,30 +138,30 @@ export default async function DashboardPage() {
     ].filter((w) => w.count > 0);
 
     return (
-        <div className="space-y-8">
+        <div className="space-y-4 md:space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white">Dashboard</h1>
-                <p className="text-slate-400 mt-1">
+                <h1 className="text-xl md:text-3xl font-bold text-white">Dashboard</h1>
+                <p className="text-slate-400 text-sm md:text-base mt-1">
                     Xin chào, {session?.user?.name}!{" "}
                     {session?.user?.role === "USER1" ? "(Lãnh đạo)" : "(Người thực hiện)"}
                 </p>
             </div>
 
             {/* Stats Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
                 {statCards.map((stat, index) => (
                     <div
                         key={index}
-                        className="relative overflow-hidden rounded-2xl bg-slate-800/50 border border-slate-700/50 p-6"
+                        className="relative overflow-hidden rounded-xl md:rounded-2xl bg-slate-800/50 border border-slate-700/50 p-4 md:p-6"
                     >
                         <div
-                            className={`absolute top-0 right-0 w-32 h-32 bg-gradient-to-br ${stat.color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`}
+                            className={`absolute top-0 right-0 w-20 md:w-32 h-20 md:h-32 bg-gradient-to-br ${stat.color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`}
                         />
                         <div className="relative">
-                            <span className="text-3xl">{stat.icon}</span>
-                            <p className="text-4xl font-bold text-white mt-3">{stat.value}</p>
-                            <p className="text-slate-400 text-sm mt-1">{stat.title}</p>
+                            <span className="text-xl md:text-3xl">{stat.icon}</span>
+                            <p className="text-2xl md:text-4xl font-bold text-white mt-2 md:mt-3">{stat.value}</p>
+                            <p className="text-slate-400 text-xs md:text-sm mt-1">{stat.title}</p>
                         </div>
                     </div>
                 ))}
@@ -169,20 +169,20 @@ export default async function DashboardPage() {
 
             {/* Warnings */}
             {warnings.length > 0 && (
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-                    <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
-                        <span className="text-2xl">⚠️</span> Cảnh báo
+                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl md:rounded-2xl p-4 md:p-6">
+                    <h2 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4 flex items-center gap-2">
+                        <span className="text-xl md:text-2xl">⚠️</span> Cảnh báo
                     </h2>
-                    <div className="space-y-3">
+                    <div className="space-y-2 md:space-y-3">
                         {warnings.map((warning, index) => (
                             <div
                                 key={index}
-                                className={`flex items-center gap-3 px-4 py-3 rounded-xl ${warning.bgColor}`}
+                                className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl ${warning.bgColor}`}
                             >
-                                <span className={`text-2xl font-bold ${warning.color}`}>
+                                <span className={`text-lg md:text-2xl font-bold ${warning.color}`}>
                                     {warning.count}
                                 </span>
-                                <span className={warning.color}>{warning.message}</span>
+                                <span className={`text-sm md:text-base ${warning.color}`}>{warning.message}</span>
                             </div>
                         ))}
                     </div>
@@ -190,12 +190,12 @@ export default async function DashboardPage() {
             )}
 
             {/* Recent Contracts */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-lg font-semibold text-white">Hợp đồng gần đây</h2>
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl md:rounded-2xl p-4 md:p-6">
+                <div className="flex items-center justify-between mb-4 md:mb-6">
+                    <h2 className="text-base md:text-lg font-semibold text-white">Hợp đồng gần đây</h2>
                     <Link
                         href="/hop-dong"
-                        className="text-sm text-purple-400 hover:text-purple-300 transition-colors"
+                        className="text-xs md:text-sm text-purple-400 hover:text-purple-300 transition-colors"
                     >
                         Xem tất cả →
                     </Link>
