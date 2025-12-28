@@ -11,6 +11,19 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "Quản Lý Hợp Đồng",
   description: "Hệ thống quản lý thực hiện hợp đồng",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "QLHĐ",
+  },
+  viewport: {
+    width: "device-width",
+    initialScale: 1,
+    maximumScale: 1,
+    userScalable: false,
+    viewportFit: "cover",
+  },
 };
 
 export default function RootLayout({
