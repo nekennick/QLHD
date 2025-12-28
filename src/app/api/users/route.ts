@@ -82,6 +82,7 @@ export async function POST(request: Request) {
         const user = await prisma.user.create({
             data: {
                 username,
+                email: username, // Dùng username làm định danh cho Passkey
                 password: hashedPassword,
                 hoTen,
                 role: newRole || "USER2",

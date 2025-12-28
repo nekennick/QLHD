@@ -142,6 +142,39 @@ export default function ProfilePage() {
                     </div>
                 </form>
             </div>
+
+            {/* Passkey Management */}
+            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+                <h2 className="text-xl font-bold text-white mb-4 flex items-center gap-2">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                    </svg>
+                    Passkey (Sinh trắc học)
+                </h2>
+                <p className="text-slate-400 text-sm mb-4">
+                    Đăng ký Passkey để đăng nhập bằng vân tay, Face ID, hoặc Windows Hello mà không cần mật khẩu.
+                </p>
+                <button
+                    type="button"
+                    onClick={async () => {
+                        try {
+                            const { signIn } = await import("next-auth/webauthn");
+                            await signIn("passkey", { action: "register" });
+                        } catch (err) {
+                            alert("Có lỗi xảy ra khi đăng ký Passkey: " + (err instanceof Error ? err.message : "Unknown error"));
+                        }
+                    }}
+                    className="w-full py-3 px-4 bg-slate-700 hover:bg-slate-600 text-white font-semibold rounded-lg border border-slate-600 transition-all duration-200 flex items-center justify-center gap-2"
+                >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4" />
+                    </svg>
+                    Đăng ký Passkey mới
+                </button>
+                <p className="text-slate-500 text-xs mt-3 text-center">
+                    * Yêu cầu thiết bị hỗ trợ sinh trắc học hoặc Security Key
+                </p>
+            </div>
         </div>
     );
 }

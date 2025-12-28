@@ -18,6 +18,8 @@ datasource db {
 model User {
   id        String   @id @default(cuid())
   username  String   @unique
+  email     String?  @unique // Required for Passkey - using username@local as email
+  emailVerified DateTime? // Required for Passkey
   password  String
   hoTen     String
   role      String   @default("USER2") // ADMIN: Quản trị, USER1: Lãnh đạo, USER2: Người thực hiện
@@ -31,6 +33,52 @@ model User {
   hopDongThucHien HopDong[] @relation("NguoiThucHien")
   // Hợp đồng được giao thanh toán (User2_TCKT thực hiện)
   hopDongThanhToan HopDong[] @relation("NguoiThanhToan")
+  // Passkey/WebAuthn authenticators
+  authenticators Authenticator[]
+  // Auth accounts (required by PrismaAdapter for Passkey)
+  accounts Account[]
+}
+
+// ==========================================
+// Model Account cho OAuth/Passkey
+// ==========================================
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+// ==========================================
+// Model Authenticator cho WebAuthn/Passkey
+// ==========================================
+
+model Authenticator {
+  credentialID         String  @unique
+  userId               String
+  providerAccountId    String
+  credentialPublicKey  String
+  counter              Int
+  credentialDeviceType String
+  credentialBackedUp   Boolean
+  transports           String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@id([userId, credentialID])
 }
 
 // ==========================================
