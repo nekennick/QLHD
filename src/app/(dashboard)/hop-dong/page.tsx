@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import Link from "next/link";
+import ContractsTable from "@/components/contracts/ContractsTable";
 
 async function getContracts(searchParams: { status?: string; nguoiThucHien?: string }) {
     const where: Record<string, unknown> = {};
@@ -23,7 +24,7 @@ async function getContracts(searchParams: { status?: string; nguoiThucHien?: str
         orderBy: { createdAt: "desc" },
         include: {
             nguoiGiao: { select: { hoTen: true } },
-            nguoiThucHien: { select: { hoTen: true } },
+            nguoiThucHien: { select: { hoTen: true, id: true } },
         },
     });
 }
@@ -33,6 +34,11 @@ async function getUsers() {
         where: { role: "USER2" },
         select: { id: true, hoTen: true },
     });
+}
+
+interface User {
+    id: string;
+    hoTen: string;
 }
 
 export default async function HopDongPage({
@@ -45,6 +51,7 @@ export default async function HopDongPage({
     const contracts = await getContracts(params);
     const users = await getUsers();
     const isAdmin = session?.user?.role === "USER1";
+    const canReassign = session?.user?.role === "USER1" || session?.user?.role === "USER1_TCKT";
 
     const statusFilters = [
         { value: "", label: "Tất cả" },
@@ -86,8 +93,8 @@ export default async function HopDongPage({
                                     key={filter.value}
                                     href={`/hop-dong${filter.value ? `?status=${filter.value}` : ""}`}
                                     className={`px-3 py-1.5 text-sm rounded-lg transition-all ${params.status === filter.value || (!params.status && !filter.value)
-                                            ? "bg-purple-600 text-white"
-                                            : "bg-slate-700 text-slate-300 hover:bg-slate-600"
+                                        ? "bg-purple-600 text-white"
+                                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                                         }`}
                                 >
                                     {filter.label}
@@ -104,7 +111,7 @@ export default async function HopDongPage({
                             className="px-3 py-1.5 text-sm bg-slate-700 text-slate-300 rounded-lg border-none focus:ring-2 focus:ring-purple-500"
                         >
                             <option value="">Tất cả</option>
-                            {users.map((user) => (
+                            {users.map((user: User) => (
                                 <option key={user.id} value={user.id}>
                                     {user.hoTen}
                                 </option>
@@ -130,81 +137,10 @@ export default async function HopDongPage({
                         )}
                     </div>
                 ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
-                                    <th className="px-6 py-4 font-medium">Số HĐ</th>
-                                    <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
-                                    <th className="px-6 py-4 font-medium">Giá trị</th>
-                                    <th className="px-6 py-4 font-medium">Ngày ký</th>
-                                    <th className="px-6 py-4 font-medium">Người thực hiện</th>
-                                    <th className="px-6 py-4 font-medium">Trạng thái</th>
-                                    <th className="px-6 py-4 font-medium"></th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-slate-300">
-                                {contracts.map((contract) => (
-                                    <tr
-                                        key={contract.id}
-                                        className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
-                                    >
-                                        <td className="px-6 py-4 font-medium text-white">
-                                            {contract.soHopDong}
-                                        </td>
-                                        <td className="px-6 py-4">{contract.tenHopDong || "—"}</td>
-                                        <td className="px-6 py-4">
-                                            {contract.giaTriHopDong
-                                                ? new Intl.NumberFormat("vi-VN", {
-                                                    style: "currency",
-                                                    currency: "VND",
-                                                }).format(contract.giaTriHopDong)
-                                                : "—"}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {contract.ngayKy
-                                                ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
-                                                : "—"}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {contract.nguoiThucHien?.hoTen || "—"}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            {!contract.tenHopDong ? (
-                                                <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
-                                                    Chưa hoàn thiện
-                                                </span>
-                                            ) : contract.ngayDuyetThanhToan ? (
-                                                <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
-                                                    Đã thanh toán
-                                                </span>
-                                            ) : contract.giaTriNghiemThu ? (
-                                                <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
-                                                    Đã nghiệm thu
-                                                </span>
-                                            ) : contract.giaTriGiaoNhan ? (
-                                                <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
-                                                    Đang giao nhận
-                                                </span>
-                                            ) : (
-                                                <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full">
-                                                    Mới tạo
-                                                </span>
-                                            )}
-                                        </td>
-                                        <td className="px-6 py-4">
-                                            <Link
-                                                href={`/hop-dong/${contract.id}`}
-                                                className="text-purple-400 hover:text-purple-300 text-sm"
-                                            >
-                                                Chi tiết →
-                                            </Link>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                    <ContractsTable
+                        contracts={contracts}
+                        canReassign={canReassign}
+                    />
                 )}
             </div>
         </div>

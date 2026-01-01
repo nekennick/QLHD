@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import ExecutorCell from "@/components/contracts/ExecutorCell";
 
 interface Contract {
     id: string;
@@ -18,7 +19,8 @@ interface Contract {
     ngayDuyetThanhToan: string | null;
     hanBaoHanh: string | null;
     nguoiGiao: { hoTen: string } | null;
-    nguoiThucHien: { hoTen: string } | null;
+    nguoiThucHien: { id: string; hoTen: string } | null;
+    nguoiThucHienId: string | null;
 }
 
 interface User {
@@ -90,6 +92,11 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
 
             setMessage({ type: "success", text: "Cập nhật thành công!" });
             router.refresh();
+
+            // Auto-clear success message after 3 seconds
+            setTimeout(() => {
+                setMessage(null);
+            }, 3000);
         } catch (err) {
             setMessage({
                 type: "error",
@@ -202,9 +209,35 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
                             {renderReadOnlyField("Số hợp đồng", contract.soHopDong)}
                             {renderReadOnlyField("Người giao", contract.nguoiGiao?.hoTen)}
 
-                            {/* Logic chọn người thực hiện (chỉ chọn 1 lần nếu chưa có) */}
+                            {/* Người thực hiện - có thể chuyển giao nếu là USER1/USER1_TCKT */}
                             {contract.nguoiThucHien ? (
-                                renderReadOnlyField("Người thực hiện", contract.nguoiThucHien.hoTen)
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                        Người thực hiện
+                                    </label>
+                                    {(userRole === "USER1" || userRole === "USER1_TCKT") ? (
+                                        <div className="px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
+                                            <ExecutorCell
+                                                contractId={contract.id}
+                                                currentExecutor={{
+                                                    id: contract.nguoiThucHien.id,
+                                                    name: contract.nguoiThucHien.hoTen,
+                                                }}
+                                                canReassign={true}
+                                                onReassignSuccess={() => router.refresh()}
+                                            />
+                                        </div>
+                                    ) : (
+                                        <p className="text-white px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
+                                            {contract.nguoiThucHien.hoTen}
+                                        </p>
+                                    )}
+                                    {(userRole === "USER1" || userRole === "USER1_TCKT") && (
+                                        <p className="text-xs text-blue-400 mt-1">
+                                            * Click vào tên để chuyển giao cho người khác
+                                        </p>
+                                    )}
+                                </div>
                             ) : (
                                 <div>
                                     <label htmlFor="nguoiThucHienId" className="block text-sm font-medium text-slate-300 mb-2">

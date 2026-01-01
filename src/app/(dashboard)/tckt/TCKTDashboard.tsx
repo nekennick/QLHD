@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import AssignmentConfirmDialog from "@/components/contracts/AssignmentConfirmDialog";
 
 interface Contract {
     id: string;
@@ -36,13 +37,26 @@ export default function TCKTDashboard({
     const router = useRouter();
     const [loading, setLoading] = useState<string | null>(null);
 
+    // State cho hộp thoại xác nhận
+    const [confirmOpen, setConfirmOpen] = useState(false);
+    const [assignTarget, setAssignTarget] = useState<{ contractId: string, staffId: string } | null>(null);
+
     // Filter contracts for USER2_TCKT
     const displayContracts =
         userRole === "USER2_TCKT"
             ? contracts.filter((c) => c.nguoiThanhToanId === userId)
             : contracts;
 
-    const handleAssign = async (contractId: string, staffId: string) => {
+    const handleAssignClick = (contractId: string, staffId: string) => {
+        setAssignTarget({ contractId, staffId });
+        setConfirmOpen(true);
+    };
+
+    const handleConfirmAssign = async () => {
+        if (!assignTarget) return;
+        const { contractId, staffId } = assignTarget;
+
+        setConfirmOpen(false);
         setLoading(contractId);
         try {
             const res = await fetch(`/api/hop-dong/${contractId}`, {
@@ -62,7 +76,13 @@ export default function TCKTDashboard({
             alert("Có lỗi xảy ra");
         } finally {
             setLoading(null);
+            setAssignTarget(null);
         }
+    };
+
+    const handleCancelAssign = () => {
+        setConfirmOpen(false);
+        setAssignTarget(null);
     };
 
     const handleMarkPaid = async (contractId: string) => {
@@ -115,7 +135,7 @@ export default function TCKTDashboard({
                             <th className="px-6 py-4 font-medium">Tên HĐ</th>
                             <th className="px-6 py-4 font-medium">Giá trị</th>
                             <th className="px-6 py-4 font-medium">Ngày đề nghị</th>
-                            <th className="px-6 py-4 font-medium">Người thực hiện</th>
+                            <th className="px-6 py-4 font-medium">Người thực hiện HĐ</th>
                             {["USER1_TCKT", "ADMIN"].includes(userRole) && (
                                 <th className="px-6 py-4 font-medium">Giao cho</th>
                             )}
@@ -157,7 +177,7 @@ export default function TCKTDashboard({
                                             <select
                                                 value={contract.nguoiThanhToanId || ""}
                                                 onChange={(e) =>
-                                                    handleAssign(contract.id, e.target.value)
+                                                    handleAssignClick(contract.id, e.target.value)
                                                 }
                                                 disabled={loading === contract.id}
                                                 className="px-3 py-1.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
@@ -188,6 +208,18 @@ export default function TCKTDashboard({
                     </tbody>
                 </table>
             </div>
+
+            <AssignmentConfirmDialog
+                isOpen={confirmOpen}
+                title="Giao việc thanh toán"
+                fromLabel="HĐ:"
+                currentExecutor={contracts.find(c => c.id === assignTarget?.contractId)?.soHopDong || "—"}
+                toLabel="Giao cho:"
+                newExecutor={staff.find(s => s.id === assignTarget?.staffId)?.hoTen || "Chưa giao"}
+                description="Xác nhận phân công nhân viên thực hiện thanh toán cho hợp đồng này?"
+                onConfirm={handleConfirmAssign}
+                onCancel={handleCancelAssign}
+            />
 
             {/* Info */}
             <div className="p-4 border-t border-slate-700/50 bg-blue-500/10">
