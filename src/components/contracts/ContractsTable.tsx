@@ -15,17 +15,23 @@ interface Contract {
     ngayDuyetThanhToan: Date | null;
     giaTriNghiemThu: number | null;
     giaTriGiaoNhan: number | null;
+    updatedAt: Date;
 }
 
 interface ContractsTableProps {
     contracts: Contract[];
     canReassign: boolean;
+    currentUser?: {
+        id: string;
+        role: string;
+    };
     onReassignSuccess?: () => void;
 }
 
 export default function ContractsTable({
     contracts,
     canReassign,
+    currentUser,
     onReassignSuccess,
 }: ContractsTableProps) {
     const router = useRouter();
@@ -34,6 +40,18 @@ export default function ContractsTable({
         router.refresh();
         onReassignSuccess?.();
     };
+
+    const isStale = (contract: Contract) => {
+        if (contract.ngayDuyetThanhToan) return false;
+
+        const lastUpdate = new Date(contract.updatedAt);
+        const now = new Date();
+        const diffTime = Math.abs(now.getTime() - lastUpdate.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+        return diffDays > 7;
+    };
+
     return (
         <div className="overflow-x-auto">
             <table className="w-full">
@@ -49,76 +67,91 @@ export default function ContractsTable({
                     </tr>
                 </thead>
                 <tbody className="text-slate-300">
-                    {contracts.map((contract) => (
-                        <tr
-                            key={contract.id}
-                            className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
-                        >
-                            <td className="px-6 py-4 font-medium text-white">
-                                {contract.soHopDong}
-                            </td>
-                            <td className="px-6 py-4">{contract.tenHopDong || "—"}</td>
-                            <td className="px-6 py-4">
-                                {contract.giaTriHopDong
-                                    ? new Intl.NumberFormat("vi-VN", {
-                                        style: "currency",
-                                        currency: "VND",
-                                    }).format(contract.giaTriHopDong)
-                                    : "—"}
-                            </td>
-                            <td className="px-6 py-4">
-                                {contract.ngayKy
-                                    ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
-                                    : "—"}
-                            </td>
-                            <td className="px-6 py-4">
-                                <ExecutorCell
-                                    contractId={contract.id}
-                                    currentExecutor={
-                                        contract.nguoiThucHien && contract.nguoiThucHienId
-                                            ? {
-                                                id: contract.nguoiThucHienId,
-                                                name: contract.nguoiThucHien.hoTen,
-                                            }
-                                            : null
-                                    }
-                                    canReassign={canReassign}
-                                    onReassignSuccess={handleReassignSuccess}
-                                />
-                            </td>
-                            <td className="px-6 py-4">
-                                {!contract.tenHopDong ? (
-                                    <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
-                                        Chưa hoàn thiện
-                                    </span>
-                                ) : contract.ngayDuyetThanhToan ? (
-                                    <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
-                                        Đã thanh toán
-                                    </span>
-                                ) : contract.giaTriNghiemThu ? (
-                                    <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
-                                        Đã nghiệm thu
-                                    </span>
-                                ) : contract.giaTriGiaoNhan ? (
-                                    <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
-                                        Đang giao nhận
-                                    </span>
-                                ) : (
-                                    <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full">
-                                        Mới tạo
-                                    </span>
-                                )}
-                            </td>
-                            <td className="px-6 py-4">
-                                <Link
-                                    href={`/hop-dong/${contract.id}`}
-                                    className="text-purple-400 hover:text-purple-300 text-sm"
-                                >
-                                    Chi tiết →
-                                </Link>
-                            </td>
-                        </tr>
-                    ))}
+                    {contracts.map((contract) => {
+                        const stale = isStale(contract);
+                        const showWarning = stale && (
+                            currentUser?.role === "USER1" ||
+                            (currentUser?.role === "USER2" && currentUser?.id === contract.nguoiThucHienId)
+                        );
+
+                        return (
+                            <tr
+                                key={contract.id}
+                                className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+                            >
+                                <td className={`px-6 py-4 font-medium ${showWarning ? "text-red-500 animate-pulse-slow" : "text-white"}`}>
+                                    <div className="flex items-center gap-2">
+                                        {contract.soHopDong}
+                                        {showWarning && (
+                                            <span title="Hơn 7 ngày không có cập nhật" className="animate-bounce">
+                                                ⚠️
+                                            </span>
+                                        )}
+                                    </div>
+                                </td>
+                                <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>{contract.tenHopDong || "—"}</td>
+                                <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    {contract.giaTriHopDong
+                                        ? new Intl.NumberFormat("vi-VN", {
+                                            style: "currency",
+                                            currency: "VND",
+                                        }).format(contract.giaTriHopDong)
+                                        : "—"}
+                                </td>
+                                <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    {contract.ngayKy
+                                        ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
+                                        : "—"}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <ExecutorCell
+                                        contractId={contract.id}
+                                        currentExecutor={
+                                            contract.nguoiThucHien && contract.nguoiThucHienId
+                                                ? {
+                                                    id: contract.nguoiThucHienId,
+                                                    name: contract.nguoiThucHien.hoTen,
+                                                }
+                                                : null
+                                        }
+                                        canReassign={canReassign}
+                                        onReassignSuccess={handleReassignSuccess}
+                                    />
+                                </td>
+                                <td className="px-6 py-4">
+                                    {!contract.tenHopDong ? (
+                                        <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
+                                            Chưa hoàn thiện
+                                        </span>
+                                    ) : contract.ngayDuyetThanhToan ? (
+                                        <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
+                                            Đã thanh toán
+                                        </span>
+                                    ) : contract.giaTriNghiemThu ? (
+                                        <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
+                                            Đã nghiệm thu
+                                        </span>
+                                    ) : contract.giaTriGiaoNhan ? (
+                                        <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
+                                            Đang giao nhận
+                                        </span>
+                                    ) : (
+                                        <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full">
+                                            Mới tạo
+                                        </span>
+                                    )}
+                                </td>
+                                <td className="px-6 py-4">
+                                    <Link
+                                        href={`/hop-dong/${contract.id}`}
+                                        className="text-purple-400 hover:text-purple-300 text-sm"
+                                    >
+                                        Chi tiết →
+                                    </Link>
+                                </td>
+                            </tr>
+                        );
+                    })}
                 </tbody>
             </table>
         </div>

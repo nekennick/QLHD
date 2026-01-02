@@ -140,6 +140,10 @@ export default async function HopDongPage({
                     <ContractsTable
                         contracts={contracts}
                         canReassign={canReassign}
+                        currentUser={{
+                            id: session?.user?.id || "",
+                            role: session?.user?.role || "",
+                        }}
                     />
                 )}
             </div>
