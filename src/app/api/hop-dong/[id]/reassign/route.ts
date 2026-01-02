@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { createNotification } from "@/lib/notifications";
 
 type RouteContext = {
     params: Promise<{ id: string }>;
@@ -98,6 +99,7 @@ export async function POST(
         }
 
         // Cập nhật người thực hiện
+        const oldExecutorId = contract.nguoiThucHienId;
         const updatedContract = await prisma.hopDong.update({
             where: { id: contractId },
             data: {
@@ -112,6 +114,26 @@ export async function POST(
                 },
             },
         });
+
+        // Tạo thông báo cho người nhận mới
+        await createNotification({
+            userId: newExecutorId,
+            title: "Hợp đồng mới được giao",
+            message: `Bạn được giao hợp đồng ${contract.soHopDong}`,
+            type: "contract_assigned",
+            link: `/hop-dong/${contractId}`,
+        });
+
+        // Tạo thông báo cho người được giải phóng (nếu có)
+        if (oldExecutorId && oldExecutorId !== newExecutorId) {
+            await createNotification({
+                userId: oldExecutorId,
+                title: "Hợp đồng đã được chuyển giao",
+                message: `Bạn đã được giải phóng khỏi hợp đồng ${contract.soHopDong}`,
+                type: "contract_released",
+                link: `/hop-dong`,
+            });
+        }
 
         return NextResponse.json({
             message: "Chuyển giao hợp đồng thành công",
