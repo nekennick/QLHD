@@ -107,6 +107,13 @@ model HopDong {
   nguoiThucHien   User?    @relation("NguoiThucHien", fields: [nguoiThucHienId], references: [id])
 
   // ==========================================
+  // Công trình đầu tư xây dựng
+  // ==========================================
+  isConstructionInvestment Boolean @default(false) // Là hợp đồng công trình đầu tư xây dựng
+  giaTriQuyetToan    Float?     // Trị giá quyết toán công trình
+  ngayQuyetToan      DateTime?  // Ngày quyết toán
+
+  // ==========================================
   // Module 3: Giao nhận - Nghiệm thu - Thanh toán
   // ==========================================
   giaTriGiaoNhan     Float?     // Giá trị hàng giao nhận

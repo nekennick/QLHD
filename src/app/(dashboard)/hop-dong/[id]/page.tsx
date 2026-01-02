@@ -53,6 +53,7 @@ export default async function ContractDetailPage({
         ngayGiaoHang: contract.ngayGiaoHang?.toISOString() || null,
         ngayDuyetThanhToan: contract.ngayDuyetThanhToan?.toISOString() || null,
         hanBaoHanh: contract.hanBaoHanh?.toISOString() || null,
+        ngayQuyetToan: contract.ngayQuyetToan?.toISOString() || null,
     };
 
     return (

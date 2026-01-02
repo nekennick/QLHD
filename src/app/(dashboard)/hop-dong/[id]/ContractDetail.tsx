@@ -21,6 +21,10 @@ interface Contract {
     nguoiGiao: { hoTen: string } | null;
     nguoiThucHien: { id: string; hoTen: string } | null;
     nguoiThucHienId: string | null;
+    // Công trình đầu tư xây dựng
+    isConstructionInvestment: boolean;
+    giaTriQuyetToan: number | null;
+    ngayQuyetToan: string | null;
 }
 
 interface User {
@@ -115,11 +119,18 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
         placeholder?: string
     ) => {
         // Kiểm tra quyền sửa đặc biệt:
-        // User 2 (người thực hiện) không được sửa Tên HĐ và Ngày ký nếu đã có dữ liệu
         const isUser2 = userRole === "USER2";
-        const isRestrictedField = name === "tenHopDong" || name === "ngayKy";
+        const isUser1 = userRole === "USER1";
+
+        // User 2 (người thực hiện) không được sửa Tên HĐ và Ngày ký nếu đã có dữ liệu
+        const isRestrictedFieldForUser2 = name === "tenHopDong" || name === "ngayKy";
         const hasData = value !== null && value !== "";
-        const isDisabled = !canEdit || (isUser2 && isRestrictedField && hasData);
+
+        // USER1 (Lãnh đạo) chỉ tạo HĐ, không tham gia nhập liệu chi tiết thực hiện
+        // nên sẽ bị khóa tất cả các trường chi tiết sau khi tạo.
+        const isDisabled = !canEdit ||
+            (isUser2 && isRestrictedFieldForUser2 && hasData) ||
+            isUser1;
 
         const inputClass =
             "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
@@ -149,7 +160,7 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
                         className={inputClass}
                     />
                 )}
-                {isDisabled && isUser2 && isRestrictedField && hasData && (
+                {isDisabled && isUser2 && isRestrictedFieldForUser2 && hasData && (
                     <p className="text-xs text-orange-400 mt-1">
                         * Chỉ quản lý mới có thể chỉnh sửa thông tin này
                     </p>
@@ -275,6 +286,41 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
                         </div>
 
                         {renderInputField("Thông tin tu chỉnh", "tuChinhHopDong", "textarea", contract.tuChinhHopDong, "Nhập thông tin tu chỉnh nếu có")}
+
+                        {/* Phần quyết toán công trình đầu tư xây dựng */}
+                        {contract.isConstructionInvestment && (
+                            <>
+                                <hr className="border-slate-700" />
+                                <div className="space-y-4">
+                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                                        🏗️ Quyết toán công trình đầu tư xây dựng
+                                    </h3>
+
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {renderInputField("Trị giá quyết toán công trình (VNĐ)", "giaTriQuyetToan", "number", contract.giaTriQuyetToan, "0")}
+                                        {renderInputField("Ngày quyết toán", "ngayQuyetToan", "date", contract.ngayQuyetToan)}
+                                    </div>
+
+                                    {/* Trị giá thừa sau quyết toán - tính tự động */}
+                                    {contract.giaTriHopDong && contract.giaTriQuyetToan !== null && (
+                                        <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
+                                            <label className="block text-sm font-medium text-slate-400 mb-1">
+                                                Trị giá thừa sau quyết toán
+                                            </label>
+                                            <p className={`text-xl font-bold ${(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0)) >= 0
+                                                ? 'text-green-400'
+                                                : 'text-red-400'
+                                                }`}>
+                                                {formatCurrency(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0))}
+                                            </p>
+                                            <p className="text-xs text-slate-500 mt-1">
+                                                = Giá trị hợp đồng ({formatCurrency(contract.giaTriHopDong)}) - Trị giá quyết toán ({formatCurrency(contract.giaTriQuyetToan)})
+                                            </p>
+                                        </div>
+                                    )}
+                                </div>
+                            </>
+                        )}
                     </div>
                 )}
 

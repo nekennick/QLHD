@@ -22,6 +22,7 @@ export default function CreateContractForm({ users }: { users: User[] }) {
         const data = {
             soHopDong: formData.get("soHopDong"),
             nguoiThucHienId: formData.get("nguoiThucHienId") || null,
+            isConstructionInvestment: formData.get("isConstructionInvestment") === "on",
         };
 
         try {
@@ -87,6 +88,19 @@ export default function CreateContractForm({ users }: { users: User[] }) {
                 <p className="text-sm text-slate-500 mt-1">
                     Người thực hiện sẽ được giao để hoàn thiện thông tin hợp đồng
                 </p>
+            </div>
+
+            {/* Checkbox Công trình đầu tư xây dựng */}
+            <div className="flex items-center gap-3 p-4 bg-slate-900/30 border border-slate-600/30 rounded-lg">
+                <input
+                    id="isConstructionInvestment"
+                    name="isConstructionInvestment"
+                    type="checkbox"
+                    className="w-5 h-5 rounded border-slate-600 bg-slate-900/50 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
+                />
+                <label htmlFor="isConstructionInvestment" className="text-slate-300 cursor-pointer select-none">
+                    🏗️ Công trình đầu tư xây dựng
+                </label>
             </div>
 
             <div className="flex gap-4 pt-4">

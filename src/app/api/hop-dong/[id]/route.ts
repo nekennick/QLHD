@@ -76,22 +76,33 @@ export async function PUT(
         // Parse dates từ string
         const updateData: Record<string, unknown> = {};
 
-        // Các trường text/number (chỉ USER1, USER2, ADMIN được sửa)
+        // Các trường text/number (phân quyền chi tiết)
         if (["USER1", "USER2", "ADMIN"].includes(role)) {
-            if (body.tenHopDong !== undefined) updateData.tenHopDong = body.tenHopDong;
-            if (body.giaTriHopDong !== undefined) updateData.giaTriHopDong = body.giaTriHopDong ? parseFloat(body.giaTriHopDong) : null;
-            if (body.giaTriGiaoNhan !== undefined) updateData.giaTriGiaoNhan = body.giaTriGiaoNhan ? parseFloat(body.giaTriGiaoNhan) : null;
-            if (body.giaTriNghiemThu !== undefined) updateData.giaTriNghiemThu = body.giaTriNghiemThu ? parseFloat(body.giaTriNghiemThu) : null;
-            if (body.tuChinhHopDong !== undefined) updateData.tuChinhHopDong = body.tuChinhHopDong;
-            if (body.nguoiThucHienId !== undefined) updateData.nguoiThucHienId = body.nguoiThucHienId || null;
+            // USER1 sau khi tạo xong chỉ có quyền điều chuyển người thực hiện (nguoiThucHienId)
+            // USER2 và ADMIN có toàn quyền các trường này
+            const isUser1 = role === "USER1";
 
-            // Các trường date
-            const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh'];
-            for (const field of dateFields) {
-                if (body[field] !== undefined) {
-                    updateData[field] = body[field] ? new Date(body[field]) : null;
+            if (!isUser1) {
+                if (body.tenHopDong !== undefined) updateData.tenHopDong = body.tenHopDong;
+                if (body.giaTriHopDong !== undefined) updateData.giaTriHopDong = body.giaTriHopDong ? parseFloat(body.giaTriHopDong) : null;
+                if (body.giaTriGiaoNhan !== undefined) updateData.giaTriGiaoNhan = body.giaTriGiaoNhan ? parseFloat(body.giaTriGiaoNhan) : null;
+                if (body.giaTriNghiemThu !== undefined) updateData.giaTriNghiemThu = body.giaTriNghiemThu ? parseFloat(body.giaTriNghiemThu) : null;
+                if (body.tuChinhHopDong !== undefined) updateData.tuChinhHopDong = body.tuChinhHopDong;
+
+                // Trường quyết toán công trình đầu tư xây dựng
+                if (body.giaTriQuyetToan !== undefined) updateData.giaTriQuyetToan = body.giaTriQuyetToan ? parseFloat(body.giaTriQuyetToan) : null;
+
+                // Các trường date
+                const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh', 'ngayQuyetToan'];
+                for (const field of dateFields) {
+                    if (body[field] !== undefined) {
+                        updateData[field] = body[field] ? new Date(body[field]) : null;
+                    }
                 }
             }
+
+            // nguoiThucHienId: USER1 (Lãnh đạo) luôn được sửa để điều chuyển việc
+            if (body.nguoiThucHienId !== undefined) updateData.nguoiThucHienId = body.nguoiThucHienId || null;
         }
 
         // USER1_TCKT được giao việc thanh toán (set nguoiThanhToanId)

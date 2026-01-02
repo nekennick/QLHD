@@ -85,7 +85,7 @@ export default async function UsersPage() {
                                 <th className="px-6 py-4 font-medium">Số HĐ thực hiện</th>
                                 <th className="px-6 py-4 font-medium">Ngày tạo</th>
                                 <th className="px-6 py-4 font-medium text-right">Reset mật khẩu</th>
-                                {session?.user?.role === "ADMIN" && (
+                                {(session?.user?.role === "ADMIN" || session?.user?.role === "USER1") && (
                                     <th className="px-6 py-4 font-medium text-right">Xóa</th>
                                 )}
                             </tr>
@@ -132,14 +132,15 @@ export default async function UsersPage() {
                                             targetRole={user.role}
                                         />
                                     </td>
-                                    {session?.user?.role === "ADMIN" && (
-                                        <td className="px-6 py-4 text-right">
-                                            <DeleteUserButton
-                                                userId={user.id}
-                                                userName={user.hoTen}
-                                            />
-                                        </td>
-                                    )}
+                                    {(session?.user?.role === "ADMIN" ||
+                                        (session?.user?.role === "USER1" && user.role === "USER2")) && (
+                                            <td className="px-6 py-4 text-right">
+                                                <DeleteUserButton
+                                                    userId={user.id}
+                                                    userName={user.hoTen}
+                                                />
+                                            </td>
+                                        )}
                                 </tr>
                             ))}
                         </tbody>

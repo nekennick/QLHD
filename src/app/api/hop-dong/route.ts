@@ -41,7 +41,7 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { soHopDong, nguoiThucHienId } = body;
+        const { soHopDong, nguoiThucHienId, isConstructionInvestment } = body;
 
         if (!soHopDong) {
             return NextResponse.json(
@@ -67,6 +67,7 @@ export async function POST(request: Request) {
                 soHopDong,
                 nguoiGiaoId: session.user.id,
                 nguoiThucHienId: nguoiThucHienId || null,
+                isConstructionInvestment: isConstructionInvestment || false,
             },
         });
 

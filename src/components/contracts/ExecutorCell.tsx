@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import AssignmentConfirmDialog from "./AssignmentConfirmDialog";
+import AlertDialog from "@/components/ui/AlertDialog";
 
 interface ExecutorCellProps {
     contractId: string;
@@ -30,6 +31,12 @@ export default function ExecutorCell({
     const [loading, setLoading] = useState(false);
     const [selectedUser, setSelectedUser] = useState<AssignableUser | null>(null);
     const [isConfirmOpen, setIsConfirmOpen] = useState(false);
+    const [alertState, setAlertState] = useState<{
+        isOpen: boolean;
+        title: string;
+        message: string;
+        type: "success" | "error";
+    }>({ isOpen: false, title: "", message: "", type: "error" });
     const dropdownRef = useRef<HTMLDivElement>(null);
 
     // Close dropdown when clicking outside
@@ -62,11 +69,21 @@ export default function ExecutorCell({
                 setAssignableUsers(data.users || []);
             } else {
                 const error = await res.json();
-                alert(error.message || "Không thể tải danh sách nhân viên");
+                setAlertState({
+                    isOpen: true,
+                    title: "Lỗi",
+                    message: error.message || "Không thể tải danh sách nhân viên",
+                    type: "error",
+                });
             }
         } catch (error) {
             console.error("Error fetching assignable users:", error);
-            alert("Lỗi khi tải danh sách nhân viên");
+            setAlertState({
+                isOpen: true,
+                title: "Lỗi",
+                message: "Lỗi khi tải danh sách nhân viên",
+                type: "error",
+            });
         } finally {
             setLoading(false);
         }
@@ -94,11 +111,21 @@ export default function ExecutorCell({
                 onReassignSuccess?.();
             } else {
                 const error = await res.json();
-                alert(error.message || "Không thể chuyển giao hợp đồng");
+                setAlertState({
+                    isOpen: true,
+                    title: "Lỗi",
+                    message: error.message || "Không thể chuyển giao hợp đồng",
+                    type: "error",
+                });
             }
         } catch (error) {
             console.error("Error reassigning contract:", error);
-            alert("Lỗi khi chuyển giao hợp đồng");
+            setAlertState({
+                isOpen: true,
+                title: "Lỗi",
+                message: "Lỗi khi chuyển giao hợp đồng",
+                type: "error",
+            });
         }
     }
 
@@ -157,6 +184,14 @@ export default function ExecutorCell({
                 newExecutor={selectedUser?.hoTen || ""}
                 onConfirm={handleConfirmReassign}
                 onCancel={handleCancelReassign}
+            />
+
+            <AlertDialog
+                isOpen={alertState.isOpen}
+                title={alertState.title}
+                message={alertState.message}
+                type={alertState.type}
+                onClose={() => setAlertState(prev => ({ ...prev, isOpen: false }))}
             />
         </>
     );
