@@ -10,6 +10,7 @@ async function getContract(id: string) {
         include: {
             nguoiGiao: { select: { id: true, hoTen: true } },
             nguoiThucHien: { select: { id: true, hoTen: true } },
+            nguoiThanhToan: { select: { id: true, hoTen: true } },
         },
     });
 }
@@ -21,6 +22,13 @@ async function getUsers() {
     });
 }
 
+async function getTCKTUsers() {
+    return prisma.user.findMany({
+        where: { role: "USER2_TCKT" },
+        select: { id: true, hoTen: true },
+    });
+}
+
 export default async function ContractDetailPage({
     params,
 }: {
@@ -28,9 +36,10 @@ export default async function ContractDetailPage({
 }) {
     const session = await auth();
     const { id } = await params;
-    const [contract, users] = await Promise.all([
+    const [contract, users, tcktUsers] = await Promise.all([
         getContract(id),
         getUsers(),
+        getTCKTUsers(),
     ]);
 
     if (!contract) {
@@ -54,6 +63,8 @@ export default async function ContractDetailPage({
         ngayDuyetThanhToan: contract.ngayDuyetThanhToan?.toISOString() || null,
         hanBaoHanh: contract.hanBaoHanh?.toISOString() || null,
         ngayQuyetToan: contract.ngayQuyetToan?.toISOString() || null,
+        nguoiThanhToan: contract.nguoiThanhToan,
+        nguoiThanhToanId: contract.nguoiThanhToanId,
     };
 
     return (
@@ -95,7 +106,9 @@ export default async function ContractDetailPage({
                 contract={contractData}
                 canEdit={canEdit}
                 userRole={session?.user?.role}
+                userId={session?.user?.id}
                 users={users}
+                tcktUsers={tcktUsers}
             />
         </div>
     );

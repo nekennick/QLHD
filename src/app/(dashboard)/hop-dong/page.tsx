@@ -51,7 +51,7 @@ export default async function HopDongPage({
     const contracts = await getContracts(params);
     const users = await getUsers();
     const isAdmin = session?.user?.role === "USER1";
-    const canReassign = session?.user?.role === "USER1" || session?.user?.role === "USER1_TCKT";
+    const canReassign = session?.user?.role === "USER1";
 
     const statusFilters = [
         { value: "", label: "Tất cả" },

@@ -89,11 +89,8 @@ export async function PUT(
                 if (body.giaTriNghiemThu !== undefined) updateData.giaTriNghiemThu = body.giaTriNghiemThu ? parseFloat(body.giaTriNghiemThu) : null;
                 if (body.tuChinhHopDong !== undefined) updateData.tuChinhHopDong = body.tuChinhHopDong;
 
-                // Trường quyết toán công trình đầu tư xây dựng
-                if (body.giaTriQuyetToan !== undefined) updateData.giaTriQuyetToan = body.giaTriQuyetToan ? parseFloat(body.giaTriQuyetToan) : null;
-
-                // Các trường date
-                const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh', 'ngayQuyetToan'];
+                // Các trường date (không bao gồm ngayQuyetToan - sẽ được xử lý riêng cho TCKT)
+                const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh'];
                 for (const field of dateFields) {
                     if (body[field] !== undefined) {
                         updateData[field] = body[field] ? new Date(body[field]) : null;
@@ -103,6 +100,15 @@ export async function PUT(
 
             // nguoiThucHienId: USER1 (Lãnh đạo) luôn được sửa để điều chuyển việc
             if (body.nguoiThucHienId !== undefined) updateData.nguoiThucHienId = body.nguoiThucHienId || null;
+        }
+
+        // Trường quyết toán công trình đầu tư xây dựng: chỉ dành cho nhân viên TCKT được gán hoặc ADMIN
+        const isTCKTAssigned = role === "USER2_TCKT" && existing.nguoiThanhToanId === session.user.id;
+        const canEditSettlement = role === "ADMIN" || isTCKTAssigned;
+
+        if (canEditSettlement) {
+            if (body.giaTriQuyetToan !== undefined) updateData.giaTriQuyetToan = body.giaTriQuyetToan ? parseFloat(body.giaTriQuyetToan) : null;
+            if (body.ngayQuyetToan !== undefined) updateData.ngayQuyetToan = body.ngayQuyetToan ? new Date(body.ngayQuyetToan) : null;
         }
 
         // USER1_TCKT được giao việc thanh toán (set nguoiThanhToanId)

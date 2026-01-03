@@ -25,9 +25,17 @@ interface Contract {
     isConstructionInvestment: boolean;
     giaTriQuyetToan: number | null;
     ngayQuyetToan: string | null;
+    // TCKT
+    nguoiThanhToan: { id: string; hoTen: string } | null;
+    nguoiThanhToanId: string | null;
 }
 
 interface User {
+    id: string;
+    hoTen: string;
+}
+
+interface TCKTUser {
     id: string;
     hoTen: string;
 }
@@ -36,12 +44,14 @@ interface Props {
     contract: Contract;
     canEdit: boolean;
     userRole?: string;
+    userId?: string;
     users?: User[];
+    tcktUsers?: TCKTUser[];
 }
 
 type TabType = "info" | "delivery" | "acceptance" | "payment" | "warranty";
 
-export default function ContractDetail({ contract, canEdit, userRole, users = [] }: Props) {
+export default function ContractDetail({ contract, canEdit, userRole, userId, users = [], tcktUsers = [] }: Props) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>("info");
     const [loading, setLoading] = useState(false);
@@ -220,58 +230,108 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
                             {renderReadOnlyField("Số hợp đồng", contract.soHopDong)}
                             {renderReadOnlyField("Người giao", contract.nguoiGiao?.hoTen)}
 
-                            {/* Người thực hiện - có thể chuyển giao nếu là USER1/USER1_TCKT */}
-                            {contract.nguoiThucHien ? (
-                                <div>
-                                    <label className="block text-sm font-medium text-slate-300 mb-2">
-                                        Người thực hiện
-                                    </label>
-                                    {(userRole === "USER1" || userRole === "USER1_TCKT") ? (
-                                        <div className="px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
-                                            <ExecutorCell
-                                                contractId={contract.id}
-                                                currentExecutor={{
-                                                    id: contract.nguoiThucHien.id,
-                                                    name: contract.nguoiThucHien.hoTen,
+                            {/* Người thực hiện - chỉ USER1 (Lãnh đạo hợp đồng) mới có quyền chuyển giao */}
+                            <div>
+                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                    Người thực hiện
+                                </label>
+                                {contract.nguoiThucHien ? (
+                                    <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50 space-y-2">
+                                        <p className="text-white font-medium">
+                                            Hiện tại: {contract.nguoiThucHien.hoTen}
+                                        </p>
+                                        {userRole === "USER1" && (
+                                            <div className="flex gap-2">
+                                                <select
+                                                    id="executorSelect"
+                                                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                                >
+                                                    <option value="">-- Chọn người mới --</option>
+                                                    {users.filter(u => u.id !== contract.nguoiThucHienId).map((u) => (
+                                                        <option key={u.id} value={u.id}>{u.hoTen}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        const newId = (document.getElementById("executorSelect") as HTMLSelectElement)?.value;
+                                                        if (!newId) {
+                                                            setMessage({ type: "error", text: "Vui lòng chọn người thực hiện" });
+                                                            return;
+                                                        }
+                                                        try {
+                                                            const res = await fetch(`/api/hop-dong/${contract.id}/reassign`, {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify({ newExecutorId: newId }),
+                                                            });
+                                                            if (res.ok) {
+                                                                setMessage({ type: "success", text: "Đã chuyển giao hợp đồng!" });
+                                                                router.refresh();
+                                                            } else {
+                                                                const err = await res.json();
+                                                                setMessage({ type: "error", text: err.message });
+                                                            }
+                                                        } catch {
+                                                            setMessage({ type: "error", text: "Lỗi khi chuyển giao" });
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                                >
+                                                    Chuyển giao
+                                                </button>
+                                            </div>
+                                        )}
+                                    </div>
+                                ) : userRole === "USER1" ? (
+                                    <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50">
+                                        <div className="flex gap-2">
+                                            <select
+                                                id="executorSelect"
+                                                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                            >
+                                                <option value="">-- Chọn người thực hiện --</option>
+                                                {users.map((u) => (
+                                                    <option key={u.id} value={u.id}>{u.hoTen}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={async () => {
+                                                    const newId = (document.getElementById("executorSelect") as HTMLSelectElement)?.value;
+                                                    if (!newId) {
+                                                        setMessage({ type: "error", text: "Vui lòng chọn người thực hiện" });
+                                                        return;
+                                                    }
+                                                    try {
+                                                        const res = await fetch(`/api/hop-dong/${contract.id}`, {
+                                                            method: "PUT",
+                                                            headers: { "Content-Type": "application/json" },
+                                                            body: JSON.stringify({ nguoiThucHienId: newId }),
+                                                        });
+                                                        if (res.ok) {
+                                                            setMessage({ type: "success", text: "Đã giao hợp đồng!" });
+                                                            router.refresh();
+                                                        } else {
+                                                            const err = await res.json();
+                                                            setMessage({ type: "error", text: err.message });
+                                                        }
+                                                    } catch {
+                                                        setMessage({ type: "error", text: "Lỗi khi giao việc" });
+                                                    }
                                                 }}
-                                                canReassign={true}
-                                                onReassignSuccess={() => router.refresh()}
-                                            />
+                                                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                            >
+                                                Giao việc
+                                            </button>
                                         </div>
-                                    ) : (
-                                        <p className="text-white px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
-                                            {contract.nguoiThucHien.hoTen}
-                                        </p>
-                                    )}
-                                    {(userRole === "USER1" || userRole === "USER1_TCKT") && (
-                                        <p className="text-xs text-blue-400 mt-1">
-                                            * Click vào tên để chuyển giao cho người khác
-                                        </p>
-                                    )}
-                                </div>
-                            ) : (
-                                <div>
-                                    <label htmlFor="nguoiThucHienId" className="block text-sm font-medium text-slate-300 mb-2">
-                                        Người thực hiện
-                                    </label>
-                                    <select
-                                        id="nguoiThucHienId"
-                                        name="nguoiThucHienId"
-                                        disabled={!canEdit}
-                                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <option value="">-- Chọn người thực hiện --</option>
-                                        {users.map((user) => (
-                                            <option key={user.id} value={user.id}>
-                                                {user.hoTen}
-                                            </option>
-                                        ))}
-                                    </select>
-                                    <p className="text-xs text-blue-400 mt-1">
-                                        * Lưu ý: Sau khi chọn và lưu, bạn sẽ không thể thay đổi người thực hiện.
+                                    </div>
+                                ) : (
+                                    <p className="text-slate-500 italic px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
+                                        Chưa được giao
                                     </p>
-                                </div>
-                            )}
+                                )}
+                            </div>
                         </div>
 
                         <hr className="border-slate-700" />
@@ -296,28 +356,167 @@ export default function ContractDetail({ contract, canEdit, userRole, users = []
                                         🏗️ Quyết toán công trình đầu tư xây dựng
                                     </h3>
 
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        {renderInputField("Trị giá quyết toán công trình (VNĐ)", "giaTriQuyetToan", "number", contract.giaTriQuyetToan, "0")}
-                                        {renderInputField("Ngày quyết toán", "ngayQuyetToan", "date", contract.ngayQuyetToan)}
+                                    {/* Người quyết toán (TCKT) */}
+                                    <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50">
+                                        <label className="block text-sm font-medium text-slate-400 mb-2">
+                                            Người quyết toán (TCKT)
+                                        </label>
+                                        {contract.nguoiThanhToan ? (
+                                            <div className="space-y-2">
+                                                <p className="text-white font-medium">
+                                                    Hiện tại: {contract.nguoiThanhToan.hoTen}
+                                                </p>
+                                                {(userRole === "USER1_TCKT" || userRole === "ADMIN") && (
+                                                    <div className="flex gap-2">
+                                                        <select
+                                                            id="tcktSelect"
+                                                            className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                                        >
+                                                            <option value="">-- Chọn người mới --</option>
+                                                            {tcktUsers.filter(u => u.id !== contract.nguoiThanhToanId).map((u) => (
+                                                                <option key={u.id} value={u.id}>{u.hoTen}</option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            type="button"
+                                                            onClick={async () => {
+                                                                const newId = (document.getElementById("tcktSelect") as HTMLSelectElement)?.value;
+                                                                if (!newId) {
+                                                                    setMessage({ type: "error", text: "Vui lòng chọn nhân viên TCKT" });
+                                                                    return;
+                                                                }
+                                                                try {
+                                                                    const res = await fetch(`/api/hop-dong/${contract.id}/assign-tckt`, {
+                                                                        method: "POST",
+                                                                        headers: { "Content-Type": "application/json" },
+                                                                        body: JSON.stringify({ nguoiThanhToanId: newId }),
+                                                                    });
+                                                                    if (res.ok) {
+                                                                        setMessage({ type: "success", text: "Đã chuyển giao việc quyết toán!" });
+                                                                        router.refresh();
+                                                                    } else {
+                                                                        const err = await res.json();
+                                                                        setMessage({ type: "error", text: err.message });
+                                                                    }
+                                                                } catch {
+                                                                    setMessage({ type: "error", text: "Lỗi khi giao việc" });
+                                                                }
+                                                            }}
+                                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                                        >
+                                                            Chuyển giao
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ) : (userRole === "USER1_TCKT" || userRole === "ADMIN") ? (
+                                            <div className="flex gap-2">
+                                                <select
+                                                    id="tcktSelect"
+                                                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                                >
+                                                    <option value="">-- Chọn nhân viên TCKT --</option>
+                                                    {tcktUsers.map((u) => (
+                                                        <option key={u.id} value={u.id}>{u.hoTen}</option>
+                                                    ))}
+                                                </select>
+                                                <button
+                                                    type="button"
+                                                    onClick={async () => {
+                                                        const newId = (document.getElementById("tcktSelect") as HTMLSelectElement)?.value;
+                                                        if (!newId) {
+                                                            setMessage({ type: "error", text: "Vui lòng chọn nhân viên TCKT" });
+                                                            return;
+                                                        }
+                                                        try {
+                                                            const res = await fetch(`/api/hop-dong/${contract.id}/assign-tckt`, {
+                                                                method: "POST",
+                                                                headers: { "Content-Type": "application/json" },
+                                                                body: JSON.stringify({ nguoiThanhToanId: newId }),
+                                                            });
+                                                            if (res.ok) {
+                                                                setMessage({ type: "success", text: "Đã giao việc quyết toán!" });
+                                                                router.refresh();
+                                                            } else {
+                                                                const err = await res.json();
+                                                                setMessage({ type: "error", text: err.message });
+                                                            }
+                                                        } catch {
+                                                            setMessage({ type: "error", text: "Lỗi khi giao việc" });
+                                                        }
+                                                    }}
+                                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                                >
+                                                    Giao việc
+                                                </button>
+                                            </div>
+                                        ) : (
+                                            <p className="text-slate-500 italic">Chưa được giao</p>
+                                        )}
                                     </div>
 
-                                    {/* Trị giá thừa sau quyết toán - tính tự động */}
-                                    {contract.giaTriHopDong && contract.giaTriQuyetToan !== null && (
-                                        <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
-                                            <label className="block text-sm font-medium text-slate-400 mb-1">
-                                                Trị giá thừa sau quyết toán
-                                            </label>
-                                            <p className={`text-xl font-bold ${(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0)) >= 0
-                                                ? 'text-green-400'
-                                                : 'text-red-400'
-                                                }`}>
-                                                {formatCurrency(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0))}
-                                            </p>
-                                            <p className="text-xs text-slate-500 mt-1">
-                                                = Giá trị hợp đồng ({formatCurrency(contract.giaTriHopDong)}) - Trị giá quyết toán ({formatCurrency(contract.giaTriQuyetToan)})
-                                            </p>
-                                        </div>
-                                    )}
+                                    {/* Các trường quyết toán - chỉ nhân viên TCKT được gán mới có thể sửa */}
+                                    {(() => {
+                                        const isTCKTAssigned = userRole === "USER2_TCKT" && contract.nguoiThanhToanId === userId;
+                                        const canEditSettlement = userRole === "ADMIN" || isTCKTAssigned;
+                                        const settlementInputClass = "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+
+                                        return (
+                                            <>
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                            Trị giá quyết toán công trình (VNĐ)
+                                                        </label>
+                                                        <input
+                                                            type="number"
+                                                            name="giaTriQuyetToan"
+                                                            defaultValue={contract.giaTriQuyetToan || ""}
+                                                            disabled={!canEditSettlement}
+                                                            placeholder="0"
+                                                            step="0.01"
+                                                            className={settlementInputClass}
+                                                        />
+                                                        {!canEditSettlement && contract.nguoiThanhToan && (
+                                                            <p className="text-xs text-orange-400 mt-1">
+                                                                * Chỉ {contract.nguoiThanhToan.hoTen} (TCKT) mới được phép sửa
+                                                            </p>
+                                                        )}
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                            Ngày quyết toán
+                                                        </label>
+                                                        <input
+                                                            type="date"
+                                                            name="ngayQuyetToan"
+                                                            defaultValue={formatDate(contract.ngayQuyetToan)}
+                                                            disabled={!canEditSettlement}
+                                                            className={settlementInputClass}
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                {/* Trị giá thừa sau quyết toán - tính tự động */}
+                                                {contract.giaTriHopDong && contract.giaTriQuyetToan !== null && (
+                                                    <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
+                                                        <label className="block text-sm font-medium text-slate-400 mb-1">
+                                                            Trị giá thừa sau quyết toán
+                                                        </label>
+                                                        <p className={`text-xl font-bold ${(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0)) >= 0
+                                                            ? 'text-green-400'
+                                                            : 'text-red-400'
+                                                            }`}>
+                                                            {formatCurrency(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0))}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            = Giá trị hợp đồng ({formatCurrency(contract.giaTriHopDong)}) - Trị giá quyết toán ({formatCurrency(contract.giaTriQuyetToan)})
+                                                        </p>
+                                                    </div>
+                                                )}
+                                            </>
+                                        );
+                                    })()}
                                 </div>
                             </>
                         )}

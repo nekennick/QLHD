@@ -1,8 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import ExecutorCell from "@/components/contracts/ExecutorCell";
 
 interface Contract {
     id: string;
@@ -25,21 +23,13 @@ interface ContractsTableProps {
         id: string;
         role: string;
     };
-    onReassignSuccess?: () => void;
 }
 
 export default function ContractsTable({
     contracts,
     canReassign,
     currentUser,
-    onReassignSuccess,
 }: ContractsTableProps) {
-    const router = useRouter();
-
-    const handleReassignSuccess = () => {
-        router.refresh();
-        onReassignSuccess?.();
-    };
 
     const isStale = (contract: Contract) => {
         if (contract.ngayDuyetThanhToan) return false;
@@ -104,19 +94,9 @@ export default function ContractsTable({
                                         : "—"}
                                 </td>
                                 <td className="px-6 py-4">
-                                    <ExecutorCell
-                                        contractId={contract.id}
-                                        currentExecutor={
-                                            contract.nguoiThucHien && contract.nguoiThucHienId
-                                                ? {
-                                                    id: contract.nguoiThucHienId,
-                                                    name: contract.nguoiThucHien.hoTen,
-                                                }
-                                                : null
-                                        }
-                                        canReassign={canReassign}
-                                        onReassignSuccess={handleReassignSuccess}
-                                    />
+                                    <span className={canReassign ? "text-purple-400" : "text-slate-300"}>
+                                        {contract.nguoiThucHien?.hoTen || "—"}
+                                    </span>
                                 </td>
                                 <td className="px-6 py-4">
                                     {!contract.tenHopDong ? (
