@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-// POST - Đăng ký nhận push notification
+// POST - Đăng ký nhận push notification via FCM
 export async function POST(request: Request) {
     try {
         const session = await auth();
@@ -11,34 +11,30 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { endpoint, keys } = body;
+        const { fcmToken } = body;
 
-        if (!endpoint || !keys?.p256dh || !keys?.auth) {
+        if (!fcmToken) {
             return NextResponse.json(
-                { message: "Thiếu thông tin subscription" },
+                { message: "Thiếu FCM token" },
                 { status: 400 }
             );
         }
 
         // Upsert subscription (update if exists, create if not)
         await prisma.pushSubscription.upsert({
-            where: { endpoint },
+            where: { fcmToken },
             update: {
                 userId: session.user.id,
-                p256dh: keys.p256dh,
-                auth: keys.auth,
             },
             create: {
                 userId: session.user.id,
-                endpoint,
-                p256dh: keys.p256dh,
-                auth: keys.auth,
+                fcmToken,
             },
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error saving push subscription:", error);
+        console.error("Error saving FCM subscription:", error);
         return NextResponse.json({ message: "Lỗi server" }, { status: 500 });
     }
 }
@@ -52,25 +48,25 @@ export async function DELETE(request: Request) {
         }
 
         const body = await request.json();
-        const { endpoint } = body;
+        const { fcmToken } = body;
 
-        if (!endpoint) {
+        if (!fcmToken) {
             return NextResponse.json(
-                { message: "Thiếu endpoint" },
+                { message: "Thiếu FCM token" },
                 { status: 400 }
             );
         }
 
         await prisma.pushSubscription.deleteMany({
             where: {
-                endpoint,
+                fcmToken,
                 userId: session.user.id,
             },
         });
 
         return NextResponse.json({ success: true });
     } catch (error) {
-        console.error("Error deleting push subscription:", error);
+        console.error("Error deleting FCM subscription:", error);
         return NextResponse.json({ message: "Lỗi server" }, { status: 500 });
     }
 }

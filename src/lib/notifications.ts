@@ -1,14 +1,5 @@
 import { prisma } from "@/lib/db";
-import webpush from "web-push";
-
-// Configure web-push with VAPID keys
-if (process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY) {
-    webpush.setVapidDetails(
-        process.env.VAPID_SUBJECT || "mailto:admin@example.com",
-        process.env.VAPID_PUBLIC_KEY,
-        process.env.VAPID_PRIVATE_KEY
-    );
-}
+import { firebaseAdmin, isFirebaseAdminInitialized } from "./firebase-admin";
 
 export type NotificationType =
     | "contract_assigned"
@@ -25,7 +16,7 @@ interface CreateNotificationParams {
 }
 
 /**
- * Create an in-app notification and send push notification if user has subscribed
+ * Create an in-app notification and send push notification via FCM
  */
 export async function createNotification(params: CreateNotificationParams) {
     const { userId, title, message, type, link } = params;
@@ -41,7 +32,7 @@ export async function createNotification(params: CreateNotificationParams) {
         },
     });
 
-    // Send push notification if user has subscriptions
+    // Send push notification if FCM is configured
     await sendPushNotification(userId, { title, message, link });
 
     return notification;
@@ -54,12 +45,12 @@ interface PushPayload {
 }
 
 /**
- * Send push notification to all subscribed devices of a user
+ * Send push notification via Firebase Cloud Messaging
  */
 export async function sendPushNotification(userId: string, payload: PushPayload) {
-    // Check if VAPID keys are configured
-    if (!process.env.VAPID_PUBLIC_KEY || !process.env.VAPID_PRIVATE_KEY) {
-        console.log("VAPID keys not configured, skipping push notification");
+    // Check if Firebase Admin is initialized
+    if (!isFirebaseAdminInitialized()) {
+        console.log("Firebase Admin not initialized, skipping push notification");
         return;
     }
 
@@ -74,35 +65,40 @@ export async function sendPushNotification(userId: string, payload: PushPayload)
 
         const pushPromises = subscriptions.map(async (sub) => {
             try {
-                await webpush.sendNotification(
-                    {
-                        endpoint: sub.endpoint,
-                        keys: {
-                            p256dh: sub.p256dh,
-                            auth: sub.auth,
-                        },
-                    },
-                    JSON.stringify({
+                await firebaseAdmin.messaging().send({
+                    token: sub.fcmToken,
+                    notification: {
                         title: payload.title,
                         body: payload.message,
-                        icon: "/icon-192x192.png",
-                        badge: "/icon-72x72.png",
-                        data: {
-                            url: payload.link || "/",
+                    },
+                    data: {
+                        link: payload.link || "/",
+                    },
+                    webpush: {
+                        fcmOptions: {
+                            link: payload.link || "/",
                         },
-                    })
-                );
+                        notification: {
+                            icon: "/icon-192x192.png",
+                            badge: "/icon-72x72.png",
+                        },
+                    },
+                });
             } catch (error: unknown) {
-                // If subscription is expired or invalid, remove it
-                if (error && typeof error === 'object' && 'statusCode' in error) {
-                    const webPushError = error as { statusCode: number };
-                    if (webPushError.statusCode === 410 || webPushError.statusCode === 404) {
+                // If token is expired or invalid, remove it
+                if (error && typeof error === 'object' && 'code' in error) {
+                    const fcmError = error as { code: string };
+                    if (
+                        fcmError.code === 'messaging/registration-token-not-registered' ||
+                        fcmError.code === 'messaging/invalid-registration-token'
+                    ) {
                         await prisma.pushSubscription.delete({
                             where: { id: sub.id },
                         });
+                        console.log("Removed invalid FCM token:", sub.id);
                     }
                 }
-                console.error("Error sending push notification:", error);
+                console.error("Error sending FCM notification:", error);
             }
         });
 
