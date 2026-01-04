@@ -8,6 +8,8 @@ interface WarningItem {
     tenHopDong: string | null;
     hieuLucBaoDam?: Date | null;
     hanBaoHanh?: Date | null;
+    giaTriHopDong?: number | null;
+    nguoiThucHien?: { hoTen: string } | null;
 }
 
 async function getStats() {
@@ -51,28 +53,54 @@ async function getStats() {
         prisma.hopDong.count({
             where: { isConstructionInvestment: true, giaTriQuyetToan: { not: null } },
         }),
-        // Warning lists
+        // Warning lists - with executor and value for table display
         prisma.hopDong.findMany({
             where: {
                 OR: [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }],
             },
-            select: { id: true, soHopDong: true, tenHopDong: true },
+            select: {
+                id: true,
+                soHopDong: true,
+                tenHopDong: true,
+                giaTriHopDong: true,
+                nguoiThucHien: { select: { hoTen: true } }
+            },
         }),
         prisma.hopDong.findMany({
             where: { ngayGiaoHang: { lt: today }, giaTriGiaoNhan: null },
-            select: { id: true, soHopDong: true, tenHopDong: true },
+            select: {
+                id: true,
+                soHopDong: true,
+                tenHopDong: true,
+                giaTriHopDong: true,
+                nguoiThucHien: { select: { hoTen: true } }
+            },
         }),
         prisma.hopDong.findMany({
             where: {
                 hieuLucBaoDam: { gte: today, lte: sevenDaysLater },
             },
-            select: { id: true, soHopDong: true, tenHopDong: true, hieuLucBaoDam: true },
+            select: {
+                id: true,
+                soHopDong: true,
+                tenHopDong: true,
+                hieuLucBaoDam: true,
+                giaTriHopDong: true,
+                nguoiThucHien: { select: { hoTen: true } }
+            },
         }),
         prisma.hopDong.findMany({
             where: {
                 hanBaoHanh: { lt: today },
             },
-            select: { id: true, soHopDong: true, tenHopDong: true, hanBaoHanh: true },
+            select: {
+                id: true,
+                soHopDong: true,
+                tenHopDong: true,
+                hanBaoHanh: true,
+                giaTriHopDong: true,
+                nguoiThucHien: { select: { hoTen: true } }
+            },
         }),
     ]);
 

@@ -22,9 +22,29 @@ async function getContracts(searchParams: { status?: string; nguoiThucHien?: str
     return prisma.hopDong.findMany({
         where,
         orderBy: { createdAt: "desc" },
-        include: {
+        select: {
+            id: true,
+            soHopDong: true,
+            tenHopDong: true,
+            giaTriHopDong: true,
+            ngayKy: true,
+            ngayHieuLuc: true,
+            hieuLucBaoDam: true,
+            ngayGiaoHang: true,
+            tuChinhHopDong: true,
+            isConstructionInvestment: true,
+            giaTriQuyetToan: true,
+            ngayQuyetToan: true,
+            giaTriGiaoNhan: true,
+            giaTriNghiemThu: true,
+            ngayDuyetThanhToan: true,
+            hanBaoHanh: true,
+            daThanhToan: true,
+            nguoiThucHienId: true,
+            updatedAt: true,
             nguoiGiao: { select: { hoTen: true } },
             nguoiThucHien: { select: { hoTen: true, id: true } },
+            nguoiThanhToan: { select: { hoTen: true } },
         },
     });
 }
