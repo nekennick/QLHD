@@ -197,7 +197,7 @@ export default async function DashboardPage() {
                     <ul className="ml-8 space-y-2 text-slate-400">
                         <li className="flex items-center gap-3">
                             <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
-                            <span>Chưa hoàn thiện hợp đồng:</span>
+                            <span>Chưa lập HĐ:</span>
                             <span className="text-white font-medium">{stats.ciIncomplete}</span>
                         </li>
                         <li className="flex items-center gap-3">

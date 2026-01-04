@@ -127,12 +127,22 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         }
     };
 
-    const tabs: { id: TabType; label: string; icon: string }[] = [
+    // Kiểm tra các trường thông tin cơ bản đã được nhập đầy đủ chưa
+    const isContractComplete = Boolean(
+        contract.tenHopDong &&
+        contract.giaTriHopDong &&
+        contract.ngayKy &&
+        contract.ngayHieuLuc &&
+        contract.ngayGiaoHang &&
+        contract.hieuLucBaoDam
+    );
+
+    const tabs: { id: TabType; label: string; icon: string; requiresComplete?: boolean }[] = [
         { id: "info", label: "Thông tin", icon: "📋" },
-        { id: "delivery", label: "Giao nhận", icon: "🚚" },
-        { id: "acceptance", label: "Nghiệm thu", icon: "✅" },
-        { id: "payment", label: "Thanh toán", icon: "💰" },
-        { id: "warranty", label: "Bảo hành", icon: "🛡️" },
+        { id: "delivery", label: "Giao nhận", icon: "🚚", requiresComplete: true },
+        { id: "acceptance", label: "Nghiệm thu", icon: "✅", requiresComplete: true },
+        { id: "payment", label: "Thanh toán", icon: "💰", requiresComplete: true },
+        { id: "warranty", label: "Bảo hành", icon: "🛡️", requiresComplete: true },
     ];
 
     const formatDate = (dateString: string | null) => {
@@ -270,20 +280,36 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         <div className="space-y-6">
             {/* Tabs */}
             <div className="flex gap-2 overflow-x-auto pb-2">
-                {tabs.map((tab) => (
-                    <button
-                        key={tab.id}
-                        onClick={() => setActiveTab(tab.id)}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${activeTab === tab.id
-                            ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                            : "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
-                            }`}
-                    >
-                        <span>{tab.icon}</span>
-                        <span>{tab.label}</span>
-                    </button>
-                ))}
+                {tabs.map((tab) => {
+                    const isDisabled = tab.requiresComplete && !isContractComplete;
+                    return (
+                        <button
+                            key={tab.id}
+                            onClick={() => !isDisabled && setActiveTab(tab.id)}
+                            disabled={isDisabled}
+                            title={isDisabled ? "Vui lòng hoàn thiện thông tin cơ bản trước" : undefined}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${isDisabled
+                                    ? "bg-slate-700/30 text-slate-500 cursor-not-allowed opacity-50"
+                                    : activeTab === tab.id
+                                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                                        : "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
+                                }`}
+                        >
+                            <span>{tab.icon}</span>
+                            <span>{tab.label}</span>
+                            {isDisabled && <span className="text-xs">🔒</span>}
+                        </button>
+                    );
+                })}
             </div>
+
+            {/* Warning for incomplete contract */}
+            {!isContractComplete && (
+                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50 text-yellow-400 flex items-center gap-3">
+                    <span className="text-xl">⚠️</span>
+                    <span>Vui lòng hoàn thiện tất cả thông tin cơ bản (Tên HĐ, Giá trị, Ngày ký, Ngày hiệu lực, Ngày giao hàng, Hiệu lực bảo đảm) trước khi nhập liệu các mục khác.</span>
+                </div>
+            )}
 
             {/* Message */}
             {message && (

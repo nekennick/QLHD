@@ -85,7 +85,7 @@ export default async function ContractDetailPage({
                         {contract.soHopDong}
                         {!contract.tenHopDong && (
                             <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
-                                Chưa hoàn thiện
+                                Chưa lập HĐ
                             </span>
                         )}
                     </h1>

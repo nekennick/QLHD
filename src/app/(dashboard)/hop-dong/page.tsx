@@ -75,7 +75,7 @@ export default async function HopDongPage({
 
     const statusFilters = [
         { value: "", label: "Tất cả" },
-        { value: "incomplete", label: "Chưa hoàn thiện" },
+        { value: "incomplete", label: "Chưa lập HĐ" },
         { value: "delivering", label: "Đang giao nhận" },
         { value: "paid", label: "Đã thanh toán" },
     ];

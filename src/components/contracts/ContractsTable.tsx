@@ -126,7 +126,7 @@ export default function ContractsTable({
                                     <td className="px-6 py-4">
                                         {!contract.tenHopDong ? (
                                             <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
-                                                Chưa hoàn thiện
+                                                Chưa lập HĐ
                                             </span>
                                         ) : contract.ngayDuyetThanhToan ? (
                                             <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
