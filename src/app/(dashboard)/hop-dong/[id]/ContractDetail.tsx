@@ -150,6 +150,20 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         return new Date(dateString).toISOString().split("T")[0];
     };
 
+    // Hàm format số với dấu phân cách hàng nghìn (VD: 1000000 -> 1.000.000)
+    const formatNumberWithSeparator = (value: number | string | null): string => {
+        if (value === null || value === "" || value === undefined) return "";
+        const num = typeof value === "string" ? parseFloat(value.toString().replace(/\./g, "").replace(",", ".")) : value;
+        if (isNaN(num)) return "";
+        return new Intl.NumberFormat("vi-VN").format(num);
+    };
+
+    // Hàm parse số từ chuỗi có dấu phân cách (VD: 1.000.000 -> 1000000)
+    const parseFormattedNumber = (value: string): number => {
+        if (!value) return 0;
+        return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
+    };
+
     const formatCurrency = (value: number | null) => {
         if (!value) return "";
         return new Intl.NumberFormat("vi-VN", {
@@ -166,11 +180,50 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const formData = new FormData(e.currentTarget);
         const data: Record<string, unknown> = {};
 
+        // Các trường số cần parse từ format có dấu phân cách
+        const numericFields = ["giaTriHopDong", "giaTriGiaoNhan", "giaTriNghiemThu", "giaTriQuyetToan"];
+
         formData.forEach((value, key) => {
             if (value !== "") {
-                data[key] = value;
+                if (numericFields.includes(key)) {
+                    // Parse số từ format có dấu phân cách (1.000.000 -> 1000000)
+                    data[key] = parseFormattedNumber(value.toString());
+                } else {
+                    data[key] = value;
+                }
             }
         });
+
+        // Validation: Giá trị thanh toán và quyết toán phải <= Giá trị HĐ
+        const giaTriHD = contract.giaTriHopDong || 0;
+        const giaTriGiaoNhan = data.giaTriGiaoNhan as number | undefined;
+        const giaTriNghiemThu = data.giaTriNghiemThu as number | undefined;
+        const giaTriQuyetToan = data.giaTriQuyetToan as number | undefined;
+
+        if (giaTriGiaoNhan && giaTriGiaoNhan > giaTriHD) {
+            setMessage({ type: "error", text: `Giá trị giao nhận (${formatNumberWithSeparator(giaTriGiaoNhan)}) không được lớn hơn giá trị hợp đồng (${formatNumberWithSeparator(giaTriHD)})` });
+            setLoading(false);
+            // Reset field
+            const input = e.currentTarget.querySelector('input[name="giaTriGiaoNhan"]') as HTMLInputElement;
+            if (input) input.value = "";
+            return;
+        }
+
+        if (giaTriNghiemThu && giaTriNghiemThu > giaTriHD) {
+            setMessage({ type: "error", text: `Giá trị nghiệm thu (${formatNumberWithSeparator(giaTriNghiemThu)}) không được lớn hơn giá trị hợp đồng (${formatNumberWithSeparator(giaTriHD)})` });
+            setLoading(false);
+            const input = e.currentTarget.querySelector('input[name="giaTriNghiemThu"]') as HTMLInputElement;
+            if (input) input.value = "";
+            return;
+        }
+
+        if (giaTriQuyetToan && giaTriQuyetToan > giaTriHD) {
+            setMessage({ type: "error", text: `Giá trị quyết toán (${formatNumberWithSeparator(giaTriQuyetToan)}) không được lớn hơn giá trị hợp đồng (${formatNumberWithSeparator(giaTriHD)})` });
+            setLoading(false);
+            const input = e.currentTarget.querySelector('input[name="giaTriQuyetToan"]') as HTMLInputElement;
+            if (input) input.value = "";
+            return;
+        }
 
         try {
             const res = await fetch(`/api/hop-dong/${contract.id}`, {
@@ -276,6 +329,56 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         </div>
     );
 
+    // Render input số với format phân cách hàng nghìn
+    const renderCurrencyField = (
+        label: string,
+        name: string,
+        value: number | null,
+        placeholder?: string
+    ) => {
+        const isUser1 = userRole === "USER1";
+        const isDisabled = !canEdit || isUser1;
+
+        const inputClass =
+            "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed text-right";
+
+        const handleCurrencyInput = (e: React.FormEvent<HTMLInputElement>) => {
+            const input = e.currentTarget;
+            // Lấy vị trí cursor
+            const cursorPos = input.selectionStart || 0;
+            const oldLength = input.value.length;
+
+            // Loại bỏ các ký tự không phải số
+            const rawValue = input.value.replace(/[^\d]/g, "");
+            const numValue = parseInt(rawValue) || 0;
+
+            // Format lại với dấu phân cách
+            input.value = numValue > 0 ? formatNumberWithSeparator(numValue) : "";
+
+            // Điều chỉnh vị trí cursor
+            const newLength = input.value.length;
+            const newPos = cursorPos + (newLength - oldLength);
+            input.setSelectionRange(newPos, newPos);
+        };
+
+        return (
+            <div>
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                    {label}
+                </label>
+                <input
+                    type="text"
+                    name={name}
+                    defaultValue={formatNumberWithSeparator(value)}
+                    onInput={handleCurrencyInput}
+                    disabled={isDisabled}
+                    placeholder={placeholder}
+                    className={inputClass}
+                />
+            </div>
+        );
+    };
+
     return (
         <div className="space-y-6">
             {/* Tabs */}
@@ -289,10 +392,10 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                             disabled={isDisabled}
                             title={isDisabled ? "Vui lòng hoàn thiện thông tin cơ bản trước" : undefined}
                             className={`flex items-center gap-2 px-4 py-2 rounded-lg whitespace-nowrap transition-all ${isDisabled
-                                    ? "bg-slate-700/30 text-slate-500 cursor-not-allowed opacity-50"
-                                    : activeTab === tab.id
-                                        ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
-                                        : "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
+                                ? "bg-slate-700/30 text-slate-500 cursor-not-allowed opacity-50"
+                                : activeTab === tab.id
+                                    ? "bg-gradient-to-r from-purple-600 to-pink-600 text-white"
+                                    : "bg-slate-700/50 text-slate-300 hover:bg-slate-700"
                                 }`}
                         >
                             <span>{tab.icon}</span>
@@ -398,7 +501,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderInputField("Tên hợp đồng", "tenHopDong", "text", contract.tenHopDong, "Nhập tên hợp đồng")}
-                            {renderInputField("Giá trị hợp đồng (VNĐ)", "giaTriHopDong", "number", contract.giaTriHopDong, "0")}
+                            {renderCurrencyField("Giá trị hợp đồng (VNĐ)", "giaTriHopDong", contract.giaTriHopDong, "0")}
                             {renderInputField("Ngày ký", "ngayKy", "date", contract.ngayKy)}
                             {renderInputField("Ngày hiệu lực", "ngayHieuLuc", "date", contract.ngayHieuLuc)}
                             {renderInputField("Ngày giao hàng", "ngayGiaoHang", "date", contract.ngayGiaoHang)}
@@ -485,13 +588,23 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                             Trị giá quyết toán công trình (VNĐ)
                                                         </label>
                                                         <input
-                                                            type="number"
+                                                            type="text"
                                                             name="giaTriQuyetToan"
-                                                            defaultValue={contract.giaTriQuyetToan || ""}
+                                                            defaultValue={formatNumberWithSeparator(contract.giaTriQuyetToan)}
+                                                            onInput={(e) => {
+                                                                const input = e.currentTarget;
+                                                                const cursorPos = input.selectionStart || 0;
+                                                                const oldLength = input.value.length;
+                                                                const rawValue = input.value.replace(/[^\d]/g, "");
+                                                                const numValue = parseInt(rawValue) || 0;
+                                                                input.value = numValue > 0 ? formatNumberWithSeparator(numValue) : "";
+                                                                const newLength = input.value.length;
+                                                                const newPos = cursorPos + (newLength - oldLength);
+                                                                input.setSelectionRange(newPos, newPos);
+                                                            }}
                                                             disabled={!canEditSettlement}
                                                             placeholder="0"
-                                                            step="0.01"
-                                                            className={settlementInputClass}
+                                                            className={settlementInputClass + " text-right"}
                                                         />
                                                         {!canEditSettlement && contract.nguoiThanhToan && (
                                                             <p className="text-xs text-orange-400 mt-1">
@@ -546,7 +659,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderReadOnlyField("Giá trị hợp đồng", formatCurrency(contract.giaTriHopDong))}
-                            {renderInputField("Giá trị hàng giao nhận (VNĐ)", "giaTriGiaoNhan", "number", contract.giaTriGiaoNhan, "0")}
+                            {renderCurrencyField("Giá trị hàng giao nhận (VNĐ)", "giaTriGiaoNhan", contract.giaTriGiaoNhan, "0")}
                         </div>
 
                         {/* Progress */}
@@ -578,7 +691,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderReadOnlyField("Giá trị đã giao nhận", formatCurrency(contract.giaTriGiaoNhan))}
-                            {renderInputField("Giá trị hàng đã nghiệm thu (VNĐ)", "giaTriNghiemThu", "number", contract.giaTriNghiemThu, "0")}
+                            {renderCurrencyField("Giá trị hàng đã nghiệm thu (VNĐ)", "giaTriNghiemThu", contract.giaTriNghiemThu, "0")}
                         </div>
 
                         {/* Progress */}
