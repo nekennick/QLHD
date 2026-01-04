@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ExecutorCell from "@/components/contracts/ExecutorCell";
+import ConfirmDialog from "@/components/ui/ConfirmDialog";
 
 interface Contract {
     id: string;
@@ -51,11 +52,80 @@ interface Props {
 
 type TabType = "info" | "delivery" | "acceptance" | "payment" | "warranty";
 
+interface ReassignConfirmState {
+    show: boolean;
+    type: "executor" | "tckt";
+    newId: string;
+    newName: string;
+}
+
 export default function ContractDetail({ contract, canEdit, userRole, userId, users = [], tcktUsers = [] }: Props) {
     const router = useRouter();
     const [activeTab, setActiveTab] = useState<TabType>("info");
     const [loading, setLoading] = useState(false);
     const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const [reassignConfirm, setReassignConfirm] = useState<ReassignConfirmState>({
+        show: false,
+        type: "executor",
+        newId: "",
+        newName: "",
+    });
+
+    // Helper function to initiate reassignment confirmation
+    const initiateReassign = (type: "executor" | "tckt", selectId: string) => {
+        const selectEl = document.getElementById(selectId) as HTMLSelectElement;
+        const newId = selectEl?.value;
+        if (!newId) {
+            const errorText = type === "executor" ? "Vui lòng chọn người thực hiện" : "Vui lòng chọn nhân viên TCKT";
+            setMessage({ type: "error", text: errorText });
+            return;
+        }
+        const newName = selectEl?.options[selectEl.selectedIndex]?.text || "";
+        setReassignConfirm({ show: true, type, newId, newName });
+    };
+
+    // Helper function to perform reassignment after confirmation
+    const performReassign = async () => {
+        const { type, newId } = reassignConfirm;
+        try {
+            let res: Response;
+            if (type === "executor") {
+                // Check if it's reassign (existing executor) or first assign
+                const url = contract.nguoiThucHienId
+                    ? `/api/hop-dong/${contract.id}/reassign`
+                    : `/api/hop-dong/${contract.id}`;
+                const method = contract.nguoiThucHienId ? "POST" : "PUT";
+                const body = contract.nguoiThucHienId
+                    ? { newExecutorId: newId }
+                    : { nguoiThucHienId: newId };
+
+                res = await fetch(url, {
+                    method,
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(body),
+                });
+            } else {
+                res = await fetch(`/api/hop-dong/${contract.id}/assign-tckt`, {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ nguoiThanhToanId: newId }),
+                });
+            }
+
+            if (res.ok) {
+                const successText = type === "executor" ? "Đã chuyển giao hợp đồng!" : "Đã chuyển giao việc quyết toán!";
+                setMessage({ type: "success", text: successText });
+                router.refresh();
+            } else {
+                const err = await res.json();
+                setMessage({ type: "error", text: err.message });
+            }
+        } catch {
+            setMessage({ type: "error", text: "Lỗi khi chuyển giao" });
+        } finally {
+            setReassignConfirm({ show: false, type: "executor", newId: "", newName: "" });
+        }
+    };
 
     const tabs: { id: TabType; label: string; icon: string }[] = [
         { id: "info", label: "Thông tin", icon: "📋" },
@@ -132,15 +202,23 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const isUser2 = userRole === "USER2";
         const isUser1 = userRole === "USER1";
 
-        // User 2 (người thực hiện) không được sửa Tên HĐ và Ngày ký nếu đã có dữ liệu
-        const isRestrictedFieldForUser2 = name === "tenHopDong" || name === "ngayKy";
+        // 2 trường mà chỉ quản lý (USER1) mới được sửa
+        const isManagerOnlyField = name === "tenHopDong" || name === "ngayKy";
         const hasData = value !== null && value !== "";
 
-        // USER1 (Lãnh đạo) chỉ tạo HĐ, không tham gia nhập liệu chi tiết thực hiện
-        // nên sẽ bị khóa tất cả các trường chi tiết sau khi tạo.
-        const isDisabled = !canEdit ||
-            (isUser2 && isRestrictedFieldForUser2 && hasData) ||
-            isUser1;
+        // Logic disable:
+        // 1. Nếu không có quyền chỉnh sửa cơ bản -> disable
+        // 2. USER2 không được sửa tenHopDong và ngayKy nếu đã có dữ liệu
+        // 3. USER1 chỉ được sửa tenHopDong và ngayKy, các trường khác disable
+        let isDisabled = !canEdit;
+
+        if (isUser2 && isManagerOnlyField && hasData) {
+            // USER2 không được sửa 2 trường quản lý nếu đã có dữ liệu
+            isDisabled = true;
+        } else if (isUser1 && !isManagerOnlyField) {
+            // USER1 chỉ được sửa 2 trường quản lý, các trường khác disable
+            isDisabled = true;
+        }
 
         const inputClass =
             "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
@@ -170,7 +248,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         className={inputClass}
                     />
                 )}
-                {isDisabled && isUser2 && isRestrictedFieldForUser2 && hasData && (
+                {isDisabled && isUser2 && isManagerOnlyField && hasData && (
                     <p className="text-xs text-orange-400 mt-1">
                         * Chỉ quản lý mới có thể chỉnh sửa thông tin này
                     </p>
@@ -253,29 +331,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                 </select>
                                                 <button
                                                     type="button"
-                                                    onClick={async () => {
-                                                        const newId = (document.getElementById("executorSelect") as HTMLSelectElement)?.value;
-                                                        if (!newId) {
-                                                            setMessage({ type: "error", text: "Vui lòng chọn người thực hiện" });
-                                                            return;
-                                                        }
-                                                        try {
-                                                            const res = await fetch(`/api/hop-dong/${contract.id}/reassign`, {
-                                                                method: "POST",
-                                                                headers: { "Content-Type": "application/json" },
-                                                                body: JSON.stringify({ newExecutorId: newId }),
-                                                            });
-                                                            if (res.ok) {
-                                                                setMessage({ type: "success", text: "Đã chuyển giao hợp đồng!" });
-                                                                router.refresh();
-                                                            } else {
-                                                                const err = await res.json();
-                                                                setMessage({ type: "error", text: err.message });
-                                                            }
-                                                        } catch {
-                                                            setMessage({ type: "error", text: "Lỗi khi chuyển giao" });
-                                                        }
-                                                    }}
+                                                    onClick={() => initiateReassign("executor", "executorSelect")}
                                                     className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
                                                 >
                                                     Chuyển giao
@@ -297,29 +353,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                             </select>
                                             <button
                                                 type="button"
-                                                onClick={async () => {
-                                                    const newId = (document.getElementById("executorSelect") as HTMLSelectElement)?.value;
-                                                    if (!newId) {
-                                                        setMessage({ type: "error", text: "Vui lòng chọn người thực hiện" });
-                                                        return;
-                                                    }
-                                                    try {
-                                                        const res = await fetch(`/api/hop-dong/${contract.id}`, {
-                                                            method: "PUT",
-                                                            headers: { "Content-Type": "application/json" },
-                                                            body: JSON.stringify({ nguoiThucHienId: newId }),
-                                                        });
-                                                        if (res.ok) {
-                                                            setMessage({ type: "success", text: "Đã giao hợp đồng!" });
-                                                            router.refresh();
-                                                        } else {
-                                                            const err = await res.json();
-                                                            setMessage({ type: "error", text: err.message });
-                                                        }
-                                                    } catch {
-                                                        setMessage({ type: "error", text: "Lỗi khi giao việc" });
-                                                    }
-                                                }}
+                                                onClick={() => initiateReassign("executor", "executorSelect")}
                                                 className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
                                             >
                                                 Giao việc
@@ -379,29 +413,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                         </select>
                                                         <button
                                                             type="button"
-                                                            onClick={async () => {
-                                                                const newId = (document.getElementById("tcktSelect") as HTMLSelectElement)?.value;
-                                                                if (!newId) {
-                                                                    setMessage({ type: "error", text: "Vui lòng chọn nhân viên TCKT" });
-                                                                    return;
-                                                                }
-                                                                try {
-                                                                    const res = await fetch(`/api/hop-dong/${contract.id}/assign-tckt`, {
-                                                                        method: "POST",
-                                                                        headers: { "Content-Type": "application/json" },
-                                                                        body: JSON.stringify({ nguoiThanhToanId: newId }),
-                                                                    });
-                                                                    if (res.ok) {
-                                                                        setMessage({ type: "success", text: "Đã chuyển giao việc quyết toán!" });
-                                                                        router.refresh();
-                                                                    } else {
-                                                                        const err = await res.json();
-                                                                        setMessage({ type: "error", text: err.message });
-                                                                    }
-                                                                } catch {
-                                                                    setMessage({ type: "error", text: "Lỗi khi giao việc" });
-                                                                }
-                                                            }}
+                                                            onClick={() => initiateReassign("tckt", "tcktSelect")}
                                                             className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
                                                         >
                                                             Chuyển giao
@@ -422,29 +434,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                 </select>
                                                 <button
                                                     type="button"
-                                                    onClick={async () => {
-                                                        const newId = (document.getElementById("tcktSelect") as HTMLSelectElement)?.value;
-                                                        if (!newId) {
-                                                            setMessage({ type: "error", text: "Vui lòng chọn nhân viên TCKT" });
-                                                            return;
-                                                        }
-                                                        try {
-                                                            const res = await fetch(`/api/hop-dong/${contract.id}/assign-tckt`, {
-                                                                method: "POST",
-                                                                headers: { "Content-Type": "application/json" },
-                                                                body: JSON.stringify({ nguoiThanhToanId: newId }),
-                                                            });
-                                                            if (res.ok) {
-                                                                setMessage({ type: "success", text: "Đã giao việc quyết toán!" });
-                                                                router.refresh();
-                                                            } else {
-                                                                const err = await res.json();
-                                                                setMessage({ type: "error", text: err.message });
-                                                            }
-                                                        } catch {
-                                                            setMessage({ type: "error", text: "Lỗi khi giao việc" });
-                                                        }
-                                                    }}
+                                                    onClick={() => initiateReassign("tckt", "tcktSelect")}
                                                     className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
                                                 >
                                                     Giao việc
@@ -654,6 +644,18 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     </div>
                 )}
             </form>
+
+            {/* Confirmation Dialog for Reassignment */}
+            <ConfirmDialog
+                isOpen={reassignConfirm.show}
+                title={reassignConfirm.type === "executor" ? "Xác nhận chuyển giao" : "Xác nhận chuyển giao TCKT"}
+                description={`Bạn có chắc chắn muốn ${contract.nguoiThucHienId || contract.nguoiThanhToanId ? "chuyển giao" : "giao việc"} cho "${reassignConfirm.newName}"?`}
+                confirmLabel="Xác nhận"
+                cancelLabel="Hủy"
+                variant="info"
+                onConfirm={performReassign}
+                onCancel={() => setReassignConfirm({ show: false, type: "executor", newId: "", newName: "" })}
+            />
         </div>
     );
 }

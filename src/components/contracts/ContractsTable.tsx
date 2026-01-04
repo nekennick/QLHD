@@ -79,7 +79,14 @@ export default function ContractsTable({
                                         )}
                                     </div>
                                 </td>
-                                <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>{contract.tenHopDong || "—"}</td>
+                                <td className={`px-6 py-4 max-w-[200px] ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <span
+                                        className="line-clamp-2"
+                                        title={contract.tenHopDong || undefined}
+                                    >
+                                        {contract.tenHopDong || "—"}
+                                    </span>
+                                </td>
                                 <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                     {contract.giaTriHopDong
                                         ? new Intl.NumberFormat("vi-VN", {

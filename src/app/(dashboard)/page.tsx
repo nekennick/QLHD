@@ -1,6 +1,14 @@
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import Link from "next/link";
+import WarningList from "@/components/contracts/WarningList";
+
+interface WarningItem {
+    id: string;
+    soHopDong: string;
+    tenHopDong: string | null;
+    hieuLucBaoDam?: Date | null;
+    hanBaoHanh?: Date | null;
+}
 
 async function getStats() {
     const today = new Date();
@@ -9,272 +17,187 @@ async function getStats() {
 
     const [
         totalContracts,
-        incompleteContracts,
-        deliveringContracts,
-        lateDeliveryContracts,
-        paidContracts,
-        completedContracts,
-        expiringGuarantee,
+        // CI stats
+        ciTotal,
+        ciIncomplete,
+        ciDelivering,
+        ciApproved,
+        ciPaid,
+        ciSettled,
+        // Detailed warnings
+        incompleteList,
+        lateDeliveryList,
+        expiringGuaranteeList,
+        completedList,
     ] = await Promise.all([
-        // Tổng số HĐ
         prisma.hopDong.count(),
-        // Chưa hoàn thiện nhập liệu
+        // CI Specific
+        prisma.hopDong.count({ where: { isConstructionInvestment: true } }),
         prisma.hopDong.count({
             where: {
-                OR: [
-                    { tenHopDong: null },
-                    { giaTriHopDong: null },
-                    { ngayKy: null },
-                ],
+                isConstructionInvestment: true,
+                OR: [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }],
             },
         }),
-        // Đang giao nhận (có giá trị giao nhận nhưng chưa bằng giá trị HĐ)
         prisma.hopDong.count({
+            where: { isConstructionInvestment: true, giaTriGiaoNhan: { not: null }, ngayDuyetThanhToan: null },
+        }),
+        prisma.hopDong.count({
+            where: { isConstructionInvestment: true, ngayDuyetThanhToan: { not: null } },
+        }),
+        prisma.hopDong.count({
+            where: { isConstructionInvestment: true, daThanhToan: true },
+        }),
+        prisma.hopDong.count({
+            where: { isConstructionInvestment: true, giaTriQuyetToan: { not: null } },
+        }),
+        // Warning lists
+        prisma.hopDong.findMany({
             where: {
-                giaTriGiaoNhan: { not: null },
-                ngayDuyetThanhToan: null,
+                OR: [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }],
             },
+            select: { id: true, soHopDong: true, tenHopDong: true },
         }),
-        // Giao chậm
-        prisma.hopDong.count({
+        prisma.hopDong.findMany({
+            where: { ngayGiaoHang: { lt: today }, giaTriGiaoNhan: null },
+            select: { id: true, soHopDong: true, tenHopDong: true },
+        }),
+        prisma.hopDong.findMany({
             where: {
-                ngayGiaoHang: { lt: today },
-                giaTriGiaoNhan: null,
+                hieuLucBaoDam: { gte: today, lte: sevenDaysLater },
             },
+            select: { id: true, soHopDong: true, tenHopDong: true, hieuLucBaoDam: true },
         }),
-        // Đã duyệt thanh toán
-        prisma.hopDong.count({
-            where: { ngayDuyetThanhToan: { not: null } },
-        }),
-        // Đã kết thúc (hết bảo hành)
-        prisma.hopDong.count({
+        prisma.hopDong.findMany({
             where: {
                 hanBaoHanh: { lt: today },
             },
-        }),
-        // Đảm bảo sắp hết hiệu lực (trong 7 ngày)
-        prisma.hopDong.count({
-            where: {
-                hieuLucBaoDam: {
-                    gte: today,
-                    lte: sevenDaysLater,
-                },
-            },
+            select: { id: true, soHopDong: true, tenHopDong: true, hanBaoHanh: true },
         }),
     ]);
 
     return {
         totalContracts,
-        incompleteContracts,
-        deliveringContracts,
-        lateDeliveryContracts,
-        paidContracts,
-        completedContracts,
-        expiringGuarantee,
+        ciTotal,
+        ciIncomplete,
+        ciDelivering,
+        ciApproved,
+        ciPaid,
+        ciSettled,
+        warnings: {
+            incomplete: incompleteList as WarningItem[],
+            lateDelivery: lateDeliveryList as WarningItem[],
+            expiringGuarantee: expiringGuaranteeList as WarningItem[],
+            completed: completedList as WarningItem[],
+        }
     };
 }
 
-async function getRecentContracts() {
-    return prisma.hopDong.findMany({
-        take: 5,
-        orderBy: { updatedAt: "desc" },
-        include: {
-            nguoiThucHien: { select: { hoTen: true } },
-        },
-    });
+// Serialize dates for client component
+function serializeWarningItems(items: WarningItem[]) {
+    return items.map(item => ({
+        ...item,
+        hieuLucBaoDam: item.hieuLucBaoDam?.toISOString() || null,
+        hanBaoHanh: item.hanBaoHanh?.toISOString() || null,
+    }));
 }
 
 export default async function DashboardPage() {
     const session = await auth();
     const stats = await getStats();
-    const recentContracts = await getRecentContracts();
+    const userRole = session?.user?.role;
 
-    const statCards = [
+    const warningGroups = [
         {
-            title: "Tổng hợp đồng",
-            value: stats.totalContracts,
-            icon: "📋",
-            color: "from-blue-500 to-cyan-500",
-        },
-        {
-            title: "Đang giao nhận",
-            value: stats.deliveringContracts,
-            icon: "🚚",
-            color: "from-amber-500 to-orange-500",
-        },
-        {
-            title: "Đã thanh toán",
-            value: stats.paidContracts,
-            icon: "✅",
-            color: "from-green-500 to-emerald-500",
-        },
-        {
-            title: "Đã kết thúc",
-            value: stats.completedContracts,
-            icon: "🏁",
-            color: "from-slate-500 to-slate-600",
-        },
-    ];
-
-    const warnings = [
-        {
-            count: stats.incompleteContracts,
-            message: "HĐ chưa hoàn thiện nhập liệu",
+            title: "HĐ chưa hoàn thiện nhập liệu",
+            items: serializeWarningItems(stats.warnings.incomplete),
             color: "text-yellow-400",
             bgColor: "bg-yellow-500/10",
+            icon: "📝"
         },
         {
-            count: stats.lateDeliveryContracts,
-            message: "HĐ giao hàng chậm",
+            title: "HĐ giao hàng chậm",
+            items: serializeWarningItems(stats.warnings.lateDelivery),
             color: "text-red-400",
             bgColor: "bg-red-500/10",
+            icon: "⏰"
         },
         {
-            count: stats.expiringGuarantee,
-            message: "HĐ có đảm bảo sắp hết hiệu lực",
+            title: "HĐ có đảm bảo sắp hết hiệu lực",
+            items: serializeWarningItems(stats.warnings.expiringGuarantee),
             color: "text-orange-400",
             bgColor: "bg-orange-500/10",
+            icon: "🛡️"
         },
-    ].filter((w) => w.count > 0);
+        {
+            title: "HĐ đã hoàn tất (hết bảo hành)",
+            items: serializeWarningItems(stats.warnings.completed),
+            color: "text-green-400",
+            bgColor: "bg-green-500/10",
+            icon: "✅",
+            description: "Có thể xóa khỏi hệ thống để cải thiện hiệu năng",
+            showDelete: true
+        },
+    ].filter((g) => g.items.length > 0);
 
     return (
-        <div className="space-y-4 md:space-y-8">
+        <div className="space-y-6 md:space-y-8">
             {/* Header */}
             <div>
                 <h1 className="text-xl md:text-3xl font-bold text-white">Dashboard</h1>
-                <p className="text-slate-400 text-sm md:text-base mt-1">
-                    Xin chào, {session?.user?.name}!{" "}
-                    {session?.user?.role === "USER1" ? "(Lãnh đạo)" : "(Người thực hiện)"}
+                <p className="text-slate-400 text-sm md:text-base mt-2">
+                    Xin chào, <span className="text-white font-medium">{session?.user?.name}</span>!{" "}
+                    <span className="text-slate-500">
+                        {session?.user?.role === "USER1" ? "(Lãnh đạo)" : "(Người thực hiện)"}
+                    </span>
                 </p>
             </div>
 
-            {/* Stats Grid */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6">
-                {statCards.map((stat, index) => (
-                    <div
-                        key={index}
-                        className="relative overflow-hidden rounded-xl md:rounded-2xl bg-slate-800/50 border border-slate-700/50 p-4 md:p-6"
-                    >
-                        <div
-                            className={`absolute top-0 right-0 w-20 md:w-32 h-20 md:h-32 bg-gradient-to-br ${stat.color} opacity-10 rounded-full -translate-y-1/2 translate-x-1/2`}
-                        />
-                        <div className="relative">
-                            <span className="text-xl md:text-3xl">{stat.icon}</span>
-                            <p className="text-2xl md:text-4xl font-bold text-white mt-2 md:mt-3">{stat.value}</p>
-                            <p className="text-slate-400 text-xs md:text-sm mt-1">{stat.title}</p>
-                        </div>
-                    </div>
-                ))}
-            </div>
-
-            {/* Warnings */}
-            {warnings.length > 0 && (
-                <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl md:rounded-2xl p-4 md:p-6">
-                    <h2 className="text-base md:text-lg font-semibold text-white mb-3 md:mb-4 flex items-center gap-2">
-                        <span className="text-xl md:text-2xl">⚠️</span> Cảnh báo
-                    </h2>
-                    <div className="space-y-2 md:space-y-3">
-                        {warnings.map((warning, index) => (
-                            <div
-                                key={index}
-                                className={`flex items-center gap-2 md:gap-3 px-3 md:px-4 py-2 md:py-3 rounded-lg md:rounded-xl ${warning.bgColor}`}
-                            >
-                                <span className={`text-lg md:text-2xl font-bold ${warning.color}`}>
-                                    {warning.count}
-                                </span>
-                                <span className={`text-sm md:text-base ${warning.color}`}>{warning.message}</span>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-
-            {/* Recent Contracts */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl md:rounded-2xl p-4 md:p-6">
-                <div className="flex items-center justify-between mb-4 md:mb-6">
-                    <h2 className="text-base md:text-lg font-semibold text-white">Hợp đồng gần đây</h2>
-                    <Link
-                        href="/hop-dong"
-                        className="text-xs md:text-sm text-purple-400 hover:text-purple-300 transition-colors"
-                    >
-                        Xem tất cả →
-                    </Link>
+            {/* Stats List Section */}
+            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6 md:p-8 space-y-4">
+                <div className="flex items-baseline gap-2">
+                    <span className="text-lg md:text-xl text-slate-300">Tổng số hợp đồng:</span>
+                    <span className="text-2xl md:text-3xl font-bold text-white">{stats.totalContracts}</span>
                 </div>
 
-                {recentContracts.length === 0 ? (
-                    <div className="text-center py-12">
-                        <p className="text-slate-500">Chưa có hợp đồng nào</p>
-                        <Link
-                            href="/hop-dong/tao-moi"
-                            className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all"
-                        >
-                            <span>+</span> Tạo hợp đồng mới
-                        </Link>
+                <div className="space-y-3 pt-2">
+                    <div className="flex items-baseline gap-2">
+                        <span className="text-lg text-slate-300">Hợp đồng công trình đầu tư xây dựng:</span>
+                        <span className="text-xl font-bold text-purple-400">{stats.ciTotal}</span>
                     </div>
-                ) : (
-                    <div className="overflow-x-auto">
-                        <table className="w-full">
-                            <thead>
-                                <tr className="text-left text-slate-400 text-sm border-b border-slate-700">
-                                    <th className="pb-3 font-medium">Số HĐ</th>
-                                    <th className="pb-3 font-medium">Tên hợp đồng</th>
-                                    <th className="pb-3 font-medium">Giá trị</th>
-                                    <th className="pb-3 font-medium">Người thực hiện</th>
-                                    <th className="pb-3 font-medium">Trạng thái</th>
-                                </tr>
-                            </thead>
-                            <tbody className="text-slate-300">
-                                {recentContracts.map((contract) => (
-                                    <tr
-                                        key={contract.id}
-                                        className="border-b border-slate-700/50 hover:bg-slate-700/20 transition-colors"
-                                    >
-                                        <td className="py-4">
-                                            <Link
-                                                href={`/hop-dong/${contract.id}`}
-                                                className="text-purple-400 hover:text-purple-300"
-                                            >
-                                                {contract.soHopDong}
-                                            </Link>
-                                        </td>
-                                        <td className="py-4">{contract.tenHopDong || "—"}</td>
-                                        <td className="py-4">
-                                            {contract.giaTriHopDong
-                                                ? new Intl.NumberFormat("vi-VN", {
-                                                    style: "currency",
-                                                    currency: "VND",
-                                                }).format(contract.giaTriHopDong)
-                                                : "—"}
-                                        </td>
-                                        <td className="py-4">
-                                            {contract.nguoiThucHien?.hoTen || "—"}
-                                        </td>
-                                        <td className="py-4">
-                                            {!contract.tenHopDong ? (
-                                                <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
-                                                    Chưa hoàn thiện
-                                                </span>
-                                            ) : contract.ngayDuyetThanhToan ? (
-                                                <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
-                                                    Đã thanh toán
-                                                </span>
-                                            ) : contract.giaTriGiaoNhan ? (
-                                                <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
-                                                    Đang giao nhận
-                                                </span>
-                                            ) : (
-                                                <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full">
-                                                    Mới tạo
-                                                </span>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
-                )}
+
+                    <ul className="ml-8 space-y-2 text-slate-400">
+                        <li className="flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span>Chưa hoàn thiện hợp đồng:</span>
+                            <span className="text-white font-medium">{stats.ciIncomplete}</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span>Đang giao nhận hàng:</span>
+                            <span className="text-white font-medium">{stats.ciDelivering}</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span>Đã duyệt thanh toán:</span>
+                            <span className="text-white font-medium">{stats.ciApproved}</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span>Đã thanh toán:</span>
+                            <span className="text-white font-medium">{stats.ciPaid}</span>
+                        </li>
+                        <li className="flex items-center gap-3">
+                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span>Đã quyết toán công trình:</span>
+                            <span className="text-white font-medium">{stats.ciSettled}</span>
+                        </li>
+                    </ul>
+                </div>
             </div>
+
+            {/* Warnings with Delete Support */}
+            <WarningList groups={warningGroups} userRole={userRole} />
         </div>
     );
 }

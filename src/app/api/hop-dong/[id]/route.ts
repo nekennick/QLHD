@@ -78,19 +78,25 @@ export async function PUT(
 
         // Các trường text/number (phân quyền chi tiết)
         if (["USER1", "USER2", "ADMIN"].includes(role)) {
-            // USER1 sau khi tạo xong chỉ có quyền điều chuyển người thực hiện (nguoiThucHienId)
+            // USER1 sau khi tạo xong chỉ có quyền:
+            // 1. Điều chuyển người thực hiện (nguoiThucHienId)
+            // 2. Sửa Tên HĐ và Ngày ký (2 trường quản lý)
             // USER2 và ADMIN có toàn quyền các trường này
             const isUser1 = role === "USER1";
 
+            // Các trường mà USER1 (Lãnh đạo) ĐƯỢC sửa
+            if (body.tenHopDong !== undefined) updateData.tenHopDong = body.tenHopDong;
+            if (body.ngayKy !== undefined) updateData.ngayKy = body.ngayKy ? new Date(body.ngayKy) : null;
+
+            // Các trường mà chỉ USER2 và ADMIN được sửa
             if (!isUser1) {
-                if (body.tenHopDong !== undefined) updateData.tenHopDong = body.tenHopDong;
                 if (body.giaTriHopDong !== undefined) updateData.giaTriHopDong = body.giaTriHopDong ? parseFloat(body.giaTriHopDong) : null;
                 if (body.giaTriGiaoNhan !== undefined) updateData.giaTriGiaoNhan = body.giaTriGiaoNhan ? parseFloat(body.giaTriGiaoNhan) : null;
                 if (body.giaTriNghiemThu !== undefined) updateData.giaTriNghiemThu = body.giaTriNghiemThu ? parseFloat(body.giaTriNghiemThu) : null;
                 if (body.tuChinhHopDong !== undefined) updateData.tuChinhHopDong = body.tuChinhHopDong;
 
-                // Các trường date (không bao gồm ngayQuyetToan - sẽ được xử lý riêng cho TCKT)
-                const dateFields = ['ngayKy', 'ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh'];
+                // Các trường date còn lại (không bao gồm ngayKy đã xử lý ở trên)
+                const dateFields = ['ngayHieuLuc', 'hieuLucBaoDam', 'ngayGiaoHang', 'ngayDuyetThanhToan', 'hanBaoHanh'];
                 for (const field of dateFields) {
                     if (body[field] !== undefined) {
                         updateData[field] = body[field] ? new Date(body[field]) : null;
@@ -144,9 +150,10 @@ export async function DELETE(
 ) {
     try {
         const session = await auth();
-        if (!session?.user || session.user.role !== "USER1") {
+        const role = session?.user?.role;
+        if (!session?.user || !["USER1", "ADMIN"].includes(role || "")) {
             return NextResponse.json(
-                { message: "Chỉ lãnh đạo mới có thể xóa hợp đồng" },
+                { message: "Chỉ lãnh đạo hoặc admin mới có thể xóa hợp đồng" },
                 { status: 403 }
             );
         }
