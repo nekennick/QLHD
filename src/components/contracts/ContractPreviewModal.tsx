@@ -29,6 +29,7 @@ interface ContractPreviewModalProps {
     contract: Contract | null;
     isOpen: boolean;
     onClose: () => void;
+    userRole?: string;
 }
 
 const formatCurrency = (value: number | null | undefined) => {
@@ -49,6 +50,7 @@ export default function ContractPreviewModal({
     contract,
     isOpen,
     onClose,
+    userRole,
 }: ContractPreviewModalProps) {
     if (!isOpen || !contract) return null;
 
@@ -177,7 +179,7 @@ export default function ContractPreviewModal({
                         href={`/hop-dong/${contract.id}`}
                         className="px-4 py-2 text-sm text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg transition-all shadow-lg shadow-purple-500/25"
                     >
-                        Xem chi tiết →
+                        {userRole === "USER2" ? "Cập nhật →" : "Xem chi tiết →"}
                     </Link>
                 </div>
             </div>
@@ -202,12 +204,12 @@ function InfoItem({
             <span className="text-xs text-slate-500 uppercase tracking-wider">{label}</span>
             <span
                 className={`text-sm font-medium ${highlight
-                        ? "text-purple-400"
-                        : status === "success"
-                            ? "text-emerald-400"
-                            : status === "pending"
-                                ? "text-amber-400"
-                                : "text-slate-300"
+                    ? "text-purple-400"
+                    : status === "success"
+                        ? "text-emerald-400"
+                        : status === "pending"
+                            ? "text-amber-400"
+                            : "text-slate-300"
                     }`}
             >
                 {value}

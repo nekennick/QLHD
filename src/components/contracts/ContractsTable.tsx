@@ -151,7 +151,7 @@ export default function ContractsTable({
                                             href={`/hop-dong/${contract.id}`}
                                             className="text-purple-400 hover:text-purple-300 text-sm"
                                         >
-                                            Chi tiết →
+                                            {currentUser?.role === "USER2" ? "Cập nhật →" : "Chi tiết →"}
                                         </Link>
                                     </td>
                                 </tr>
@@ -166,6 +166,7 @@ export default function ContractsTable({
                 contract={previewContract}
                 isOpen={!!previewContract}
                 onClose={() => setPreviewContract(null)}
+                userRole={currentUser?.role}
             />
         </>
     );

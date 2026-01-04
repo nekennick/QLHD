@@ -145,7 +145,7 @@ export default function WarningList({ groups, userRole }: WarningListProps) {
                                                     <Link
                                                         href={`/hop-dong/${item.id}`}
                                                         className="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-700 transition-all"
-                                                        title="Xem chi tiết"
+                                                        title={userRole === "USER2" ? "Cập nhật" : "Xem chi tiết"}
                                                     >
                                                         ➜
                                                     </Link>
