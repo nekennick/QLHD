@@ -29,6 +29,9 @@ interface Contract {
     // TCKT
     nguoiThanhToan: { id: string; hoTen: string } | null;
     nguoiThanhToanId: string | null;
+    giaTriThanhToan: number | null; // Tổng giá trị đã thanh toán (tích lũy)
+    daQuyetToan: boolean; // Đánh dấu HĐ đã quyết toán xong
+    ngayQuyetToanHoanTat: string | null; // Ngày xác nhận quyết toán hoàn tất
 }
 
 interface User {
@@ -50,7 +53,7 @@ interface Props {
     tcktUsers?: TCKTUser[];
 }
 
-type TabType = "info" | "delivery" | "acceptance" | "payment" | "warranty";
+type TabType = "info" | "delivery" | "acceptance" | "payment" | "warranty" | "settlement";
 
 interface ReassignConfirmState {
     show: boolean;
@@ -143,6 +146,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         { id: "acceptance", label: "Nghiệm thu", icon: "✅", requiresComplete: true },
         { id: "payment", label: "Thanh toán", icon: "💰", requiresComplete: true },
         { id: "warranty", label: "Bảo hành", icon: "🛡️", requiresComplete: true },
+        { id: "settlement", label: "Quyết toán", icon: "🏗️", requiresComplete: true },
     ];
 
     const formatDate = (dateString: string | null) => {
@@ -181,7 +185,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const data: Record<string, unknown> = {};
 
         // Các trường số cần parse từ format có dấu phân cách
-        const numericFields = ["giaTriHopDong", "giaTriGiaoNhan", "giaTriNghiemThu", "giaTriQuyetToan"];
+        const numericFields = ["giaTriHopDong", "giaTriGiaoNhan", "giaTriNghiemThu", "giaTriQuyetToan", "giaTriThanhToan"];
 
         formData.forEach((value, key) => {
             if (value !== "") {
@@ -199,6 +203,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const giaTriGiaoNhan = data.giaTriGiaoNhan as number | undefined;
         const giaTriNghiemThu = data.giaTriNghiemThu as number | undefined;
         const giaTriQuyetToan = data.giaTriQuyetToan as number | undefined;
+        const giaTriThanhToan = data.giaTriThanhToan as number | undefined;
 
         if (giaTriGiaoNhan && giaTriGiaoNhan > giaTriHD) {
             setMessage({ type: "error", text: `Giá trị giao nhận (${formatNumberWithSeparator(giaTriGiaoNhan)}) không được lớn hơn giá trị hợp đồng (${formatNumberWithSeparator(giaTriHD)})` });
@@ -223,6 +228,20 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             const input = e.currentTarget.querySelector('input[name="giaTriQuyetToan"]') as HTMLInputElement;
             if (input) input.value = "";
             return;
+        }
+
+        if (giaTriThanhToan && giaTriThanhToan > giaTriHD) {
+            setMessage({ type: "error", text: `Giá trị thanh toán (${formatNumberWithSeparator(giaTriThanhToan)}) không được lớn hơn giá trị hợp đồng (${formatNumberWithSeparator(giaTriHD)})` });
+            setLoading(false);
+            const input = e.currentTarget.querySelector('input[name="giaTriThanhToan"]') as HTMLInputElement;
+            if (input) input.value = "";
+            return;
+        }
+
+        // Nếu submit từ nút "Xác nhận quyết toán hoàn tất"
+        const submitter = (e.nativeEvent as any).submitter;
+        if (submitter && submitter.name === "confirmSettlement") {
+            data.daQuyetToan = true;
         }
 
         try {
@@ -510,145 +529,6 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         {renderInputField("Thông tin tu chỉnh", "tuChinhHopDong", "textarea", contract.tuChinhHopDong, "Nhập thông tin tu chỉnh nếu có")}
 
-                        {/* Phần quyết toán công trình đầu tư xây dựng */}
-                        {contract.isConstructionInvestment && (
-                            <>
-                                <hr className="border-slate-700" />
-                                <div className="space-y-4">
-                                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
-                                        🏗️ Quyết toán công trình đầu tư xây dựng
-                                    </h3>
-
-                                    {/* Người quyết toán (TCKT) */}
-                                    <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50">
-                                        <label className="block text-sm font-medium text-slate-400 mb-2">
-                                            Người quyết toán (TCKT)
-                                        </label>
-                                        {contract.nguoiThanhToan ? (
-                                            <div className="space-y-2">
-                                                <p className="text-white font-medium">
-                                                    Hiện tại: {contract.nguoiThanhToan.hoTen}
-                                                </p>
-                                                {(userRole === "USER1_TCKT" || userRole === "ADMIN") && (
-                                                    <div className="flex gap-2">
-                                                        <select
-                                                            id="tcktSelect"
-                                                            className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
-                                                        >
-                                                            <option value="">-- Chọn người mới --</option>
-                                                            {tcktUsers.filter(u => u.id !== contract.nguoiThanhToanId).map((u) => (
-                                                                <option key={u.id} value={u.id}>{u.hoTen}</option>
-                                                            ))}
-                                                        </select>
-                                                        <button
-                                                            type="button"
-                                                            onClick={() => initiateReassign("tckt", "tcktSelect")}
-                                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
-                                                        >
-                                                            Chuyển giao
-                                                        </button>
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (userRole === "USER1_TCKT" || userRole === "ADMIN") ? (
-                                            <div className="flex gap-2">
-                                                <select
-                                                    id="tcktSelect"
-                                                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
-                                                >
-                                                    <option value="">-- Chọn nhân viên TCKT --</option>
-                                                    {tcktUsers.map((u) => (
-                                                        <option key={u.id} value={u.id}>{u.hoTen}</option>
-                                                    ))}
-                                                </select>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => initiateReassign("tckt", "tcktSelect")}
-                                                    className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
-                                                >
-                                                    Giao việc
-                                                </button>
-                                            </div>
-                                        ) : (
-                                            <p className="text-slate-500 italic">Chưa được giao</p>
-                                        )}
-                                    </div>
-
-                                    {/* Các trường quyết toán - chỉ nhân viên TCKT được gán mới có thể sửa */}
-                                    {(() => {
-                                        const isTCKTAssigned = userRole === "USER2_TCKT" && contract.nguoiThanhToanId === userId;
-                                        const canEditSettlement = userRole === "ADMIN" || isTCKTAssigned;
-                                        const settlementInputClass = "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
-
-                                        return (
-                                            <>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                                                            Trị giá quyết toán công trình (VNĐ)
-                                                        </label>
-                                                        <input
-                                                            type="text"
-                                                            name="giaTriQuyetToan"
-                                                            defaultValue={formatNumberWithSeparator(contract.giaTriQuyetToan)}
-                                                            onInput={(e) => {
-                                                                const input = e.currentTarget;
-                                                                const cursorPos = input.selectionStart || 0;
-                                                                const oldLength = input.value.length;
-                                                                const rawValue = input.value.replace(/[^\d]/g, "");
-                                                                const numValue = parseInt(rawValue) || 0;
-                                                                input.value = numValue > 0 ? formatNumberWithSeparator(numValue) : "";
-                                                                const newLength = input.value.length;
-                                                                const newPos = cursorPos + (newLength - oldLength);
-                                                                input.setSelectionRange(newPos, newPos);
-                                                            }}
-                                                            disabled={!canEditSettlement}
-                                                            placeholder="0"
-                                                            className={settlementInputClass + " text-right"}
-                                                        />
-                                                        {!canEditSettlement && contract.nguoiThanhToan && (
-                                                            <p className="text-xs text-orange-400 mt-1">
-                                                                * Chỉ {contract.nguoiThanhToan.hoTen} (TCKT) mới được phép sửa
-                                                            </p>
-                                                        )}
-                                                    </div>
-                                                    <div>
-                                                        <label className="block text-sm font-medium text-slate-300 mb-2">
-                                                            Ngày quyết toán
-                                                        </label>
-                                                        <input
-                                                            type="date"
-                                                            name="ngayQuyetToan"
-                                                            defaultValue={formatDate(contract.ngayQuyetToan)}
-                                                            disabled={!canEditSettlement}
-                                                            className={settlementInputClass}
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                {/* Trị giá thừa sau quyết toán - tính tự động */}
-                                                {contract.giaTriHopDong && contract.giaTriQuyetToan !== null && (
-                                                    <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
-                                                        <label className="block text-sm font-medium text-slate-400 mb-1">
-                                                            Trị giá thừa sau quyết toán
-                                                        </label>
-                                                        <p className={`text-xl font-bold ${(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0)) >= 0
-                                                            ? 'text-green-400'
-                                                            : 'text-red-400'
-                                                            }`}>
-                                                            {formatCurrency(contract.giaTriHopDong - (contract.giaTriQuyetToan || 0))}
-                                                        </p>
-                                                        <p className="text-xs text-slate-500 mt-1">
-                                                            = Giá trị hợp đồng ({formatCurrency(contract.giaTriHopDong)}) - Trị giá quyết toán ({formatCurrency(contract.giaTriQuyetToan)})
-                                                        </p>
-                                                    </div>
-                                                )}
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-                            </>
-                        )}
                     </div>
                 )}
 
@@ -736,6 +616,119 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                 </p>
                             </div>
                         )}
+
+                        {/* Phần dành cho TCKT - Giá trị thanh toán (tích lũy) */}
+                        <div className="space-y-4 pt-4">
+                            <hr className="border-slate-700" />
+                            <h4 className="text-md font-semibold text-purple-400 flex items-center gap-2">
+                                💰 Thanh toán (TCKT)
+                            </h4>
+
+                            {(() => {
+                                const isTCKTAssigned = userRole === "USER2_TCKT" && contract.nguoiThanhToanId === userId;
+                                const canEditPayment = (userRole === "ADMIN" || isTCKTAssigned) && !contract.daQuyetToan;
+                                const paymentInputClass = "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed text-right";
+
+                                const giaTriHD = contract.giaTriHopDong || 0;
+                                const daThanhToan = contract.giaTriThanhToan || 0;
+                                const conLai = giaTriHD - daThanhToan;
+
+                                return (
+                                    <>
+                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                            {/* Giá trị HĐ - Read only */}
+                                            <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
+                                                <label className="block text-sm font-medium text-slate-400 mb-1">
+                                                    Giá trị hợp đồng
+                                                </label>
+                                                <p className="text-xl font-bold text-white">
+                                                    {formatCurrency(giaTriHD)}
+                                                </p>
+                                            </div>
+
+                                            {/* Đã thanh toán - Editable */}
+                                            <div>
+                                                <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                    Đã thanh toán (VNĐ)
+                                                </label>
+                                                <input
+                                                    type="text"
+                                                    name="giaTriThanhToan"
+                                                    defaultValue={formatNumberWithSeparator(contract.giaTriThanhToan)}
+                                                    onInput={(e) => {
+                                                        const input = e.currentTarget;
+                                                        const cursorPos = input.selectionStart || 0;
+                                                        const oldLength = input.value.length;
+                                                        const rawValue = input.value.replace(/[^\d]/g, "");
+                                                        const numValue = parseInt(rawValue) || 0;
+                                                        input.value = numValue > 0 ? formatNumberWithSeparator(numValue) : "";
+                                                        const newLength = input.value.length;
+                                                        const newPos = cursorPos + (newLength - oldLength);
+                                                        input.setSelectionRange(newPos, newPos);
+                                                    }}
+                                                    disabled={!canEditPayment}
+                                                    placeholder="0"
+                                                    className={paymentInputClass}
+                                                />
+                                                {!canEditPayment && contract.nguoiThanhToan && !contract.daQuyetToan && (
+                                                    <p className="text-xs text-orange-400 mt-1">
+                                                        * Chỉ {contract.nguoiThanhToan.hoTen} (TCKT) mới được phép nhập
+                                                    </p>
+                                                )}
+                                                {contract.daQuyetToan && (
+                                                    <p className="text-xs text-slate-500 mt-1">
+                                                        * HĐ đã quyết toán, không thể chỉnh sửa
+                                                    </p>
+                                                )}
+                                            </div>
+
+                                            {/* Còn lại - Auto calculated */}
+                                            <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
+                                                <label className="block text-sm font-medium text-slate-400 mb-1">
+                                                    Còn lại
+                                                </label>
+                                                <p className={`text-xl font-bold ${conLai >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                                                    {formatCurrency(conLai)}
+                                                </p>
+                                                <p className="text-xs text-slate-500 mt-1">
+                                                    = Giá trị HĐ - Đã thanh toán
+                                                </p>
+                                            </div>
+                                        </div>
+
+                                        {/* Thông báo trạng thái quyết toán */}
+                                        {contract.daQuyetToan && (
+                                            <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
+                                                <p className="text-emerald-400 flex items-center gap-2 font-medium">
+                                                    <span>✅</span>
+                                                    Hợp đồng đã quyết toán hoàn tất
+                                                    {contract.ngayQuyetToanHoanTat && (
+                                                        <span className="text-emerald-300 font-normal">
+                                                            (ngày {new Date(contract.ngayQuyetToanHoanTat).toLocaleDateString("vi-VN")})
+                                                        </span>
+                                                    )}
+                                                </p>
+                                            </div>
+                                        )}
+
+                                        {/* Nút cập nhật thanh toán */}
+                                        {canEditPayment && !contract.daQuyetToan && (
+                                            <div className="flex justify-end pt-2">
+                                                <button
+                                                    type="submit"
+                                                    name="updatePayment"
+                                                    value="true"
+                                                    disabled={loading}
+                                                    className="px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-lg transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-purple-500/20"
+                                                >
+                                                    {loading ? "Đang xử lý..." : "💰 Thanh toán"}
+                                                </button>
+                                            </div>
+                                        )}
+                                    </>
+                                );
+                            })()}
+                        </div>
                     </div>
                 )}
 
@@ -765,6 +758,196 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                     <span>🏁</span>
                                     Đã hết thời hạn bảo hành
                                 </p>
+                            </div>
+                        )}
+                    </div>
+                )}
+
+                {/* Tab: Quyết toán */}
+                {activeTab === "settlement" && (
+                    <div className="space-y-6">
+                        <div className="flex items-center justify-between">
+                            <h3 className="text-lg font-semibold text-white">Quyết toán công trình</h3>
+                            {contract.daQuyetToan && (
+                                <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/30">
+                                    Đã quyết toán hoàn tất
+                                </span>
+                            )}
+                        </div>
+
+                        {contract.isConstructionInvestment ? (
+                            <div className="space-y-6">
+                                {/* Người quyết toán (TCKT) */}
+                                <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50">
+                                    <label className="block text-sm font-medium text-slate-400 mb-2">
+                                        Người quyết toán (TCKT)
+                                    </label>
+                                    {contract.nguoiThanhToan ? (
+                                        <div className="space-y-2">
+                                            <p className="text-white font-medium">
+                                                Hiện tại: {contract.nguoiThanhToan.hoTen}
+                                            </p>
+                                            {(userRole === "USER1_TCKT" || userRole === "ADMIN") && (
+                                                <div className="flex gap-2">
+                                                    <select
+                                                        id="tcktSelectSettlement"
+                                                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                                    >
+                                                        <option value="">-- Chọn người mới --</option>
+                                                        {tcktUsers.filter(u => u.id !== contract.nguoiThanhToanId).map((u) => (
+                                                            <option key={u.id} value={u.id}>{u.hoTen}</option>
+                                                        ))}
+                                                    </select>
+                                                    <button
+                                                        type="button"
+                                                        onClick={() => initiateReassign("tckt", "tcktSelectSettlement")}
+                                                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                                    >
+                                                        Chuyển giao
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (userRole === "USER1_TCKT" || userRole === "ADMIN") ? (
+                                        <div className="flex gap-2">
+                                            <select
+                                                id="tcktSelectSettlement"
+                                                className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                            >
+                                                <option value="">-- Chọn nhân viên TCKT --</option>
+                                                {tcktUsers.map((u) => (
+                                                    <option key={u.id} value={u.id}>{u.hoTen}</option>
+                                                ))}
+                                            </select>
+                                            <button
+                                                type="button"
+                                                onClick={() => initiateReassign("tckt", "tcktSelectSettlement")}
+                                                className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                            >
+                                                Giao việc
+                                            </button>
+                                        </div>
+                                    ) : (
+                                        <p className="text-slate-500 italic">Chưa được giao</p>
+                                    )}
+                                </div>
+
+                                {/* Các trường quyết toán - chỉ nhân viên TCKT được gán mới có thể sửa */}
+                                {(() => {
+                                    const isTCKTAssigned = userRole === "USER2_TCKT" && contract.nguoiThanhToanId === userId;
+                                    const canEditSettlement = (userRole === "ADMIN" || isTCKTAssigned) && !contract.daQuyetToan;
+                                    const settlementInputClass = "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+
+                                    const giaTriQT = contract.giaTriQuyetToan || 0;
+                                    const daThanhToan = contract.giaTriThanhToan || 0;
+                                    const canThanhToanThem = giaTriQT - daThanhToan;
+
+                                    return (
+                                        <>
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                        Trị giá quyết toán công trình (VNĐ)
+                                                    </label>
+                                                    <input
+                                                        type="text"
+                                                        name="giaTriQuyetToan"
+                                                        defaultValue={formatNumberWithSeparator(contract.giaTriQuyetToan)}
+                                                        onInput={(e) => {
+                                                            const input = e.currentTarget;
+                                                            const cursorPos = input.selectionStart || 0;
+                                                            const oldLength = input.value.length;
+                                                            const rawValue = input.value.replace(/[^\d]/g, "");
+                                                            const numValue = parseInt(rawValue) || 0;
+                                                            input.value = numValue > 0 ? formatNumberWithSeparator(numValue) : "";
+                                                            const newLength = input.value.length;
+                                                            const newPos = cursorPos + (newLength - oldLength);
+                                                            input.setSelectionRange(newPos, newPos);
+                                                        }}
+                                                        disabled={!canEditSettlement}
+                                                        placeholder="0"
+                                                        className={settlementInputClass + " text-right"}
+                                                    />
+                                                    {!canEditSettlement && contract.nguoiThanhToan && !contract.daQuyetToan && (
+                                                        <p className="text-xs text-orange-400 mt-1">
+                                                            * Chỉ {contract.nguoiThanhToan.hoTen} (TCKT) mới được phép sửa
+                                                        </p>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                                                        Ngày quyết toán
+                                                    </label>
+                                                    <input
+                                                        type="date"
+                                                        name="ngayQuyetToan"
+                                                        defaultValue={formatDate(contract.ngayQuyetToan)}
+                                                        disabled={!canEditSettlement}
+                                                        className={settlementInputClass}
+                                                    />
+                                                </div>
+                                            </div>
+
+                                            {/* Cần thanh toán thêm - tính tự động */}
+                                            {contract.giaTriQuyetToan !== null && (
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                    {/* Trị giá thừa so với HĐ */}
+                                                    <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
+                                                        <label className="block text-sm font-medium text-slate-400 mb-1">
+                                                            Chênh lệch so với giá trị HĐ
+                                                        </label>
+                                                        <p className={`text-xl font-bold ${(contract.giaTriHopDong || 0) - giaTriQT >= 0
+                                                            ? 'text-green-400'
+                                                            : 'text-red-400'
+                                                            }`}>
+                                                            {formatCurrency((contract.giaTriHopDong || 0) - giaTriQT)}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            = Giá trị HĐ - Quyết toán
+                                                        </p>
+                                                    </div>
+
+                                                    {/* Cần thanh toán thêm */}
+                                                    <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
+                                                        <label className="block text-sm font-medium text-slate-400 mb-1">
+                                                            Cần thanh toán thêm
+                                                        </label>
+                                                        <p className={`text-xl font-bold ${canThanhToanThem <= 0
+                                                            ? 'text-emerald-400'
+                                                            : 'text-amber-400'
+                                                            }`}>
+                                                            {canThanhToanThem <= 0 ? "Đã đủ" : formatCurrency(canThanhToanThem)}
+                                                        </p>
+                                                        <p className="text-xs text-slate-500 mt-1">
+                                                            = Quyết toán - Đã thanh toán
+                                                        </p>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {/* Nút xác nhận quyết toán hoàn tất */}
+                                            {canEditSettlement && contract.giaTriQuyetToan !== null && (
+                                                <div className="flex justify-end pt-2">
+                                                    <button
+                                                        type="submit"
+                                                        name="confirmSettlement"
+                                                        value="true"
+                                                        disabled={loading}
+                                                        className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium rounded-lg transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-amber-500/20"
+                                                    >
+                                                        {loading ? "Đang xử lý..." : "🔒 Xác nhận quyết toán hoàn tất"}
+                                                    </button>
+                                                </div>
+                                            )}
+                                        </>
+                                    );
+                                })()}
+                            </div>
+                        ) : (
+                            <div className="p-8 text-center bg-slate-900/20 rounded-xl border border-dashed border-slate-700">
+                                <span className="text-4xl mb-4 block">ℹ️</span>
+                                <p className="text-slate-400">Hợp đồng này không thuộc loại công trình đầu tư xây dựng.</p>
+                                <p className="text-sm text-slate-500 mt-2">Phần quyết toán công trình chỉ áp dụng cho các dự án xây dựng.</p>
                             </div>
                         )}
                     </div>

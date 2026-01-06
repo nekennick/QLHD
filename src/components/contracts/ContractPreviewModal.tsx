@@ -19,7 +19,7 @@ interface Contract {
     giaTriNghiemThu: number | null;
     ngayDuyetThanhToan: Date | null;
     hanBaoHanh: Date | null;
-    daThanhToan: boolean;
+    daQuyetToan: boolean;
     nguoiGiao: { hoTen: string } | null;
     nguoiThucHien: { hoTen: string } | null;
     nguoiThanhToan: { hoTen: string } | null;
@@ -134,9 +134,9 @@ export default function ContractPreviewModal({
                                 status={contract.ngayDuyetThanhToan ? "success" : "pending"}
                             />
                             <InfoItem
-                                label="Thanh toán"
-                                value={contract.daThanhToan ? "Đã thanh toán" : "Chưa thanh toán"}
-                                status={contract.daThanhToan ? "success" : "pending"}
+                                label="Quyết toán HĐ"
+                                value={contract.daQuyetToan ? "Đã hoàn tất" : "Chưa quyết toán"}
+                                status={contract.daQuyetToan ? "success" : "pending"}
                             />
                         </div>
                     </div>

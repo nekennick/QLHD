@@ -20,7 +20,7 @@ export async function GET() {
         // USER2_TCKT chỉ xem HĐ được giao cho mình
         const whereClause: Record<string, unknown> = {
             ngayDuyetThanhToan: { not: null },
-            daThanhToan: false,
+            daQuyetToan: false,
         };
 
         if (role === "USER2_TCKT") {

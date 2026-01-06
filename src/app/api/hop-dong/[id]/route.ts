@@ -124,10 +124,20 @@ export async function PUT(
             }
         }
 
-        // USER2_TCKT được đánh dấu đã thanh toán
+        // USER2_TCKT được cập nhật giá trị thanh toán (tích lũy) và quyết toán
         if (["USER2_TCKT", "ADMIN"].includes(role)) {
-            if (body.daThanhToan !== undefined) {
-                updateData.daThanhToan = body.daThanhToan;
+            // Cập nhật giá trị thanh toán (có thể cập nhật nhiều lần)
+            if (body.giaTriThanhToan !== undefined) {
+                updateData.giaTriThanhToan = body.giaTriThanhToan ? parseFloat(body.giaTriThanhToan) : null;
+            }
+            // Cập nhật giá trị quyết toán
+            if (body.giaTriQuyetToan !== undefined) {
+                updateData.giaTriQuyetToan = body.giaTriQuyetToan ? parseFloat(body.giaTriQuyetToan) : null;
+            }
+            // Xác nhận quyết toán hoàn tất (khóa HĐ)
+            if (body.daQuyetToan === true) {
+                updateData.daQuyetToan = true;
+                updateData.ngayQuyetToanHoanTat = new Date();
             }
         }
 

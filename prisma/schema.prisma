@@ -130,11 +130,13 @@ model HopDong {
   hanBaoHanh DateTime? // Hạn bảo hành hàng hóa
 
   // ==========================================
-  // Module 5: Thanh toán (TCKT)
+  // Module 5: Thanh toán & Quyết toán (TCKT)
   // ==========================================
-  nguoiThanhToanId String?
-  nguoiThanhToan   User?    @relation("NguoiThanhToan", fields: [nguoiThanhToanId], references: [id])
-  daThanhToan      Boolean  @default(false)
+  nguoiThanhToanId    String?
+  nguoiThanhToan      User?    @relation("NguoiThanhToan", fields: [nguoiThanhToanId], references: [id])
+  giaTriThanhToan     Float?   // Tổng giá trị đã thanh toán (tích lũy, cập nhật nhiều lần)
+  daQuyetToan         Boolean  @default(false) // Đánh dấu HĐ đã quyết toán xong
+  ngayQuyetToanHoanTat DateTime? // Ngày xác nhận quyết toán hoàn tất
 
   // Metadata
   createdAt DateTime @default(now())

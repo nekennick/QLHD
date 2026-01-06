@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import AssignmentConfirmDialog from "@/components/contracts/AssignmentConfirmDialog";
 
 interface Contract {
@@ -85,8 +86,8 @@ export default function TCKTDashboard({
         setAssignTarget(null);
     };
 
-    const handleMarkPaid = async (contractId: string) => {
-        const confirmed = window.confirm("Xác nhận đã thanh toán hợp đồng này?");
+    const handleMarkSettled = async (contractId: string) => {
+        const confirmed = window.confirm("Xác nhận đã quyết toán hoàn tất hợp đồng này? Hợp đồng sẽ bị khóa sau khi quyết toán.");
         if (!confirmed) return;
 
         setLoading(contractId);
@@ -94,7 +95,7 @@ export default function TCKTDashboard({
             const res = await fetch(`/api/hop-dong/${contractId}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ daThanhToan: true }),
+                body: JSON.stringify({ daQuyetToan: true }),
             });
 
             if (!res.ok) {
@@ -103,7 +104,7 @@ export default function TCKTDashboard({
                 return;
             }
 
-            alert("Đã đánh dấu thanh toán thành công!");
+            alert("Đã quyết toán thành công!");
             router.refresh();
         } catch {
             alert("Có lỗi xảy ra");
@@ -139,7 +140,7 @@ export default function TCKTDashboard({
                             {["USER1_TCKT", "ADMIN"].includes(userRole) && (
                                 <th className="px-6 py-4 font-medium">Giao cho</th>
                             )}
-                            <th className="px-6 py-4 font-medium text-right">Thao tác</th>
+                            <th className="px-6 py-4 font-medium text-right"></th>
                         </tr>
                     </thead>
                     <tbody className="text-slate-300">
@@ -192,13 +193,20 @@ export default function TCKTDashboard({
                                         </td>
                                     )}
                                     <td className="px-6 py-4 text-right">
-                                        {["USER2_TCKT", "ADMIN"].includes(userRole) && (
-                                            <button
-                                                onClick={() => handleMarkPaid(contract.id)}
-                                                disabled={loading === contract.id}
-                                                className="px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+                                        {userRole === "USER2_TCKT" ? (
+                                            <Link
+                                                href={`/hop-dong/${contract.id}?tab=payment`}
+                                                className="text-purple-400 hover:text-purple-300 text-sm"
                                             >
-                                                {loading === contract.id ? "Đang xử lý..." : "Đã thanh toán"}
+                                                Cập nhật →
+                                            </Link>
+                                        ) : ["USER1_TCKT", "ADMIN"].includes(userRole) && (
+                                            <button
+                                                onClick={() => handleMarkSettled(contract.id)}
+                                                disabled={loading === contract.id}
+                                                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
+                                            >
+                                                {loading === contract.id ? "Đang xử lý..." : "Quyết toán"}
                                             </button>
                                         )}
                                     </td>
@@ -225,8 +233,8 @@ export default function TCKTDashboard({
             <div className="p-4 border-t border-slate-700/50 bg-blue-500/10">
                 <h3 className="text-blue-400 font-medium mb-2">💡 Hướng dẫn</h3>
                 <ul className="text-sm text-slate-400 space-y-1">
-                    <li>• <strong>Lãnh đạo TCKT</strong>: Chọn nhân viên trong cột "Giao cho" để phân công thanh toán</li>
-                    <li>• <strong>Nhân viên TCKT</strong>: Bấm "Đã thanh toán" khi hoàn thành</li>
+                    <li>• <strong>Lãnh đạo TCKT</strong>: Chọn nhân viên trong cột "Giao cho" để phân công | Bấm "Quyết toán" để kết thúc nhanh</li>
+                    <li>• <strong>Nhân viên TCKT</strong>: Bấm "Cập nhật" để vào chi tiết thanh toán và quyết toán</li>
                 </ul>
             </div>
         </div>

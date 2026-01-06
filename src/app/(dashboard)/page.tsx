@@ -48,10 +48,10 @@ async function getStats() {
             where: { isConstructionInvestment: true, ngayDuyetThanhToan: { not: null } },
         }),
         prisma.hopDong.count({
-            where: { isConstructionInvestment: true, daThanhToan: true },
+            where: { isConstructionInvestment: true, giaTriThanhToan: { not: null } },
         }),
         prisma.hopDong.count({
-            where: { isConstructionInvestment: true, giaTriQuyetToan: { not: null } },
+            where: { isConstructionInvestment: true, daQuyetToan: true },
         }),
         // Warning lists - with executor and value for table display
         prisma.hopDong.findMany({

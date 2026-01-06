@@ -79,7 +79,7 @@ async function generateDocx(contracts: Awaited<ReturnType<typeof getReportData>>
     const today = new Date().toLocaleDateString("vi-VN");
 
     const headerRow = new TableRow({
-        children: ["STT", "Số HĐ", "Tên HĐ", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Người thực hiện"].map(
+        children: ["STT", "Số HĐ", "Tên HĐ", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Thanh toán", "Quyết toán", "Người thực hiện"].map(
             (text) =>
                 new TableCell({
                     children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: 22 })] })],
@@ -98,6 +98,8 @@ async function generateDocx(contracts: Awaited<ReturnType<typeof getReportData>>
                 formatDate(contract.ngayKy),
                 formatCurrency(contract.giaTriGiaoNhan),
                 formatCurrency(contract.giaTriNghiemThu),
+                formatCurrency(contract.giaTriThanhToan),
+                formatCurrency(contract.giaTriQuyetToan),
                 contract.nguoiThucHien?.hoTen || "—",
             ].map(
                 (text) =>
@@ -147,21 +149,21 @@ async function generateExcel(contracts: Awaited<ReturnType<typeof getReportData>
     const worksheet = workbook.addWorksheet("Báo cáo HĐ");
 
     // Title
-    worksheet.mergeCells("A1:H1");
+    worksheet.mergeCells("A1:I1");
     const titleCell = worksheet.getCell("A1");
     titleCell.value = "BÁO CÁO THỰC HIỆN HỢP ĐỒNG";
     titleCell.font = { bold: true, size: 16 };
     titleCell.alignment = { horizontal: "center" };
 
     // Date
-    worksheet.mergeCells("A2:H2");
+    worksheet.mergeCells("A2:I2");
     const dateCell = worksheet.getCell("A2");
     dateCell.value = `Ngày ${new Date().toLocaleDateString("vi-VN")}`;
     dateCell.font = { italic: true, size: 12 };
     dateCell.alignment = { horizontal: "center" };
 
     // Headers
-    const headers = ["STT", "Số HĐ", "Tên HĐ", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Người thực hiện"];
+    const headers = ["STT", "Số HĐ", "Tên HĐ", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Thanh toán", "Quyết toán", "Người thực hiện"];
     const headerRow = worksheet.addRow(headers);
     headerRow.eachCell((cell) => {
         cell.font = { bold: true };
@@ -184,6 +186,8 @@ async function generateExcel(contracts: Awaited<ReturnType<typeof getReportData>
             contract.ngayKy ? new Date(contract.ngayKy) : "—",
             contract.giaTriGiaoNhan || 0,
             contract.giaTriNghiemThu || 0,
+            contract.giaTriThanhToan || 0,
+            contract.giaTriQuyetToan || 0,
             contract.nguoiThucHien?.hoTen || "—",
         ]);
         row.eachCell((cell) => {
@@ -200,6 +204,8 @@ async function generateExcel(contracts: Awaited<ReturnType<typeof getReportData>
     worksheet.getColumn(4).numFmt = '#,##0" đ"';
     worksheet.getColumn(6).numFmt = '#,##0" đ"';
     worksheet.getColumn(7).numFmt = '#,##0" đ"';
+    worksheet.getColumn(8).numFmt = '#,##0" đ"';
+    worksheet.getColumn(9).numFmt = '#,##0" đ"';
     worksheet.getColumn(5).numFmt = "DD/MM/YYYY";
 
     // Auto width

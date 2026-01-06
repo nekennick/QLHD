@@ -63,8 +63,11 @@ export default async function ContractDetailPage({
         ngayDuyetThanhToan: contract.ngayDuyetThanhToan?.toISOString() || null,
         hanBaoHanh: contract.hanBaoHanh?.toISOString() || null,
         ngayQuyetToan: contract.ngayQuyetToan?.toISOString() || null,
+        ngayQuyetToanHoanTat: contract.ngayQuyetToanHoanTat?.toISOString() || null,
         nguoiThanhToan: contract.nguoiThanhToan,
         nguoiThanhToanId: contract.nguoiThanhToanId,
+        giaTriThanhToan: contract.giaTriThanhToan,
+        daQuyetToan: contract.daQuyetToan,
     };
 
     return (

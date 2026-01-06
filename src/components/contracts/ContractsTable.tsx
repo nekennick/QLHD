@@ -21,7 +21,7 @@ interface Contract {
     giaTriNghiemThu: number | null;
     ngayDuyetThanhToan: Date | null;
     hanBaoHanh: Date | null;
-    daThanhToan: boolean;
+    daQuyetToan: boolean;
     nguoiGiao: { hoTen: string } | null;
     nguoiThucHien: { hoTen: string; id: string } | null;
     nguoiThucHienId: string | null;
@@ -128,9 +128,13 @@ export default function ContractsTable({
                                             <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
                                                 Chưa lập HĐ
                                             </span>
+                                        ) : contract.daQuyetToan ? (
+                                            <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full border border-slate-500/30">
+                                                ✅ Đã quyết toán
+                                            </span>
                                         ) : contract.ngayDuyetThanhToan ? (
                                             <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
-                                                Đã thanh toán
+                                                Đã duyệt thanh toán
                                             </span>
                                         ) : contract.giaTriNghiemThu ? (
                                             <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">

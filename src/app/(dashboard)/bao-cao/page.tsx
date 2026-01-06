@@ -176,6 +176,8 @@ export default async function ReportPage({
                                     <th className="px-6 py-4 font-medium">Người thực hiện</th>
                                     <th className="px-6 py-4 font-medium">Giao nhận</th>
                                     <th className="px-6 py-4 font-medium">Nghiệm thu</th>
+                                    <th className="px-6 py-4 font-medium">Thanh toán</th>
+                                    <th className="px-6 py-4 font-medium">Quyết toán</th>
                                 </tr>
                             </thead>
                             <tbody className="text-slate-300">
@@ -207,6 +209,16 @@ export default async function ReportPage({
                                         <td className="px-6 py-4">
                                             {contract.giaTriNghiemThu
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriNghiemThu)
+                                                : "—"}
+                                        </td>
+                                        <td className="px-6 py-4">
+                                            {contract.giaTriThanhToan
+                                                ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriThanhToan)
+                                                : "—"}
+                                        </td>
+                                        <td className="px-6 py-4 text-amber-400 font-medium">
+                                            {contract.giaTriQuyetToan
+                                                ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriQuyetToan)
                                                 : "—"}
                                         </td>
                                     </tr>

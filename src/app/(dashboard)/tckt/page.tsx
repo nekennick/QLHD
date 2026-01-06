@@ -7,7 +7,7 @@ async function getPendingPayments() {
     return prisma.hopDong.findMany({
         where: {
             ngayDuyetThanhToan: { not: null },
-            daThanhToan: false,
+            daQuyetToan: false,
         },
         include: {
             nguoiGiao: { select: { id: true, hoTen: true } },

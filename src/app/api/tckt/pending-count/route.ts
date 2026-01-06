@@ -22,7 +22,7 @@ export async function GET() {
             count = await prisma.hopDong.count({
                 where: {
                     ngayDuyetThanhToan: { not: null },
-                    daThanhToan: false,
+                    daQuyetToan: false,
                     nguoiThanhToanId: null,
                 },
             });
@@ -31,7 +31,7 @@ export async function GET() {
             count = await prisma.hopDong.count({
                 where: {
                     ngayDuyetThanhToan: { not: null },
-                    daThanhToan: false,
+                    daQuyetToan: false,
                     nguoiThanhToanId: session.user.id,
                 },
             });
@@ -40,7 +40,7 @@ export async function GET() {
             count = await prisma.hopDong.count({
                 where: {
                     ngayDuyetThanhToan: { not: null },
-                    daThanhToan: false,
+                    daQuyetToan: false,
                 },
             });
         }
