@@ -216,24 +216,26 @@ export default function ContractsTable({
                                     </div>
                                 </div>
                             </th>
-                            {/* Người thực hiện */}
-                            <th className="px-6 py-5">
-                                <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Người thực hiện</span>
-                                    <select
-                                        value={filterNguoiThucHien}
-                                        onChange={(e) => setFilterNguoiThucHien(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
-                                    >
-                                        <option value="">Tất cả</option>
-                                        {users.map((user) => (
-                                            <option key={user.id} value={user.id} className="bg-slate-900">
-                                                {user.hoTen}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </th>
+                            {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
+                            {["USER1", "USER1_TCKT", "ADMIN"].includes(currentUser?.role || "") && (
+                                <th className="px-6 py-5">
+                                    <div className="space-y-2.5">
+                                        <span className="text-sm font-bold text-white uppercase tracking-wider">Người thực hiện</span>
+                                        <select
+                                            value={filterNguoiThucHien}
+                                            onChange={(e) => setFilterNguoiThucHien(e.target.value)}
+                                            className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
+                                        >
+                                            <option value="">Tất cả</option>
+                                            {users.map((user) => (
+                                                <option key={user.id} value={user.id} className="bg-slate-900">
+                                                    {user.hoTen}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                </th>
+                            )}
                             {/* Trạng thái */}
                             <th className="px-6 py-5">
                                 <div className="space-y-2.5">
@@ -302,11 +304,14 @@ export default function ContractsTable({
                                             ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
                                             : "—"}
                                     </td>
-                                    <td className="px-6 py-4">
-                                        <span className={canReassign ? "text-purple-400" : "text-slate-300"}>
-                                            {contract.nguoiThucHien?.hoTen || "—"}
-                                        </span>
-                                    </td>
+                                    {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
+                                    {["USER1", "USER1_TCKT", "ADMIN"].includes(currentUser?.role || "") && (
+                                        <td className="px-6 py-4">
+                                            <span className={canReassign ? "text-purple-400" : "text-slate-300"}>
+                                                {contract.nguoiThucHien?.hoTen || "—"}
+                                            </span>
+                                        </td>
+                                    )}
                                     <td className="px-6 py-4">
                                         {!contract.tenHopDong ? (
                                             <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
