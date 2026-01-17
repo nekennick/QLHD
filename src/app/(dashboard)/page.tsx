@@ -145,28 +145,28 @@ export default async function DashboardPage() {
 
     const warningGroups = [
         {
-            title: "HĐ chưa kết thúc nhập liệu",
+            title: "Chưa lập hợp đồng",
             items: serializeWarningItems(stats.warnings.incomplete),
             color: "text-yellow-400",
             bgColor: "bg-yellow-500/10",
             icon: "📝"
         },
         {
-            title: "HĐ giao hàng chậm",
+            title: "Hợp đồng giao hàng chậm",
             items: serializeWarningItems(stats.warnings.lateDelivery),
             color: "text-red-400",
             bgColor: "bg-red-500/10",
             icon: "⏰"
         },
         {
-            title: "HĐ có đảm bảo sắp hết hiệu lực",
+            title: "Hợp đồng có đảm bảo sắp hết hiệu lực",
             items: serializeWarningItems(stats.warnings.expiringGuarantee),
             color: "text-orange-400",
             bgColor: "bg-orange-500/10",
             icon: "🛡️"
         },
         {
-            title: "HĐ đã kết thúc (hết bảo hành)",
+            title: "Hợp đồng đã kết thúc (hết bảo hành)",
             items: serializeWarningItems(stats.warnings.completed),
             color: "text-green-400",
             bgColor: "bg-green-500/10",
@@ -205,7 +205,7 @@ export default async function DashboardPage() {
                     <ul className="ml-8 space-y-2 text-slate-400">
                         <li className="flex items-center gap-3">
                             <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
-                            <span>Chưa lập HĐ:</span>
+                            <span>Chưa lập hợp đồng:</span>
                             <span className="text-white font-medium">{stats.ciIncomplete}</span>
                         </li>
                         <li className="flex items-center gap-3">

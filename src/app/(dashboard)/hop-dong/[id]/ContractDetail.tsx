@@ -435,7 +435,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             {!isContractComplete && (
                 <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50 text-yellow-400 flex items-center gap-3">
                     <span className="text-xl">⚠️</span>
-                    <span>Vui lòng hoàn thiện tất cả thông tin cơ bản (Tên HĐ, Giá trị, Ngày ký, Ngày hiệu lực, Ngày giao hàng, Hiệu lực bảo đảm) trước khi nhập liệu các mục khác.</span>
+                    <span>Vui lòng hoàn thiện tất cả thông tin cơ bản (Tên hợp đồng, Giá trị, Ngày ký, Ngày hiệu lực, Ngày giao hàng, Hiệu lực bảo đảm) trước khi nhập liệu các mục khác.</span>
                 </div>
             )}
 
@@ -526,7 +526,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderInputField("Tên hợp đồng", "tenHopDong", "text", contract.tenHopDong, "Nhập tên hợp đồng")}
-                            {renderCurrencyField("Giá trị hợp đồng (VNĐ)", "giaTriHopDong", contract.giaTriHopDong, "0")}
+                            {renderCurrencyField("Giá trị hợp đồng (Đồng)", "giaTriHopDong", contract.giaTriHopDong, "0")}
                             {renderInputField("Ngày ký", "ngayKy", "date", contract.ngayKy)}
                             {renderInputField("Ngày hiệu lực", "ngayHieuLuc", "date", contract.ngayHieuLuc)}
                             {renderInputField("Ngày giao hàng", "ngayGiaoHang", "date", contract.ngayGiaoHang)}
@@ -545,7 +545,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderReadOnlyField("Giá trị hợp đồng", formatCurrency(contract.giaTriHopDong))}
-                            {renderCurrencyField("Giá trị hàng giao nhận (VNĐ)", "giaTriGiaoNhan", contract.giaTriGiaoNhan, "0")}
+                            {renderCurrencyField("Giá trị hàng giao nhận (Đồng)", "giaTriGiaoNhan", contract.giaTriGiaoNhan, "0")}
                         </div>
 
                         {/* Progress */}
@@ -577,7 +577,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             {renderReadOnlyField("Giá trị đã giao nhận", formatCurrency(contract.giaTriGiaoNhan))}
-                            {renderCurrencyField("Giá trị hàng đã nghiệm thu (VNĐ)", "giaTriNghiemThu", contract.giaTriNghiemThu, "0")}
+                            {renderCurrencyField("Giá trị hàng đã nghiệm thu (Đồng)", "giaTriNghiemThu", contract.giaTriNghiemThu, "0")}
                         </div>
 
                         {/* Progress */}
@@ -655,7 +655,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                             {/* Đã thanh toán - Editable */}
                                             <div>
                                                 <label className="block text-sm font-medium text-slate-300 mb-2">
-                                                    Đã thanh toán (VNĐ)
+                                                    Đã thanh toán (Đồng)
                                                 </label>
                                                 <input
                                                     type="text"
@@ -683,7 +683,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                 )}
                                                 {contract.daQuyetToan && (
                                                     <p className="text-xs text-slate-500 mt-1">
-                                                        * HĐ đã quyết toán, không thể chỉnh sửa
+                                                        *Hợp đồng đã quyết toán, không thể chỉnh sửa
                                                     </p>
                                                 )}
                                             </div>
@@ -697,7 +697,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                     {formatCurrency(conLai)}
                                                 </p>
                                                 <p className="text-xs text-slate-500 mt-1">
-                                                    = Giá trị HĐ - Đã thanh toán
+                                                    = Giá trị hợp đồng - Đã thanh toán
                                                 </p>
                                             </div>
                                         </div>
@@ -753,7 +753,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                             <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
                                 <p className="text-orange-400 flex items-center gap-2">
                                     <span>⚠️</span>
-                                    Đảm bảo thực hiện HĐ sắp hết hiệu lực!
+                                    Đảm bảo thực hiện hợp đồng sắp hết hiệu lực!
                                 </p>
                             </div>
                         )}
@@ -773,7 +773,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 {activeTab === "settlement" && (
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
-                            <h3 className="text-lg font-semibold text-white">Quyết toán công trình</h3>
+                            <h3 className="text-lg font-semibold text-white">Quyết toán công trình ĐTXD</h3>
                             {contract.daQuyetToan && (
                                 <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/30">
                                     Đã kết thúc
@@ -853,7 +853,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                                 <div>
                                                     <label className="block text-sm font-medium text-slate-300 mb-2">
-                                                        Trị giá quyết toán công trình (VNĐ)
+                                                        Giá trị quyết toán công trình ĐTXD (Đồng)
                                                     </label>
                                                     <input
                                                         type="text"
@@ -900,7 +900,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                     {/* Trị giá thừa so với HĐ */}
                                                     <div className="p-4 bg-slate-900/50 border border-slate-600/30 rounded-lg">
                                                         <label className="block text-sm font-medium text-slate-400 mb-1">
-                                                            Chênh lệch so với giá trị HĐ
+                                                            Chênh lệch so với giá trị hợp đồng
                                                         </label>
                                                         <p className={`text-xl font-bold ${(contract.giaTriHopDong || 0) - giaTriQT >= 0
                                                             ? 'text-green-400'
@@ -909,7 +909,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                             {formatCurrency((contract.giaTriHopDong || 0) - giaTriQT)}
                                                         </p>
                                                         <p className="text-xs text-slate-500 mt-1">
-                                                            = Giá trị HĐ - Quyết toán
+                                                            = Giá trị hợp đồng - Quyết toán
                                                         </p>
                                                     </div>
 

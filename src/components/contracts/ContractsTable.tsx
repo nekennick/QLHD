@@ -57,7 +57,7 @@ const getStatusValue = (contract: Contract): string => {
 
 const statusOptions = [
     { value: "", label: "Tất cả" },
-    { value: "chua_lap_hd", label: "Chưa lập HĐ" },
+    { value: "chua_lap_hd", label: "Chưa lập hợp đồng" },
     { value: "dang_giao_nhan", label: "Đang giao nhận" },
     { value: "da_nghiem_thu", label: "Đã nghiệm thu" },
     { value: "da_duyet_thanh_toan", label: "Đã duyệt thanh toán" },
@@ -81,6 +81,24 @@ export default function ContractsTable({
     const [filterNguoiThucHien, setFilterNguoiThucHien] = useState("");
     const [filterTrangThai, setFilterTrangThai] = useState("");
 
+    // Sort states
+    type SortField = 'giaTriHopDong' | 'ngayKy' | null;
+    type SortDirection = 'asc' | 'desc';
+    const [sortField, setSortField] = useState<SortField>(null);
+    const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+    // Handle sort
+    const handleSort = (field: SortField) => {
+        if (sortField === field) {
+            // Toggle direction
+            setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+        } else {
+            // New field, default to ascending
+            setSortField(field);
+            setSortDirection('asc');
+        }
+    };
+
     const isStale = (contract: Contract) => {
         if (contract.ngayDuyetThanhToan) return false;
 
@@ -92,9 +110,10 @@ export default function ContractsTable({
         return diffDays > 7;
     };
 
-    // Lọc contracts theo các filter
+    // Lọc và sắp xếp contracts
     const filteredContracts = useMemo(() => {
-        return contracts.filter((contract) => {
+        // Bước 1: Lọc
+        let result = contracts.filter((contract) => {
             // Tìm kiếm theo Số HĐ
             if (searchSoHD && !contract.soHopDong.toLowerCase().includes(searchSoHD.toLowerCase())) {
                 return false;
@@ -113,78 +132,127 @@ export default function ContractsTable({
             }
             return true;
         });
-    }, [contracts, searchSoHD, searchTenHD, filterNguoiThucHien, filterTrangThai]);
+
+        // Bước 2: Sắp xếp
+        if (sortField) {
+            result = [...result].sort((a, b) => {
+                let aValue: any;
+                let bValue: any;
+
+                if (sortField === 'giaTriHopDong') {
+                    aValue = a.giaTriHopDong || 0;
+                    bValue = b.giaTriHopDong || 0;
+                } else if (sortField === 'ngayKy') {
+                    aValue = a.ngayKy ? new Date(a.ngayKy).getTime() : 0;
+                    bValue = b.ngayKy ? new Date(b.ngayKy).getTime() : 0;
+                }
+
+                if (sortDirection === 'asc') {
+                    return aValue > bValue ? 1 : -1;
+                } else {
+                    return aValue < bValue ? 1 : -1;
+                }
+            });
+        }
+
+        return result;
+    }, [contracts, searchSoHD, searchTenHD, filterNguoiThucHien, filterTrangThai, sortField, sortDirection]);
 
     return (
         <>
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
-                            <th className="px-6 py-3 font-medium">Số HĐ</th>
-                            <th className="px-6 py-3 font-medium">Tên hợp đồng</th>
-                            <th className="px-6 py-3 font-medium">Giá trị</th>
-                            <th className="px-6 py-3 font-medium">Ngày ký</th>
-                            <th className="px-6 py-3 font-medium">Người thực hiện</th>
-                            <th className="px-6 py-3 font-medium">Trạng thái</th>
-                            <th className="px-6 py-3 font-medium"></th>
-                        </tr>
-                        <tr className="bg-slate-800/50 border-t border-slate-700/30">
-                            {/* Filter: Số HĐ */}
-                            <th className="px-4 py-2">
-                                <input
-                                    type="text"
-                                    placeholder="Tìm kiếm..."
-                                    value={searchSoHD}
-                                    onChange={(e) => setSearchSoHD(e.target.value)}
-                                    className="w-full px-2 py-1.5 text-sm bg-slate-700/80 text-white rounded-lg border border-slate-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-slate-500"
-                                />
+                        <tr className="text-left bg-slate-900/80 border-b-2 border-slate-700 shadow-sm relative z-10">
+                            {/* Số hợp đồng */}
+                            <th className="px-6 py-5">
+                                <div className="space-y-2.5">
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Số hợp đồng</span>
+                                    <input
+                                        type="text"
+                                        placeholder="🔍 Tìm kiếm..."
+                                        value={searchSoHD}
+                                        onChange={(e) => setSearchSoHD(e.target.value)}
+                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-500 transition-all font-normal outline-none"
+                                    />
+                                </div>
                             </th>
-                            {/* Filter: Tên HĐ */}
-                            <th className="px-4 py-2">
-                                <input
-                                    type="text"
-                                    placeholder="Tìm kiếm..."
-                                    value={searchTenHD}
-                                    onChange={(e) => setSearchTenHD(e.target.value)}
-                                    className="w-full px-2 py-1.5 text-sm bg-slate-700/80 text-white rounded-lg border border-slate-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent placeholder:text-slate-500"
-                                />
+                            {/* Tên hợp đồng */}
+                            <th className="px-6 py-5">
+                                <div className="space-y-2.5">
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Tên hợp đồng</span>
+                                    <input
+                                        type="text"
+                                        placeholder="🔍 Tìm kiếm..."
+                                        value={searchTenHD}
+                                        onChange={(e) => setSearchTenHD(e.target.value)}
+                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-500 transition-all font-normal outline-none"
+                                    />
+                                </div>
                             </th>
-                            {/* Giá trị - không filter */}
-                            <th className="px-4 py-2"></th>
-                            {/* Ngày ký - không filter */}
-                            <th className="px-4 py-2"></th>
-                            {/* Filter: Người thực hiện */}
-                            <th className="px-4 py-2">
-                                <select
-                                    value={filterNguoiThucHien}
-                                    onChange={(e) => setFilterNguoiThucHien(e.target.value)}
-                                    className="w-full px-2 py-1.5 text-sm bg-slate-700/80 text-white rounded-lg border border-slate-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                >
-                                    <option value="">Tất cả</option>
-                                    {users.map((user) => (
-                                        <option key={user.id} value={user.id}>
-                                            {user.hoTen}
-                                        </option>
-                                    ))}
-                                </select>
+                            {/* Giá trị - sortable */}
+                            <th
+                                className="px-6 py-5 cursor-pointer hover:bg-slate-800/50 transition-colors select-none group"
+                                onClick={() => handleSort('giaTriHopDong')}
+                            >
+                                <div className="flex items-center gap-2 mb-10">
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider group-hover:text-purple-400 transition-colors">Giá trị</span>
+                                    <div className="flex flex-col text-[10px] leading-none text-slate-500 group-hover:text-purple-400">
+                                        <span className={sortField === 'giaTriHopDong' && sortDirection === 'asc' ? 'text-purple-400' : ''}>▲</span>
+                                        <span className={sortField === 'giaTriHopDong' && sortDirection === 'desc' ? 'text-purple-400' : ''}>▼</span>
+                                    </div>
+                                </div>
                             </th>
-                            {/* Filter: Trạng thái */}
-                            <th className="px-4 py-2">
-                                <select
-                                    value={filterTrangThai}
-                                    onChange={(e) => setFilterTrangThai(e.target.value)}
-                                    className="w-full px-2 py-1.5 text-sm bg-slate-700/80 text-white rounded-lg border border-slate-600 focus:ring-2 focus:ring-purple-500 focus:border-transparent"
-                                >
-                                    {statusOptions.map((option) => (
-                                        <option key={option.value} value={option.value}>
-                                            {option.label}
-                                        </option>
-                                    ))}
-                                </select>
+                            {/* Ngày ký - sortable */}
+                            <th
+                                className="px-6 py-5 cursor-pointer hover:bg-slate-800/50 transition-colors select-none group"
+                                onClick={() => handleSort('ngayKy')}
+                            >
+                                <div className="flex items-center gap-2 mb-10">
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider group-hover:text-purple-400 transition-colors">Ngày ký</span>
+                                    <div className="flex flex-col text-[10px] leading-none text-slate-500 group-hover:text-purple-400">
+                                        <span className={sortField === 'ngayKy' && sortDirection === 'asc' ? 'text-purple-400' : ''}>▲</span>
+                                        <span className={sortField === 'ngayKy' && sortDirection === 'desc' ? 'text-purple-400' : ''}>▼</span>
+                                    </div>
+                                </div>
                             </th>
-                            {/* Actions - không filter */}
-                            <th className="px-4 py-2"></th>
+                            {/* Người thực hiện */}
+                            <th className="px-6 py-5">
+                                <div className="space-y-2.5">
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Người thực hiện</span>
+                                    <select
+                                        value={filterNguoiThucHien}
+                                        onChange={(e) => setFilterNguoiThucHien(e.target.value)}
+                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
+                                    >
+                                        <option value="">Tất cả</option>
+                                        {users.map((user) => (
+                                            <option key={user.id} value={user.id} className="bg-slate-900">
+                                                {user.hoTen}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </th>
+                            {/* Trạng thái */}
+                            <th className="px-6 py-5">
+                                <div className="space-y-2.5">
+                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Trạng thái</span>
+                                    <select
+                                        value={filterTrangThai}
+                                        onChange={(e) => setFilterTrangThai(e.target.value)}
+                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
+                                    >
+                                        {statusOptions.map((option) => (
+                                            <option key={option.value} value={option.value} className="bg-slate-900">
+                                                {option.label}
+                                            </option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </th>
+                            {/* Actions */}
+                            <th className="px-6 py-5"></th>
                         </tr>
                     </thead>
                     <tbody className="text-slate-300">
@@ -213,9 +281,9 @@ export default function ContractsTable({
                                             )}
                                         </button>
                                     </td>
-                                    <td className={`px-6 py-4 max-w-[200px] ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <td className={`px-6 py-4 max-w-[250px] ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                         <span
-                                            className="line-clamp-2"
+                                            className="line-clamp-3"
                                             title={contract.tenHopDong || undefined}
                                         >
                                             {contract.tenHopDong || "—"}
@@ -242,7 +310,7 @@ export default function ContractsTable({
                                     <td className="px-6 py-4">
                                         {!contract.tenHopDong ? (
                                             <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
-                                                Chưa lập HĐ
+                                                Chưa lập hợp đồng
                                             </span>
                                         ) : contract.daQuyetToan ? (
                                             <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full border border-slate-500/30">

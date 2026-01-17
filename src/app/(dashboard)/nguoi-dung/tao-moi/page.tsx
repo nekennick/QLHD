@@ -122,8 +122,8 @@ export default function CreateUserPage() {
                                 required
                                 className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
                             >
-                                <option value="USER2">Người thực hiện HĐ</option>
-                                <option value="USER1">Lãnh đạo HĐ</option>
+                                <option value="USER2">Người thực hiện hợp đồng</option>
+                                <option value="USER1">Lãnh đạo hợp đồng</option>
                                 <option value="USER1_TCKT">Lãnh đạo TCKT</option>
                                 <option value="USER2_TCKT">Nhân viên TCKT</option>
                             </select>

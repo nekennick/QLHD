@@ -99,7 +99,7 @@ export default async function ReportPage({
 
     const reportTypes: { value: ReportType; label: string; count: number; color: string }[] = [
         { value: "all", label: "Tổng số lượng hợp đồng", count: stats.total, color: "bg-slate-600" },
-        { value: "incomplete", label: "Chưa lập HĐ", count: stats.incomplete, color: "bg-yellow-600" },
+        { value: "incomplete", label: "Chưa lập hợp đồng", count: stats.incomplete, color: "bg-yellow-600" },
         { value: "delivering", label: "Đang giao nhận", count: stats.delivering, color: "bg-blue-600" },
         { value: "late", label: "Giao chậm", count: stats.late, color: "bg-red-600" },
         { value: "expiring", label: "Đảm bảo sắp hết", count: stats.expiring, color: "bg-orange-600" },
@@ -169,7 +169,7 @@ export default async function ReportPage({
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
-                                    <th className="px-6 py-4 font-medium">Số HĐ</th>
+                                    <th className="px-6 py-4 font-medium">Số hợp đồng</th>
                                     <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
                                     <th className="px-6 py-4 font-medium">Giá trị</th>
                                     <th className="px-6 py-4 font-medium">Ngày ký</th>

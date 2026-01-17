@@ -82,7 +82,7 @@ export default async function UsersPage() {
                                 <th className="px-6 py-4 font-medium">Tên đăng nhập</th>
                                 <th className="px-6 py-4 font-medium">Họ tên</th>
                                 <th className="px-6 py-4 font-medium">Vai trò</th>
-                                <th className="px-6 py-4 font-medium">Số HĐ thực hiện</th>
+                                <th className="px-6 py-4 font-medium">Số hợp đồng thực hiện</th>
                                 <th className="px-6 py-4 font-medium">Ngày tạo</th>
                                 <th className="px-6 py-4 font-medium text-right">Reset mật khẩu</th>
                                 {(session?.user?.role === "ADMIN" || session?.user?.role === "USER1") && (
@@ -101,7 +101,7 @@ export default async function UsersPage() {
                                     <td className="px-6 py-4">
                                         {user.role === "USER1" ? (
                                             <span className="px-2 py-1 text-xs bg-purple-500/20 text-purple-400 rounded-full">
-                                                Lãnh đạo HĐ
+                                                Lãnh đạo hợp đồng
                                             </span>
                                         ) : user.role === "ADMIN" ? (
                                             <span className="px-2 py-1 text-xs bg-red-500/20 text-red-400 rounded-full">
@@ -117,7 +117,7 @@ export default async function UsersPage() {
                                             </span>
                                         ) : (
                                             <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
-                                                Người thực hiện HĐ
+                                                Người thực hiện hợp đồng
                                             </span>
                                         )}
                                     </td>
@@ -153,7 +153,7 @@ export default async function UsersPage() {
                 <h3 className="text-blue-400 font-medium mb-2">💡 Phân quyền</h3>
                 <ul className="text-sm text-slate-400 space-y-1">
                     <li>• <strong>Lãnh đạo (User1)</strong>: Tạo hợp đồng, giao việc, xem tất cả báo cáo</li>
-                    <li>• <strong>Người thực hiện (User2)</strong>: Nhập thông tin HĐ được giao, xem báo cáo cá nhân</li>
+                    <li>• <strong>Người thực hiện (User2)</strong>: Nhập thông tin hợp đồng được giao, xem báo cáo cá nhân</li>
                     <li>• <strong>Admin</strong>: Toàn quyền quản trị hệ thống</li>
                 </ul>
             </div>

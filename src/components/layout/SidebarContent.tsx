@@ -194,10 +194,10 @@ export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
                             {session?.user?.name || "User"}
                         </p>
                         <p className="text-xs text-slate-500">
-                            {role === "USER1" ? "Lãnh đạo HĐ" :
+                            {role === "USER1" ? "Lãnh đạo hợp đồng" :
                                 role === "ADMIN" ? "Quản trị viên" :
                                     role === "USER1_TCKT" ? "Lãnh đạo TCKT" :
-                                        role === "USER2_TCKT" ? "Nhân viên TCKT" : "Người thực hiện HĐ"}
+                                        role === "USER2_TCKT" ? "Nhân viên TCKT" : "Người thực hiện hợp đồng"}
                         </p>
                     </div>
                 </Link>

@@ -132,11 +132,11 @@ export default function TCKTDashboard({
                 <table className="w-full">
                     <thead>
                         <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
-                            <th className="px-6 py-4 font-medium">Số HĐ</th>
-                            <th className="px-6 py-4 font-medium">Tên HĐ</th>
+                            <th className="px-6 py-4 font-medium">Số hợp đồng</th>
+                            <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
                             <th className="px-6 py-4 font-medium">Giá trị</th>
                             <th className="px-6 py-4 font-medium">Ngày đề nghị</th>
-                            <th className="px-6 py-4 font-medium">Người thực hiện HĐ</th>
+                            <th className="px-6 py-4 font-medium">Người thực hiện hợp đồng</th>
                             {["USER1_TCKT", "ADMIN"].includes(userRole) && (
                                 <th className="px-6 py-4 font-medium">Giao cho</th>
                             )}
@@ -220,7 +220,7 @@ export default function TCKTDashboard({
             <AssignmentConfirmDialog
                 isOpen={confirmOpen}
                 title="Giao việc thanh toán"
-                fromLabel="HĐ:"
+                fromLabel="Hợp đồng:"
                 currentExecutor={contracts.find(c => c.id === assignTarget?.contractId)?.soHopDong || "—"}
                 toLabel="Giao cho:"
                 newExecutor={staff.find(s => s.id === assignTarget?.staffId)?.hoTen || "Chưa giao"}

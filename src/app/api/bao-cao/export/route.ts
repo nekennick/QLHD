@@ -79,7 +79,7 @@ async function generateDocx(contracts: Awaited<ReturnType<typeof getReportData>>
     const today = new Date().toLocaleDateString("vi-VN");
 
     const headerRow = new TableRow({
-        children: ["STT", "Số HĐ", "Tên HĐ", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Thanh toán", "Quyết toán", "Người thực hiện"].map(
+        children: ["STT", "Số hợp đồng", "Tên hợp đồng", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Thanh toán", "Quyết toán", "Người thực hiện"].map(
             (text) =>
                 new TableCell({
                     children: [new Paragraph({ children: [new TextRun({ text, bold: true, size: 22 })] })],
@@ -146,7 +146,7 @@ async function generateDocx(contracts: Awaited<ReturnType<typeof getReportData>>
 // Generate Excel Document
 async function generateExcel(contracts: Awaited<ReturnType<typeof getReportData>>) {
     const workbook = new ExcelJS.Workbook();
-    const worksheet = workbook.addWorksheet("Báo cáo HĐ");
+    const worksheet = workbook.addWorksheet("Báo cáo hợp đồng");
 
     // Title
     worksheet.mergeCells("A1:I1");
@@ -163,7 +163,7 @@ async function generateExcel(contracts: Awaited<ReturnType<typeof getReportData>
     dateCell.alignment = { horizontal: "center" };
 
     // Headers
-    const headers = ["STT", "Số HĐ", "Tên HĐ", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Thanh toán", "Quyết toán", "Người thực hiện"];
+    const headers = ["STT", "Số hợp đồng", "Tên hợp đồng", "Giá trị", "Ngày ký", "Giao nhận", "Nghiệm thu", "Thanh toán", "Quyết toán", "Người thực hiện"];
     const headerRow = worksheet.addRow(headers);
     headerRow.eachCell((cell) => {
         cell.font = { bold: true };
