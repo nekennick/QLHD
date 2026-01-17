@@ -31,7 +31,7 @@ interface Contract {
     nguoiThanhToanId: string | null;
     giaTriThanhToan: number | null; // Tổng giá trị đã thanh toán (tích lũy)
     daQuyetToan: boolean; // Đánh dấu HĐ đã quyết toán xong
-    ngayQuyetToanHoanTat: string | null; // Ngày xác nhận quyết toán hoàn tất
+    ngayQuyetToanHoanTat: string | null; // Ngày xác nhận kết thúc
 }
 
 interface User {
@@ -238,7 +238,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             return;
         }
 
-        // Nếu submit từ nút "Xác nhận quyết toán hoàn tất"
+        // Nếu submit từ nút "Xác nhận kết thúc"
         const submitter = (e.nativeEvent as any).submitter;
         if (submitter && submitter.name === "confirmSettlement") {
             data.daQuyetToan = true;
@@ -284,21 +284,23 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const isUser2 = userRole === "USER2";
         const isUser1 = userRole === "USER1";
 
-        // 2 trường mà chỉ quản lý (USER1) mới được sửa
-        const isManagerOnlyField = name === "tenHopDong" || name === "ngayKy";
+        // USER1 (Lãnh đạo) chỉ được sửa soHopDong
+        const isUser1OnlyField = name === "soHopDong";
+        // USER2 không được sửa soHopDong, tenHopDong và ngayKy nếu đã có dữ liệu
+        const isUser2RestrictedField = name === "soHopDong" || name === "tenHopDong" || name === "ngayKy";
         const hasData = value !== null && value !== "";
 
         // Logic disable:
         // 1. Nếu không có quyền chỉnh sửa cơ bản -> disable
-        // 2. USER2 không được sửa tenHopDong và ngayKy nếu đã có dữ liệu
-        // 3. USER1 chỉ được sửa tenHopDong và ngayKy, các trường khác disable
+        // 2. USER2 không được sửa soHopDong, tenHopDong và ngayKy nếu đã có dữ liệu
+        // 3. USER1 chỉ được sửa soHopDong, các trường khác disable
         let isDisabled = !canEdit;
 
-        if (isUser2 && isManagerOnlyField && hasData) {
-            // USER2 không được sửa 2 trường quản lý nếu đã có dữ liệu
+        if (isUser2 && isUser2RestrictedField && hasData) {
+            // USER2 không được sửa soHopDong, tenHopDong và ngayKy nếu đã có dữ liệu
             isDisabled = true;
-        } else if (isUser1 && !isManagerOnlyField) {
-            // USER1 chỉ được sửa 2 trường quản lý, các trường khác disable
+        } else if (isUser1 && !isUser1OnlyField) {
+            // USER1 chỉ được sửa soHopDong, các trường khác disable
             isDisabled = true;
         }
 
@@ -327,10 +329,14 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         disabled={isDisabled}
                         placeholder={placeholder}
                         step={type === "number" ? "0.01" : undefined}
+                        onInput={name === "soHopDong" ? (e) => {
+                            const input = e.currentTarget;
+                            input.value = input.value.toUpperCase();
+                        } : undefined}
                         className={inputClass}
                     />
                 )}
-                {isDisabled && isUser2 && isManagerOnlyField && hasData && (
+                {isDisabled && isUser2 && isUser2RestrictedField && hasData && (
                     <p className="text-xs text-orange-400 mt-1">
                         * Chỉ quản lý mới có thể chỉnh sửa thông tin này
                     </p>
@@ -453,7 +459,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         <h3 className="text-lg font-semibold text-white">Thông tin cơ bản</h3>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            {renderReadOnlyField("Số hợp đồng", contract.soHopDong)}
+                            {renderInputField("Số hợp đồng", "soHopDong", "text", contract.soHopDong)}
                             {renderReadOnlyField("Người giao", contract.nguoiGiao?.hoTen)}
 
                             {/* Người thực hiện - chỉ USER1 (Lãnh đạo hợp đồng) mới có quyền chuyển giao */}
@@ -701,7 +707,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                             <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-lg">
                                                 <p className="text-emerald-400 flex items-center gap-2 font-medium">
                                                     <span>✅</span>
-                                                    Hợp đồng đã quyết toán hoàn tất
+                                                    Hợp đồng đã kết thúc
                                                     {contract.ngayQuyetToanHoanTat && (
                                                         <span className="text-emerald-300 font-normal">
                                                             (ngày {new Date(contract.ngayQuyetToanHoanTat).toLocaleDateString("vi-VN")})
@@ -770,7 +776,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                             <h3 className="text-lg font-semibold text-white">Quyết toán công trình</h3>
                             {contract.daQuyetToan && (
                                 <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/30">
-                                    Đã quyết toán hoàn tất
+                                    Đã kết thúc
                                 </span>
                             )}
                         </div>
@@ -925,7 +931,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                 </div>
                                             )}
 
-                                            {/* Nút xác nhận quyết toán hoàn tất */}
+                                            {/* Nút xác nhận kết thúc */}
                                             {canEditSettlement && contract.giaTriQuyetToan !== null && (
                                                 <div className="flex justify-end pt-2">
                                                     <button
@@ -935,7 +941,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                                         disabled={loading}
                                                         className="px-6 py-3 bg-gradient-to-r from-amber-600 to-orange-600 hover:from-amber-700 hover:to-orange-700 text-white font-medium rounded-lg transition-all disabled:opacity-50 flex items-center gap-2 shadow-lg shadow-amber-500/20"
                                                     >
-                                                        {loading ? "Đang xử lý..." : "🔒 Xác nhận quyết toán hoàn tất"}
+                                                        {loading ? "Đang xử lý..." : "🔒 Xác nhận kết thúc"}
                                                     </button>
                                                 </div>
                                             )}

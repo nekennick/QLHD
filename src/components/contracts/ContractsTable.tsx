@@ -64,7 +64,7 @@ const statusOptions = [
     { value: "da_thanh_toan", label: "Đã thanh toán" },
     { value: "da_quyet_toan", label: "Đã quyết toán" },
     { value: "bao_hanh", label: "Bảo hành" },
-    { value: "hoan_tat", label: "Hoàn tất" },
+    { value: "hoan_tat", label: "Kết thúc" },
 ];
 
 export default function ContractsTable({

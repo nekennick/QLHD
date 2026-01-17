@@ -87,7 +87,7 @@ export default function TCKTDashboard({
     };
 
     const handleMarkSettled = async (contractId: string) => {
-        const confirmed = window.confirm("Xác nhận đã quyết toán hoàn tất hợp đồng này? Hợp đồng sẽ bị khóa sau khi quyết toán.");
+        const confirmed = window.confirm("Xác nhận đã kết thúc hợp đồng này? Hợp đồng sẽ bị khóa sau khi kết thúc.");
         if (!confirmed) return;
 
         setLoading(contractId);

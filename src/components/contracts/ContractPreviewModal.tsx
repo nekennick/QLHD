@@ -135,7 +135,7 @@ export default function ContractPreviewModal({
                             />
                             <InfoItem
                                 label="Quyết toán HĐ"
-                                value={contract.daQuyetToan ? "Đã hoàn tất" : "Chưa quyết toán"}
+                                value={contract.daQuyetToan ? "Đã kết thúc" : "Chưa quyết toán"}
                                 status={contract.daQuyetToan ? "success" : "pending"}
                             />
                         </div>

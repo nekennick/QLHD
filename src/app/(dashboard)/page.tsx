@@ -145,7 +145,7 @@ export default async function DashboardPage() {
 
     const warningGroups = [
         {
-            title: "HĐ chưa hoàn thiện nhập liệu",
+            title: "HĐ chưa kết thúc nhập liệu",
             items: serializeWarningItems(stats.warnings.incomplete),
             color: "text-yellow-400",
             bgColor: "bg-yellow-500/10",
@@ -166,7 +166,7 @@ export default async function DashboardPage() {
             icon: "🛡️"
         },
         {
-            title: "HĐ đã hoàn tất (hết bảo hành)",
+            title: "HĐ đã kết thúc (hết bảo hành)",
             items: serializeWarningItems(stats.warnings.completed),
             color: "text-green-400",
             bgColor: "bg-green-500/10",

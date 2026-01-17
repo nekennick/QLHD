@@ -134,7 +134,7 @@ export async function PUT(
             if (body.giaTriQuyetToan !== undefined) {
                 updateData.giaTriQuyetToan = body.giaTriQuyetToan ? parseFloat(body.giaTriQuyetToan) : null;
             }
-            // Xác nhận quyết toán hoàn tất (khóa HĐ)
+            // Xác nhận kết thúc (khóa HĐ)
             if (body.daQuyetToan === true) {
                 updateData.daQuyetToan = true;
                 updateData.ngayQuyetToanHoanTat = new Date();
