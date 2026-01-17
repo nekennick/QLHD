@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
+import { createNotification } from "@/lib/notifications";
 
 // GET - Lấy chi tiết HĐ
 export async function GET(
@@ -145,6 +146,39 @@ export async function PUT(
             where: { id },
             data: updateData,
         });
+
+        // ========================================
+        // Tạo notification cho lãnh đạo khi nhân viên cập nhật HĐ
+        // ========================================
+        if (role === "USER2" || role === "USER2_TCKT") {
+            // Tìm tất cả lãnh đạo tương ứng để gửi thông báo
+            const leaderRoles = role === "USER2" ? ["USER1", "ADMIN"] : ["USER1_TCKT", "ADMIN"];
+            const leaders = await prisma.user.findMany({
+                where: { role: { in: leaderRoles } },
+                select: { id: true },
+            });
+
+            // Lấy tên người cập nhật từ database
+            const updater = await prisma.user.findUnique({
+                where: { id: session.user.id },
+                select: { hoTen: true, username: true },
+            });
+            const updaterName = updater?.hoTen || updater?.username || "Nhân viên";
+            const contractName = contract.tenHopDong || contract.soHopDong;
+
+            // Tạo thông báo cho từng lãnh đạo (fire and forget)
+            Promise.all(
+                leaders.map((leader) =>
+                    createNotification({
+                        userId: leader.id,
+                        title: "Hợp đồng được cập nhật",
+                        message: `${updaterName} đã cập nhật hợp đồng: ${contractName}`,
+                        type: "contract_updated",
+                        link: `/hop-dong/${contract.id}`,
+                    }).catch(() => { }) // Ignore errors
+                )
+            );
+        }
 
         return NextResponse.json(contract);
     } catch (error) {

@@ -5,6 +5,7 @@ export type NotificationType =
     | "contract_assigned"
     | "contract_released"
     | "contract_created"
+    | "contract_updated"
     | "payment_assigned";
 
 interface CreateNotificationParams {

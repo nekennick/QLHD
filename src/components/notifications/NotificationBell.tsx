@@ -45,6 +45,7 @@ const NotificationItem = ({
         switch (type) {
             case "contract_assigned": return "📥";
             case "contract_released": return "📤";
+            case "contract_updated": return "📝";
             case "payment_assigned": return "💰";
             default: return "🔔";
         }
