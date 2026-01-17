@@ -65,54 +65,21 @@ export default function IdleTimerWrapper({ children }: IdleTimerWrapperProps) {
         <>
             {children}
 
-            {/* Warning Dialog */}
+            {/* Warning Dialog - Simple */}
             {showWarning && (
                 <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/50 backdrop-blur-sm"
                     style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0 }}
                 >
-                    <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4">
-                        {/* Icon */}
-                        <div className="flex justify-center mb-4">
-                            <div className="w-16 h-16 bg-orange-500/20 rounded-full flex items-center justify-center">
-                                <svg className="w-8 h-8 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                                </svg>
-                            </div>
-                        </div>
-
-                        {/* Title */}
-                        <h3 className="text-xl font-semibold text-white text-center mb-2">
-                            Phiên làm việc sắp hết hạn
-                        </h3>
-
-                        {/* Message */}
-                        <p className="text-slate-400 text-center mb-6">
-                            Bạn sẽ bị đăng xuất tự động sau <span className="text-orange-400 font-bold">{countdown} giây</span> do không có hoạt động.
+                    <div className="bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 max-w-sm w-full mx-4 text-center">
+                        <p className="text-white text-lg mb-6">
+                            Bạn sẽ đăng xuất trong <span className="text-orange-400 font-bold text-2xl">{countdown}</span> giây
                         </p>
-
-                        {/* Progress bar */}
-                        <div className="w-full bg-slate-700 rounded-full h-2 mb-6 overflow-hidden">
-                            <div
-                                className="bg-gradient-to-r from-orange-500 to-red-500 h-full transition-all duration-1000 ease-linear"
-                                style={{ width: `${(countdown / 60) * 100}%` }}
-                            />
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex gap-3">
-                            <button
-                                onClick={handleContinue}
-                                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-medium rounded-lg transition-all shadow-lg shadow-purple-500/20"
-                            >
-                                Tiếp tục làm việc
-                            </button>
-                            <button
-                                onClick={() => signOut({ callbackUrl: '/login' })}
-                                className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-slate-300 font-medium rounded-lg transition-all"
-                            >
-                                Đăng xuất
-                            </button>
-                        </div>
+                        <button
+                            onClick={handleContinue}
+                            className="px-8 py-3 bg-slate-700 hover:bg-slate-600 text-white font-medium rounded-lg transition-all"
+                        >
+                            Hủy
+                        </button>
                     </div>
                 </div>
             )}

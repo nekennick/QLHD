@@ -148,31 +148,25 @@ export default async function DashboardPage() {
             title: "Chưa lập hợp đồng",
             items: serializeWarningItems(stats.warnings.incomplete),
             color: "text-yellow-400",
-            bgColor: "bg-yellow-500/10",
-            icon: "📝"
+            bgColor: "bg-yellow-500/10"
         },
         {
             title: "Hợp đồng giao hàng chậm",
             items: serializeWarningItems(stats.warnings.lateDelivery),
             color: "text-red-400",
-            bgColor: "bg-red-500/10",
-            icon: "⏰"
+            bgColor: "bg-red-500/10"
         },
         {
             title: "Hợp đồng có đảm bảo sắp hết hiệu lực",
             items: serializeWarningItems(stats.warnings.expiringGuarantee),
             color: "text-orange-400",
-            bgColor: "bg-orange-500/10",
-            icon: "🛡️"
+            bgColor: "bg-orange-500/10"
         },
         {
             title: "Hợp đồng đã kết thúc (hết bảo hành)",
             items: serializeWarningItems(stats.warnings.completed),
             color: "text-green-400",
-            bgColor: "bg-green-500/10",
-            icon: "✅",
-            description: "Có thể xóa khỏi hệ thống để cải thiện hiệu năng",
-            showDelete: true
+            bgColor: "bg-green-500/10"
         },
     ].filter((g) => g.items.length > 0);
 
