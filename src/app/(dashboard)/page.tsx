@@ -12,10 +12,13 @@ interface WarningItem {
     nguoiThucHien?: { hoTen: string } | null;
 }
 
-async function getStats() {
+async function getStats(userRole?: string, userId?: string) {
     const today = new Date();
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+
+    // Role-based base filter: USER2 chỉ thấy HĐ được giao cho mình
+    const baseWhere = (userRole === "USER2" && userId) ? { nguoiThucHienId: userId } : {};
 
     const [
         totalContracts,
@@ -32,30 +35,32 @@ async function getStats() {
         expiringGuaranteeList,
         completedList,
     ] = await Promise.all([
-        prisma.hopDong.count(),
+        prisma.hopDong.count({ where: baseWhere }),
         // CI Specific
-        prisma.hopDong.count({ where: { isConstructionInvestment: true } }),
+        prisma.hopDong.count({ where: { ...baseWhere, isConstructionInvestment: true } }),
         prisma.hopDong.count({
             where: {
+                ...baseWhere,
                 isConstructionInvestment: true,
                 OR: [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }],
             },
         }),
         prisma.hopDong.count({
-            where: { isConstructionInvestment: true, giaTriGiaoNhan: { not: null }, ngayDuyetThanhToan: null },
+            where: { ...baseWhere, isConstructionInvestment: true, giaTriGiaoNhan: { not: null }, ngayDuyetThanhToan: null },
         }),
         prisma.hopDong.count({
-            where: { isConstructionInvestment: true, ngayDuyetThanhToan: { not: null } },
+            where: { ...baseWhere, isConstructionInvestment: true, ngayDuyetThanhToan: { not: null } },
         }),
         prisma.hopDong.count({
-            where: { isConstructionInvestment: true, giaTriThanhToan: { not: null } },
+            where: { ...baseWhere, isConstructionInvestment: true, giaTriThanhToan: { not: null } },
         }),
         prisma.hopDong.count({
-            where: { isConstructionInvestment: true, daQuyetToan: true },
+            where: { ...baseWhere, isConstructionInvestment: true, daQuyetToan: true },
         }),
         // Warning lists - with executor and value for table display
         prisma.hopDong.findMany({
             where: {
+                ...baseWhere,
                 OR: [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }],
             },
             select: {
@@ -67,7 +72,7 @@ async function getStats() {
             },
         }),
         prisma.hopDong.findMany({
-            where: { ngayGiaoHang: { lt: today }, giaTriGiaoNhan: null },
+            where: { ...baseWhere, ngayGiaoHang: { lt: today }, giaTriGiaoNhan: null },
             select: {
                 id: true,
                 soHopDong: true,
@@ -78,6 +83,7 @@ async function getStats() {
         }),
         prisma.hopDong.findMany({
             where: {
+                ...baseWhere,
                 hieuLucBaoDam: { gte: today, lte: sevenDaysLater },
             },
             select: {
@@ -91,6 +97,7 @@ async function getStats() {
         }),
         prisma.hopDong.findMany({
             where: {
+                ...baseWhere,
                 hanBaoHanh: { lt: today },
             },
             select: {
@@ -132,8 +139,9 @@ function serializeWarningItems(items: WarningItem[]) {
 
 export default async function DashboardPage() {
     const session = await auth();
-    const stats = await getStats();
     const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    const stats = await getStats(userRole, userId);
 
     const warningGroups = [
         {

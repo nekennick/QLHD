@@ -3,8 +3,13 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import ContractsTable from "@/components/contracts/ContractsTable";
 
-async function getContracts(searchParams: { status?: string; nguoiThucHien?: string }) {
+async function getContracts(searchParams: { status?: string; nguoiThucHien?: string }, userRole?: string, userId?: string) {
     const where: Record<string, unknown> = {};
+
+    // Role-based filtering: USER2 chỉ thấy HĐ được giao cho mình
+    if (userRole === "USER2" && userId) {
+        where.nguoiThucHienId = userId;
+    }
 
     if (searchParams.status === "incomplete") {
         where.OR = [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }];
@@ -68,17 +73,12 @@ export default async function HopDongPage({
 }) {
     const session = await auth();
     const params = await searchParams;
-    const contracts = await getContracts(params);
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    const contracts = await getContracts(params, userRole, userId);
     const users = await getUsers();
-    const isAdmin = session?.user?.role === "USER1";
-    const canReassign = session?.user?.role === "USER1";
-
-    const statusFilters = [
-        { value: "", label: "Tất cả" },
-        { value: "incomplete", label: "Chưa lập HĐ" },
-        { value: "delivering", label: "Đang giao nhận" },
-        { value: "paid", label: "Đã thanh toán" },
-    ];
+    const isAdmin = userRole === "USER1" || userRole === "ADMIN";
+    const canReassign = userRole === "USER1" || userRole === "ADMIN";
 
     return (
         <div className="space-y-6">
@@ -101,45 +101,7 @@ export default async function HopDongPage({
                 )}
             </div>
 
-            {/* Filters */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
-                <div className="flex flex-wrap gap-4">
-                    {/* Status Filter */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Trạng thái:</span>
-                        <div className="flex gap-1">
-                            {statusFilters.map((filter) => (
-                                <Link
-                                    key={filter.value}
-                                    href={`/hop-dong${filter.value ? `?status=${filter.value}` : ""}`}
-                                    className={`px-3 py-1.5 text-sm rounded-lg transition-all ${params.status === filter.value || (!params.status && !filter.value)
-                                        ? "bg-purple-600 text-white"
-                                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                                        }`}
-                                >
-                                    {filter.label}
-                                </Link>
-                            ))}
-                        </div>
-                    </div>
 
-                    {/* User Filter */}
-                    <div className="flex items-center gap-2">
-                        <span className="text-sm text-slate-400">Người thực hiện:</span>
-                        <select
-                            defaultValue={params.nguoiThucHien || ""}
-                            className="px-3 py-1.5 text-sm bg-slate-700 text-slate-300 rounded-lg border-none focus:ring-2 focus:ring-purple-500"
-                        >
-                            <option value="">Tất cả</option>
-                            {users.map((user: User) => (
-                                <option key={user.id} value={user.id}>
-                                    {user.hoTen}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-            </div>
 
             {/* Table */}
             <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
@@ -164,6 +126,7 @@ export default async function HopDongPage({
                             id: session?.user?.id || "",
                             role: session?.user?.role || "",
                         }}
+                        users={users}
                     />
                 )}
             </div>
