@@ -136,8 +136,8 @@ export default function ContractsTable({
         // Bước 2: Sắp xếp
         if (sortField) {
             result = [...result].sort((a, b) => {
-                let aValue: any;
-                let bValue: any;
+                let aValue = 0;
+                let bValue = 0;
 
                 if (sortField === 'giaTriHopDong') {
                     aValue = a.giaTriHopDong || 0;

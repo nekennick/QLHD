@@ -146,8 +146,8 @@ export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
             <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
                 {menuItems.map((item) => {
                     if (item.adminOnly && !isAdmin) return null;
-                    if ((item as any).leaderOnly && !isLeader) return null;
-                    if ((item as any).tcktOnly && !isTCKT) return null;
+                    if ((item as { leaderOnly?: boolean }).leaderOnly && !isLeader) return null;
+                    if ((item as { tcktOnly?: boolean }).tcktOnly && !isTCKT) return null;
 
                     const isActive = pathname === item.href ||
                         (item.href !== "/" && pathname.startsWith(item.href));

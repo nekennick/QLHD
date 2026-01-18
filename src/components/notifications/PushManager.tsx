@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useSession } from "next-auth/react";
 
 /**
@@ -21,7 +21,6 @@ const firebaseConfig = {
  */
 export default function PushManager() {
     const { data: session } = useSession();
-    const [isSubscribed, setIsSubscribed] = useState(false);
 
     useEffect(() => {
         if (!session?.user) return;
@@ -93,7 +92,7 @@ export default function PushManager() {
                     body: JSON.stringify({ fcmToken: token }),
                 });
 
-                setIsSubscribed(true);
+                // Token sent to server
                 console.log("FCM subscription successful");
             } else {
                 console.log("Failed to get FCM token");

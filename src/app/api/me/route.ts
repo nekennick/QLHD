@@ -11,7 +11,7 @@ export async function PUT(request: Request) {
         }
 
         const body = await request.json();
-        const { hoTen, password, newPassword } = body;
+        const { hoTen, newPassword } = body;
 
         const updateData: {
             hoTen: string;

@@ -60,12 +60,6 @@ async function getUsers() {
         select: { id: true, hoTen: true },
     });
 }
-
-interface User {
-    id: string;
-    hoTen: string;
-}
-
 export default async function HopDongPage({
     searchParams,
 }: {

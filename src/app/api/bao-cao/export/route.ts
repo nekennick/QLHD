@@ -252,7 +252,7 @@ export async function GET(request: NextRequest) {
                 return NextResponse.json({ error: "Invalid format" }, { status: 400 });
         }
 
-        return new NextResponse(buffer as any, {
+        return new NextResponse(buffer as BodyInit, {
             headers: {
                 "Content-Type": contentType,
                 "Content-Disposition": `attachment; filename="${filename}"`,

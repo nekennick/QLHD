@@ -88,7 +88,7 @@ export async function DELETE(
         console.error("Error deleting user:", error);
         // Kiểm tra lỗi ràng buộc khóa ngoại (nếu user đang có hợp đồng)
         // Prisma error code P2003: Foreign key constraint failed
-        if ((error as any).code === 'P2003') {
+        if ((error as { code?: string }).code === 'P2003') {
             return NextResponse.json(
                 { message: "Không thể xóa người dùng này vì đàng có dữ liệu liên quan (Hợp đồng, Báo cáo...)" },
                 { status: 400 }

@@ -233,8 +233,8 @@ export default function TCKTDashboard({
             <div className="p-4 border-t border-slate-700/50 bg-blue-500/10">
                 <h3 className="text-blue-400 font-medium mb-2">💡 Hướng dẫn</h3>
                 <ul className="text-sm text-slate-400 space-y-1">
-                    <li>• <strong>Lãnh đạo TCKT</strong>: Chọn nhân viên trong cột "Giao cho" để phân công | Bấm "Quyết toán" để kết thúc nhanh</li>
-                    <li>• <strong>Nhân viên TCKT</strong>: Bấm "Cập nhật" để vào chi tiết thanh toán và quyết toán</li>
+                    <li>• <strong>Lãnh đạo TCKT</strong>: Chọn nhân viên trong cột &ldquo;Giao cho&rdquo; để phân công | Bấm &ldquo;Quyết toán&rdquo; để kết thúc nhanh</li>
+                    <li>• <strong>Nhân viên TCKT</strong>: Bấm &ldquo;Cập nhật&rdquo; để vào chi tiết thanh toán và quyết toán</li>
                 </ul>
             </div>
         </div>
