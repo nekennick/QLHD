@@ -18,7 +18,7 @@ interface WarningGroup {
     items: WarningItem[];
     color: string;
     bgColor: string;
-    icon: string;
+    icon?: string;
     description?: string;
     showDelete?: boolean;
 }
@@ -56,7 +56,7 @@ export default function WarningList({ groups, userRole }: WarningListProps) {
                         <div className="px-5 py-3 border-b border-slate-700 flex items-center justify-between bg-slate-800/50">
                             <div className="flex flex-col gap-0.5">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-xl">{group.icon}</span>
+                                    <span className="text-xl">{group.icon || "📋"}</span>
                                     <h3 className={`font-bold text-base ${group.color}`}>
                                         {group.title}
                                     </h3>
