@@ -118,10 +118,14 @@ export async function PUT(
             if (body.ngayQuyetToan !== undefined) updateData.ngayQuyetToan = body.ngayQuyetToan ? new Date(body.ngayQuyetToan) : null;
         }
 
-        // USER1_TCKT được giao việc thanh toán (set nguoiThanhToanId)
+        // USER1_TCKT được giao việc thanh toán (set nguoiThanhToanId + nguoiGiaoThanhToanId)
         if (["USER1_TCKT", "ADMIN"].includes(role)) {
             if (body.nguoiThanhToanId !== undefined) {
                 updateData.nguoiThanhToanId = body.nguoiThanhToanId || null;
+                // Lưu người giao việc thanh toán là user hiện tại (USER1_TCKT hoặc ADMIN)
+                if (body.nguoiThanhToanId) {
+                    updateData.nguoiGiaoThanhToanId = session.user.id;
+                }
             }
         }
 

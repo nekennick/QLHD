@@ -13,16 +13,46 @@ export default function CreateContractForm({ users }: { users: User[] }) {
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
+    // State cho 2 checkbox mutual exclusive
+    const [isFrameworkContract, setIsFrameworkContract] = useState(false);
+    const [isConstructionInvestment, setIsConstructionInvestment] = useState(false);
+
+    const handleFrameworkChange = (checked: boolean) => {
+        setIsFrameworkContract(checked);
+        // Nếu check HĐ khung → bỏ check ĐTXD
+        if (checked) {
+            setIsConstructionInvestment(false);
+        }
+    };
+
+    const handleConstructionChange = (checked: boolean) => {
+        setIsConstructionInvestment(checked);
+        // Nếu check ĐTXD → bỏ check HĐ khung
+        if (checked) {
+            setIsFrameworkContract(false);
+        }
+    };
+
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         setLoading(true);
         setError(null);
 
         const formData = new FormData(e.currentTarget);
+
+        // Validate: không thể cùng true
+        if (isFrameworkContract && isConstructionInvestment) {
+            setError("Không thể chọn đồng thời Hợp đồng khung và Công trình ĐTXD");
+            setLoading(false);
+            return;
+        }
+
         const data = {
-            soHopDong: formData.get("soHopDong"),
+            soHopDong: formData.get("soHopDong") || "HD-TEMP", // Placeholder nếu là HĐ khung
+            soHopDongKhung: isFrameworkContract ? formData.get("soHopDongKhung") : null,
             nguoiThucHienId: formData.get("nguoiThucHienId") || null,
-            isConstructionInvestment: formData.get("isConstructionInvestment") === "on",
+            isFrameworkContract,
+            isConstructionInvestment,
         };
 
         try {
@@ -55,20 +85,48 @@ export default function CreateContractForm({ users }: { users: User[] }) {
                 </div>
             )}
 
-            <div>
-                <label htmlFor="soHopDong" className="block text-sm font-medium text-slate-300 mb-2">
-                    Số hợp đồng <span className="text-red-400">*</span>
+            {/* 1. Loại hợp đồng (2 checkbox mutual exclusive) */}
+            <div className="space-y-3">
+                <label className="block text-sm font-medium text-slate-300 mb-2">
+                    Loại hợp đồng
                 </label>
-                <input
-                    id="soHopDong"
-                    name="soHopDong"
-                    type="text"
-                    required
-                    placeholder="VD: HD-2024-001"
-                    className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                />
+
+                {/* Checkbox Hợp đồng khung */}
+                <div className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${isFrameworkContract
+                        ? "bg-blue-500/10 border-blue-500/50"
+                        : "bg-slate-900/30 border-slate-600/30"
+                    }`}>
+                    <input
+                        id="isFrameworkContract"
+                        type="checkbox"
+                        checked={isFrameworkContract}
+                        onChange={(e) => handleFrameworkChange(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-600 bg-slate-900/50 text-blue-500 focus:ring-blue-500 focus:ring-offset-0 cursor-pointer"
+                    />
+                    <label htmlFor="isFrameworkContract" className="text-slate-300 cursor-pointer select-none">
+                        📋 Hợp đồng khung
+                    </label>
+                </div>
+
+                {/* Checkbox Công trình ĐTXD */}
+                <div className={`flex items-center gap-3 p-4 rounded-lg border transition-all ${isConstructionInvestment
+                        ? "bg-orange-500/10 border-orange-500/50"
+                        : "bg-slate-900/30 border-slate-600/30"
+                    }`}>
+                    <input
+                        id="isConstructionInvestment"
+                        type="checkbox"
+                        checked={isConstructionInvestment}
+                        onChange={(e) => handleConstructionChange(e.target.checked)}
+                        className="w-5 h-5 rounded border-slate-600 bg-slate-900/50 text-orange-500 focus:ring-orange-500 focus:ring-offset-0 cursor-pointer"
+                    />
+                    <label htmlFor="isConstructionInvestment" className="text-slate-300 cursor-pointer select-none">
+                        🏗️ Công trình đầu tư xây dựng
+                    </label>
+                </div>
             </div>
 
+            {/* 2. Người thực hiện */}
             <div>
                 <label htmlFor="nguoiThucHienId" className="block text-sm font-medium text-slate-300 mb-2">
                     Người thực hiện
@@ -90,18 +148,39 @@ export default function CreateContractForm({ users }: { users: User[] }) {
                 </p>
             </div>
 
-            {/* Checkbox Công trình đầu tư xây dựng */}
-            <div className="flex items-center gap-3 p-4 bg-slate-900/30 border border-slate-600/30 rounded-lg">
-                <input
-                    id="isConstructionInvestment"
-                    name="isConstructionInvestment"
-                    type="checkbox"
-                    className="w-5 h-5 rounded border-slate-600 bg-slate-900/50 text-purple-500 focus:ring-purple-500 focus:ring-offset-0 cursor-pointer"
-                />
-                <label htmlFor="isConstructionInvestment" className="text-slate-300 cursor-pointer select-none">
-                    🏗️ Công trình đầu tư xây dựng
-                </label>
-            </div>
+            {/* 3. Số hợp đồng khung (chỉ hiện khi isFrameworkContract = true) */}
+            {isFrameworkContract && (
+                <div>
+                    <label htmlFor="soHopDongKhung" className="block text-sm font-medium text-slate-300 mb-2">
+                        Số hợp đồng khung <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                        id="soHopDongKhung"
+                        name="soHopDongKhung"
+                        type="text"
+                        required
+                        placeholder="VD: HDK-2024-001"
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-blue-500/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                    />
+                </div>
+            )}
+
+            {/* 4. Số hợp đồng (không hiện khi isFrameworkContract = true) */}
+            {!isFrameworkContract && (
+                <div>
+                    <label htmlFor="soHopDong" className="block text-sm font-medium text-slate-300 mb-2">
+                        Số hợp đồng <span className="text-red-400">*</span>
+                    </label>
+                    <input
+                        id="soHopDong"
+                        name="soHopDong"
+                        type="text"
+                        required
+                        placeholder="VD: HD-2024-001"
+                        className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                    />
+                </div>
+            )}
 
             <div className="flex gap-4 pt-4">
                 <button

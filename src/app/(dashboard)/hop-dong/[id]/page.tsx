@@ -10,6 +10,7 @@ async function getContract(id: string) {
         include: {
             nguoiGiao: { select: { id: true, hoTen: true } },
             nguoiThucHien: { select: { id: true, hoTen: true } },
+            nguoiGiaoThanhToan: { select: { id: true, hoTen: true } },
             nguoiThanhToan: { select: { id: true, hoTen: true } },
         },
     });
@@ -64,6 +65,8 @@ export default async function ContractDetailPage({
         hanBaoHanh: contract.hanBaoHanh?.toISOString() || null,
         ngayQuyetToan: contract.ngayQuyetToan?.toISOString() || null,
         ngayQuyetToanHoanTat: contract.ngayQuyetToanHoanTat?.toISOString() || null,
+        nguoiGiaoThanhToan: contract.nguoiGiaoThanhToan,
+        nguoiGiaoThanhToanId: contract.nguoiGiaoThanhToanId,
         nguoiThanhToan: contract.nguoiThanhToan,
         nguoiThanhToanId: contract.nguoiThanhToanId,
         giaTriThanhToan: contract.giaTriThanhToan,

@@ -31,6 +31,8 @@ model User {
   hopDongGiao HopDong[] @relation("NguoiGiao")
   // Hợp đồng thực hiện (User2 thực hiện)
   hopDongThucHien HopDong[] @relation("NguoiThucHien")
+  // Hợp đồng được giao thanh toán (User1_TCKT giao việc TT)
+  hopDongGiaoThanhToan HopDong[] @relation("NguoiGiaoThanhToan")
   // Hợp đồng được giao thanh toán (User2_TCKT thực hiện)
   hopDongThanhToan HopDong[] @relation("NguoiThanhToan")
   // Passkey/WebAuthn authenticators
@@ -93,7 +95,9 @@ model HopDong {
   id        String   @id @default(cuid())
   
   // Thông tin cơ bản (User1 tạo)
-  soHopDong String   @unique
+  soHopDong       String   @unique
+  isFrameworkContract Boolean @default(false) // Là hợp đồng khung
+  soHopDongKhung  String?  @unique // Số hợp đồng khung (chỉ dùng khi isFrameworkContract = true)
   
   // Thông tin chi tiết (User2 nhập)
   tenHopDong      String?
@@ -132,11 +136,13 @@ model HopDong {
   // ==========================================
   // Module 5: Thanh toán & Quyết toán (TCKT)
   // ==========================================
-  nguoiThanhToanId    String?
-  nguoiThanhToan      User?    @relation("NguoiThanhToan", fields: [nguoiThanhToanId], references: [id])
-  giaTriThanhToan     Float?   // Tổng giá trị đã thanh toán (tích lũy, cập nhật nhiều lần)
-  daQuyetToan         Boolean  @default(false) // Đánh dấu HĐ đã quyết toán xong
-  ngayQuyetToanHoanTat DateTime? // Ngày xác nhận quyết toán hoàn tất
+  nguoiGiaoThanhToanId  String?  // Người giao việc thanh toán (USER1_TCKT)
+  nguoiGiaoThanhToan    User?    @relation("NguoiGiaoThanhToan", fields: [nguoiGiaoThanhToanId], references: [id])
+  nguoiThanhToanId      String?
+  nguoiThanhToan        User?    @relation("NguoiThanhToan", fields: [nguoiThanhToanId], references: [id])
+  giaTriThanhToan       Float?   // Tổng giá trị đã thanh toán (tích lũy, cập nhật nhiều lần)
+  daQuyetToan           Boolean  @default(false) // Đánh dấu HĐ đã quyết toán xong
+  ngayQuyetToanHoanTat  DateTime? // Ngày xác nhận quyết toán hoàn tất
 
   // Metadata
   createdAt DateTime @default(now())

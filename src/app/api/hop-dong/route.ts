@@ -41,32 +41,65 @@ export async function POST(request: Request) {
         }
 
         const body = await request.json();
-        const { soHopDong, nguoiThucHienId, isConstructionInvestment } = body;
+        const { soHopDong, soHopDongKhung, nguoiThucHienId, isFrameworkContract, isConstructionInvestment } = body;
 
-        if (!soHopDong) {
+        // Validate: không thể cùng true
+        if (isFrameworkContract && isConstructionInvestment) {
             return NextResponse.json(
-                { message: "Số hợp đồng là bắt buộc" },
+                { message: "Không thể chọn đồng thời Hợp đồng khung và Công trình ĐTXD" },
                 { status: 400 }
             );
         }
 
-        // Kiểm tra số HĐ đã tồn tại
-        const existing = await prisma.hopDong.findUnique({
-            where: { soHopDong },
-        });
-
-        if (existing) {
-            return NextResponse.json(
-                { message: "Số hợp đồng đã tồn tại" },
-                { status: 400 }
-            );
+        // Validate số hợp đồng theo loại
+        if (isFrameworkContract) {
+            if (!soHopDongKhung) {
+                return NextResponse.json(
+                    { message: "Số hợp đồng khung là bắt buộc" },
+                    { status: 400 }
+                );
+            }
+            // Kiểm tra số HĐ khung đã tồn tại
+            const existingKhung = await prisma.hopDong.findUnique({
+                where: { soHopDongKhung },
+            });
+            if (existingKhung) {
+                return NextResponse.json(
+                    { message: "Số hợp đồng khung đã tồn tại" },
+                    { status: 400 }
+                );
+            }
+        } else {
+            if (!soHopDong) {
+                return NextResponse.json(
+                    { message: "Số hợp đồng là bắt buộc" },
+                    { status: 400 }
+                );
+            }
+            // Kiểm tra số HĐ đã tồn tại
+            const existing = await prisma.hopDong.findUnique({
+                where: { soHopDong },
+            });
+            if (existing) {
+                return NextResponse.json(
+                    { message: "Số hợp đồng đã tồn tại" },
+                    { status: 400 }
+                );
+            }
         }
+
+        // Tạo số HĐ unique nếu là HĐ khung (vì soHopDong vẫn bắt buộc unique trong DB)
+        const finalSoHopDong = isFrameworkContract
+            ? `HDK-${Date.now()}` // Tạo mã tạm unique
+            : soHopDong;
 
         const contract = await prisma.hopDong.create({
             data: {
-                soHopDong,
+                soHopDong: finalSoHopDong,
+                soHopDongKhung: isFrameworkContract ? soHopDongKhung : null,
                 nguoiGiaoId: session.user.id,
                 nguoiThucHienId: nguoiThucHienId || null,
+                isFrameworkContract: isFrameworkContract || false,
                 isConstructionInvestment: isConstructionInvestment || false,
             },
         });
