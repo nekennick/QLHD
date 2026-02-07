@@ -85,6 +85,29 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         newId: "",
         newName: "",
     });
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    // Điều kiện cho phép xóa: USER1/ADMIN + chưa có tên + chưa có ngày hiệu lực
+    const canDelete = ["USER1", "ADMIN"].includes(userRole || "") && !contract.tenHopDong && !contract.ngayHieuLuc;
+
+    // Hàm xóa hợp đồng
+    const handleDelete = async () => {
+        setLoading(true);
+        try {
+            const res = await fetch(`/api/hop-dong/${contract.id}`, { method: "DELETE" });
+            if (res.ok) {
+                router.push("/hop-dong");
+                router.refresh();
+            } else {
+                const data = await res.json();
+                setMessage({ type: "error", text: data.message || "Có lỗi xảy ra" });
+            }
+        } catch {
+            setMessage({ type: "error", text: "Có lỗi xảy ra khi xóa hợp đồng" });
+        }
+        setLoading(false);
+        setShowDeleteConfirm(false);
+    };
 
     // ========================================
     // Helper Functions
@@ -138,16 +161,6 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         }
         setReassignConfirm({ show: false, type: "executor", newId: "", newName: "" });
     };
-
-    const isContractComplete = Boolean(
-        contract.tenHopDong &&
-        contract.giaTriHopDong &&
-        contract.ngayKy &&
-        contract.ngayHieuLuc &&
-        contract.ngayGiaoHang &&
-        contract.hieuLucBaoDam
-    );
-
     const formatDate = (dateString: string | null) => {
         if (!dateString) return "";
         return new Date(dateString).toISOString().split("T")[0];
@@ -722,20 +735,6 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         </p>
                     </div>
                 )}
-
-                {canEditPayment && !contract.daQuyetToan && (
-                    <div className="flex justify-end pt-2">
-                        <button
-                            type="submit"
-                            name="markComplete"
-                            value="true"
-                            disabled={loading}
-                            className="px-6 py-3 bg-emerald-600 hover:bg-emerald-700 text-white font-medium rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
-                        >
-                            {loading ? "Đang xử lý..." : "✓ Xác nhận kết thúc HĐ"}
-                        </button>
-                    </div>
-                )}
             </div>
         );
     };
@@ -744,10 +743,10 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     // Sections Array - 4 nhóm mới
     // ========================================
     const sections = [
-        { id: "people", render: renderSectionPeople, requiresComplete: false },
-        { id: "contract", render: renderSectionContractInfo, requiresComplete: false, title: "Thông tin hợp đồng", icon: "📋" },
-        { id: "progress", render: renderSectionProgress, requiresComplete: true, title: "Tiến độ thực hiện", icon: "📊" },
-        { id: "tckt", render: renderSectionTCKT, requiresComplete: true, title: "Thanh toán", icon: "💰" },
+        { id: "people", render: renderSectionPeople, title: "Thông tin giao nhận", icon: "👥" },
+        { id: "contract", render: renderSectionContractInfo, title: "Thông tin hợp đồng", icon: "📋" },
+        { id: "progress", render: renderSectionProgress, title: "Tiến độ thực hiện", icon: "📊" },
+        { id: "tckt", render: renderSectionTCKT, title: "Thanh toán", icon: "💰" },
     ];
 
     // ========================================
@@ -755,13 +754,6 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     // ========================================
     return (
         <div className="space-y-6">
-            {/* Warning for incomplete contract */}
-            {!isContractComplete && (
-                <div className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/50 text-yellow-400 flex items-center gap-3">
-                    <span className="text-xl">⚠️</span>
-                    <span>Vui lòng hoàn thiện tất cả thông tin cơ bản (Tên hợp đồng, Giá trị, Ngày ký, Ngày hiệu lực, Ngày giao hàng, Hiệu lực bảo đảm) trước khi nhập liệu các mục khác.</span>
-                </div>
-            )}
 
             {/* Message */}
             {message && (
@@ -777,22 +769,15 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
             {/* Content - Single Page Layout */}
             <form onSubmit={handleSubmit} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
-                {sections.map((section, index) => {
-                    // Skip sections that require complete contract
-                    if (section.requiresComplete && !isContractComplete) {
-                        return null;
-                    }
-
-                    return (
-                        <div key={section.id}>
-                            {/* Divider between sections (skip for first one) */}
-                            {index > 0 && section.title && (
-                                <SectionDivider title={section.title} icon={section.icon!} />
-                            )}
-                            {section.render()}
-                        </div>
-                    );
-                })}
+                {sections.map((section, index) => (
+                    <div key={section.id}>
+                        {/* Divider between sections (skip for first one) */}
+                        {index > 0 && section.title && (
+                            <SectionDivider title={section.title} icon={section.icon} />
+                        )}
+                        {section.render()}
+                    </div>
+                ))}
 
                 {/* Submit button */}
                 {canEdit && (
@@ -808,6 +793,20 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 )}
             </form>
 
+            {/* Nút Xóa HĐ - chỉ hiện cho lãnh đạo khi HĐ chưa có tên và ngày hiệu lực */}
+            {canDelete && (
+                <div className="mt-4 flex justify-end">
+                    <button
+                        type="button"
+                        onClick={() => setShowDeleteConfirm(true)}
+                        disabled={loading}
+                        className="px-6 py-3 bg-red-600 hover:bg-red-700 text-white font-semibold rounded-lg transition-all disabled:opacity-50 flex items-center gap-2"
+                    >
+                        🗑️ Xóa hợp đồng
+                    </button>
+                </div>
+            )}
+
             {/* Confirmation Dialog for Reassignment */}
             <ConfirmDialog
                 isOpen={reassignConfirm.show}
@@ -818,6 +817,18 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 variant="info"
                 onConfirm={performReassign}
                 onCancel={() => setReassignConfirm({ show: false, type: "executor", newId: "", newName: "" })}
+            />
+
+            {/* Confirmation Dialog for Delete */}
+            <ConfirmDialog
+                isOpen={showDeleteConfirm}
+                title="Xác nhận xóa hợp đồng"
+                description={`Bạn có chắc chắn muốn xóa hợp đồng "${contract.soHopDong}"? Hành động này không thể hoàn tác.`}
+                confirmLabel="Xóa"
+                cancelLabel="Hủy"
+                variant="danger"
+                onConfirm={handleDelete}
+                onCancel={() => setShowDeleteConfirm(false)}
             />
         </div>
     );

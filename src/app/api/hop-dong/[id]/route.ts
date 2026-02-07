@@ -184,6 +184,47 @@ export async function PUT(
             );
         }
 
+        // ========================================
+        // Thông báo cho Lãnh đạo TCKT khi HĐ có ngày thanh toán (ngayDuyetThanhToan)
+        // ========================================
+        if (body.ngayDuyetThanhToan && !existing.ngayDuyetThanhToan) {
+            // Chỉ gửi khi ngayDuyetThanhToan được set lần đầu
+            const tcktLeaders = await prisma.user.findMany({
+                where: { role: { in: ["USER1_TCKT", "ADMIN"] } },
+                select: { id: true },
+            });
+            const contractName = contract.tenHopDong || contract.soHopDong;
+
+            Promise.all(
+                tcktLeaders.map((leader) =>
+                    createNotification({
+                        userId: leader.id,
+                        title: "Hợp đồng cần thanh toán",
+                        message: `Hợp đồng "${contractName}" đã có ngày thanh toán, cần phân công nhân viên TCKT`,
+                        type: "payment_pending",
+                        link: `/hop-dong/${contract.id}`,
+                    }).catch(() => { })
+                )
+            );
+        }
+
+        // ========================================
+        // Thông báo cho Nhân viên TCKT khi được giao việc thanh toán
+        // ========================================
+        if (body.nguoiThanhToanId && body.nguoiThanhToanId !== existing.nguoiThanhToanId) {
+            // Chỉ gửi khi nguoiThanhToanId thay đổi
+            const assignerName = session.user.name || "Lãnh đạo TCKT";
+            const contractName = contract.tenHopDong || contract.soHopDong;
+
+            createNotification({
+                userId: body.nguoiThanhToanId,
+                title: "Bạn được giao việc thanh toán",
+                message: `${assignerName} đã giao bạn thanh toán hợp đồng: ${contractName}`,
+                type: "payment_assigned",
+                link: `/hop-dong/${contract.id}`,
+            }).catch(() => { });
+        }
+
         return NextResponse.json(contract);
     } catch (error) {
         console.error("Error updating contract:", error);
@@ -207,6 +248,27 @@ export async function DELETE(
         }
 
         const { id } = await params;
+
+        // Kiểm tra điều kiện xóa: chỉ xóa được nếu chưa có tên VÀ chưa có ngày hiệu lực
+        const contract = await prisma.hopDong.findUnique({
+            where: { id },
+            select: { tenHopDong: true, ngayHieuLuc: true },
+        });
+
+        if (!contract) {
+            return NextResponse.json(
+                { message: "Không tìm thấy hợp đồng" },
+                { status: 404 }
+            );
+        }
+
+        if (contract.tenHopDong || contract.ngayHieuLuc) {
+            return NextResponse.json(
+                { message: "Không thể xóa hợp đồng đã có tên hoặc ngày hiệu lực" },
+                { status: 400 }
+            );
+        }
+
         await prisma.hopDong.delete({ where: { id } });
 
         return NextResponse.json({ message: "Đã xóa hợp đồng" });

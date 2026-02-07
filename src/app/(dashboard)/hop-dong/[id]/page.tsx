@@ -48,11 +48,19 @@ export default async function ContractDetailPage({
     }
 
     // Kiểm tra quyền sửa
-    // User1 được sửa tất cả, User2 chỉ sửa HĐ được giao
+    // USER1 (Lãnh đạo): CHỈ XEM, không được sửa
+    // ADMIN: sửa tất cả
+    // USER2: chỉ sửa HĐ được giao cho mình
+    // USER2_TCKT: sửa HĐ thanh toán được giao cho mình
+    const userRole = session?.user?.role;
+    const userId = session?.user?.id;
+    const isAssignedExecutor = contract.nguoiThucHienId === userId;
+    const isAssignedTCKT = contract.nguoiThanhToanId === userId;
+
     const canEdit =
-        session?.user?.role === "USER1" ||
-        session?.user?.role === "ADMIN" ||
-        contract.nguoiThucHienId === session?.user?.id;
+        userRole === "ADMIN" ||
+        (userRole === "USER2" && isAssignedExecutor) ||
+        (userRole === "USER2_TCKT" && isAssignedTCKT);
 
     // Format contract data for client component
     const contractData = {

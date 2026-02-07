@@ -69,9 +69,7 @@ export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
     const isAdmin = ["USER1", "ADMIN"].includes(role);
     const isLeader = ["USER1", "USER1_TCKT", "ADMIN"].includes(role); // Lãnh đạo
     const isTCKT = ["USER1_TCKT", "USER2_TCKT", "ADMIN"].includes(role);
-    const isUser2 = role === "USER2";
     const [pendingCount, setPendingCount] = useState(0);
-    const [contractCount, setContractCount] = useState(0);
 
     // Fetch pending payment count for TCKT users
     useEffect(() => {
@@ -95,29 +93,6 @@ export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
         const interval = setInterval(fetchPendingCount, 30000);
         return () => clearInterval(interval);
     }, [isTCKT]);
-
-    // Fetch contract count for USER2
-    useEffect(() => {
-        if (!isUser2) return;
-
-        const fetchContractCount = async () => {
-            try {
-                const res = await fetch("/api/hop-dong/pending-count");
-                if (res.ok) {
-                    const data = await res.json();
-                    setContractCount(data.count || 0);
-                }
-            } catch {
-                // Ignore errors
-            }
-        };
-
-        fetchContractCount();
-
-        // Refresh every 30 seconds
-        const interval = setInterval(fetchContractCount, 30000);
-        return () => clearInterval(interval);
-    }, [isUser2]);
 
     return (
         <div className="flex flex-col h-full bg-slate-900 border-r border-slate-800">
@@ -164,18 +139,6 @@ export default function SidebarContent({ onLinkClick }: SidebarContentProps) {
                         >
                             {item.icon}
                             <span className="font-medium">{item.name}</span>
-                            {/* Badge cho Hợp đồng (USER2) */}
-                            {item.href === "/hop-dong" && isUser2 && contractCount > 0 && (
-                                <span className="ml-auto px-2 py-0.5 text-xs font-bold bg-orange-500 text-white rounded-full">
-                                    {contractCount}
-                                </span>
-                            )}
-                            {/* Badge cho Thanh toán (TCKT) */}
-                            {item.href === "/tckt" && pendingCount > 0 && (
-                                <span className="ml-auto px-2 py-0.5 text-xs font-bold bg-red-500 text-white rounded-full">
-                                    {pendingCount}
-                                </span>
-                            )}
                         </Link>
                     );
                 })}

@@ -104,6 +104,20 @@ export async function POST(request: Request) {
             },
         });
 
+        // Gửi thông báo cho nhân viên được giao HĐ (fire and forget)
+        if (nguoiThucHienId) {
+            const { createNotification } = await import("@/lib/notifications");
+            const leaderName = session.user.name || "Lãnh đạo";
+
+            createNotification({
+                userId: nguoiThucHienId,
+                title: "Bạn được giao hợp đồng mới",
+                message: `${leaderName} đã giao cho bạn hợp đồng ${finalSoHopDong}`,
+                type: "contract_assigned",
+                link: `/hop-dong/${contract.id}`,
+            }).catch(console.error);
+        }
+
         return NextResponse.json(contract, { status: 201 });
     } catch (error) {
         console.error("Error creating contract:", error);

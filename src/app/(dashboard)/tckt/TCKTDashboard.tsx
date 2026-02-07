@@ -86,33 +86,6 @@ export default function TCKTDashboard({
         setAssignTarget(null);
     };
 
-    const handleMarkSettled = async (contractId: string) => {
-        const confirmed = window.confirm("Xác nhận đã kết thúc hợp đồng này? Hợp đồng sẽ bị khóa sau khi kết thúc.");
-        if (!confirmed) return;
-
-        setLoading(contractId);
-        try {
-            const res = await fetch(`/api/hop-dong/${contractId}`, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ daQuyetToan: true }),
-            });
-
-            if (!res.ok) {
-                const data = await res.json();
-                alert(data.message || "Có lỗi xảy ra");
-                return;
-            }
-
-            alert("Đã quyết toán thành công!");
-            router.refresh();
-        } catch {
-            alert("Có lỗi xảy ra");
-        } finally {
-            setLoading(null);
-        }
-    };
-
     const formatCurrency = (value: number | null) => {
         if (!value) return "-";
         return new Intl.NumberFormat("vi-VN", {
@@ -193,22 +166,12 @@ export default function TCKTDashboard({
                                         </td>
                                     )}
                                     <td className="px-6 py-4 text-right">
-                                        {userRole === "USER2_TCKT" ? (
-                                            <Link
-                                                href={`/hop-dong/${contract.id}?tab=payment`}
-                                                className="text-purple-400 hover:text-purple-300 text-sm"
-                                            >
-                                                Cập nhật →
-                                            </Link>
-                                        ) : ["USER1_TCKT", "ADMIN"].includes(userRole) && (
-                                            <button
-                                                onClick={() => handleMarkSettled(contract.id)}
-                                                disabled={loading === contract.id}
-                                                className="px-3 py-1.5 bg-amber-600 hover:bg-amber-700 text-white text-sm rounded-lg transition-colors disabled:opacity-50"
-                                            >
-                                                {loading === contract.id ? "Đang xử lý..." : "Quyết toán"}
-                                            </button>
-                                        )}
+                                        <Link
+                                            href={`/hop-dong/${contract.id}`}
+                                            className="text-purple-400 hover:text-purple-300 text-sm"
+                                        >
+                                            Xem chi tiết →
+                                        </Link>
                                     </td>
                                 </tr>
                             ))
