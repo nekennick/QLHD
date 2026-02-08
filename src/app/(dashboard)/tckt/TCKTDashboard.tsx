@@ -100,11 +100,11 @@ export default function TCKTDashboard({
     };
 
     return (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+        <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
+                        <tr className="text-left text-slate-600 dark:text-slate-400 text-sm bg-slate-100 dark:bg-slate-900/50">
                             <th className="px-6 py-4 font-medium">Số hợp đồng</th>
                             <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
                             <th className="px-6 py-4 font-medium">Giá trị</th>
@@ -116,10 +116,10 @@ export default function TCKTDashboard({
                             <th className="px-6 py-4 font-medium text-right"></th>
                         </tr>
                     </thead>
-                    <tbody className="text-slate-300">
+                    <tbody className="text-slate-700 dark:text-slate-300">
                         {displayContracts.length === 0 ? (
                             <tr>
-                                <td colSpan={7} className="px-6 py-8 text-center text-slate-500">
+                                <td colSpan={7} className="px-6 py-12 text-center text-slate-500 dark:text-slate-400">
                                     Không có hợp đồng chờ thanh toán
                                 </td>
                             </tr>
@@ -127,9 +127,9 @@ export default function TCKTDashboard({
                             displayContracts.map((contract) => (
                                 <tr
                                     key={contract.id}
-                                    className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+                                    className="border-t border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
                                 >
-                                    <td className="px-6 py-4 font-medium text-white">
+                                    <td className="px-6 py-4 font-medium text-slate-900 dark:text-white">
                                         {contract.soHopDong}
                                     </td>
                                     <td className="px-6 py-4">
@@ -137,13 +137,13 @@ export default function TCKTDashboard({
                                             <span className="text-slate-500">Chưa có</span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-sm">
                                         {formatCurrency(contract.giaTriHopDong)}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-sm">
                                         {formatDate(contract.ngayDuyetThanhToan)}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-6 py-4 text-sm">
                                         {contract.nguoiThucHien?.hoTen || "-"}
                                     </td>
                                     {["USER1_TCKT", "ADMIN"].includes(userRole) && (
@@ -154,7 +154,7 @@ export default function TCKTDashboard({
                                                     handleAssignClick(contract.id, e.target.value)
                                                 }
                                                 disabled={loading === contract.id}
-                                                className="px-3 py-1.5 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                                className="px-3 py-1.5 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-purple-500"
                                             >
                                                 <option value="">-- Chọn --</option>
                                                 {staff.map((s) => (
@@ -168,7 +168,7 @@ export default function TCKTDashboard({
                                     <td className="px-6 py-4 text-right">
                                         <Link
                                             href={`/hop-dong/${contract.id}`}
-                                            className="text-purple-400 hover:text-purple-300 text-sm"
+                                            className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-sm"
                                         >
                                             Xem chi tiết →
                                         </Link>
@@ -193,9 +193,9 @@ export default function TCKTDashboard({
             />
 
             {/* Info */}
-            <div className="p-4 border-t border-slate-700/50 bg-blue-500/10">
-                <h3 className="text-blue-400 font-medium mb-2">💡 Hướng dẫn</h3>
-                <ul className="text-sm text-slate-400 space-y-1">
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700/50 bg-blue-50 dark:bg-blue-500/10">
+                <h3 className="text-blue-600 dark:text-blue-400 font-medium mb-2">💡 Hướng dẫn</h3>
+                <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
                     <li>• <strong>Lãnh đạo TCKT</strong>: Chọn nhân viên trong cột &ldquo;Giao cho&rdquo; để phân công | Bấm &ldquo;Quyết toán&rdquo; để kết thúc nhanh</li>
                     <li>• <strong>Nhân viên TCKT</strong>: Bấm &ldquo;Cập nhật&rdquo; để vào chi tiết thanh toán và quyết toán</li>
                 </ul>

@@ -33,8 +33,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi">
-      <body className={`${inter.variable} font-sans antialiased bg-slate-950`}>
+    <html lang="vi" suppressHydrationWarning>
+      <body className={`${inter.variable} font-sans antialiased bg-background text-foreground`}>
         <Providers>{children}</Providers>
       </body>
     </html>

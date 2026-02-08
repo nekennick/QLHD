@@ -88,7 +88,7 @@ export default function ResetPasswordButton({ userId, userName, targetRole }: Re
                 onClick={handleResetClick}
                 disabled={loading}
                 title="Khôi phục mật khẩu"
-                className="p-2 text-slate-400 hover:text-white hover:bg-slate-700/50 rounded-lg transition-colors"
+                className="p-2 text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-700/50 rounded-lg transition-colors"
             >
                 {loading ? (
                     <div className="w-5 h-5 border-2 border-slate-400 border-t-white rounded-full animate-spin" />

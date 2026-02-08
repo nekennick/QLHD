@@ -79,13 +79,13 @@ export default async function HopDongPage({
             {/* Header */}
             <div className="flex items-center justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white">Hợp đồng</h1>
-                    <p className="text-slate-400 mt-1">Quản lý danh sách hợp đồng</p>
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Hợp đồng</h1>
+                    <p className="text-slate-600 dark:text-slate-400 mt-1">Quản lý danh sách hợp đồng</p>
                 </div>
                 {isAdmin && (
                     <Link
                         href="/hop-dong/tao-moi"
-                        className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all shadow-lg shadow-purple-500/25"
+                        className="flex items-center gap-2 px-4 py-2 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-pink-600 text-white rounded-lg hover:bg-slate-800 dark:hover:from-purple-700 dark:hover:to-pink-700 transition-all shadow-sm dark:shadow-lg dark:shadow-purple-500/25 border border-slate-950 dark:border-transparent"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
@@ -98,15 +98,15 @@ export default async function HopDongPage({
 
 
             {/* Table */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
+            <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
                 {contracts.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="text-6xl mb-4">📋</div>
-                        <p className="text-slate-400 text-lg">Không có hợp đồng nào</p>
+                        <p className="text-slate-500 dark:text-slate-400 text-lg">Không có hợp đồng nào</p>
                         {isAdmin && (
                             <Link
                                 href="/hop-dong/tao-moi"
-                                className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-lg hover:from-purple-700 hover:to-pink-700 transition-all"
+                                className="inline-flex items-center gap-2 mt-4 px-4 py-2 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-pink-600 text-white rounded-lg hover:bg-slate-800 dark:hover:from-purple-700 dark:hover:to-pink-700 transition-all border border-slate-950 dark:border-transparent"
                             >
                                 Tạo hợp đồng đầu tiên
                             </Link>

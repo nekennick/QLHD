@@ -63,22 +63,22 @@ export default function ContractPreviewModal({
             />
 
             {/* Modal Content */}
-            <div className="relative bg-slate-800 border border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mx-4">
+            <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden mx-4">
                 {/* Header */}
-                <div className="px-6 py-4 border-b border-slate-700 flex items-center justify-between bg-slate-800/50">
+                <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between bg-slate-50 dark:bg-slate-800/50">
                     <div>
-                        <h2 className="text-xl font-bold text-white">
+                        <h2 className="text-xl font-bold text-slate-900 dark:text-white">
                             Hợp đồng {contract.soHopDong}
                         </h2>
                         {contract.tenHopDong && (
-                            <p className="text-sm text-slate-400 mt-0.5 line-clamp-1">
+                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
                                 {contract.tenHopDong}
                             </p>
                         )}
                     </div>
                     <button
                         onClick={onClose}
-                        className="text-slate-400 hover:text-white p-2 rounded-lg hover:bg-slate-700 transition-colors"
+                        className="text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white p-2 rounded-lg hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
                     >
                         <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -100,9 +100,9 @@ export default function ContractPreviewModal({
 
                     {/* Tu chỉnh (nếu có) */}
                     {contract.tuChinhHopDong && (
-                        <div className="bg-slate-700/30 rounded-lg p-4">
-                            <p className="text-xs text-slate-400 uppercase tracking-wider mb-1">Tu chỉnh hợp đồng</p>
-                            <p className="text-slate-300 text-sm">{contract.tuChinhHopDong}</p>
+                        <div className="bg-slate-100 dark:bg-slate-700/30 rounded-lg p-4">
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Tu chỉnh hợp đồng</p>
+                            <p className="text-slate-700 dark:text-slate-300 text-sm">{contract.tuChinhHopDong}</p>
                         </div>
                     )}
 
@@ -113,8 +113,8 @@ export default function ContractPreviewModal({
                     </div>
 
                     {/* Tiến độ */}
-                    <div className="border-t border-slate-700 pt-4">
-                        <h3 className="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">
+                    <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                        <h3 className="text-sm font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-3">
                             Tiến độ thực hiện
                         </h3>
                         <div className="grid grid-cols-2 gap-4">
@@ -143,8 +143,8 @@ export default function ContractPreviewModal({
 
                     {/* Quyết toán công trình (chỉ hiện với HĐ đầu tư xây dựng) */}
                     {contract.isConstructionInvestment && (
-                        <div className="border-t border-slate-700 pt-4">
-                            <h3 className="text-sm font-semibold text-purple-400 uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <div className="border-t border-slate-200 dark:border-slate-700 pt-4">
+                            <h3 className="text-sm font-semibold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-3 flex items-center gap-2">
                                 <span>🏗️</span> Quyết toán công trình
                             </h3>
                             <div className="grid grid-cols-2 gap-4">
@@ -168,16 +168,16 @@ export default function ContractPreviewModal({
                 </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-slate-700 flex items-center justify-end gap-3 bg-slate-800/50">
+                <div className="px-6 py-4 border-t border-slate-200 dark:border-slate-700 flex items-center justify-end gap-3 bg-slate-50 dark:bg-slate-800/50">
                     <button
                         onClick={onClose}
-                        className="px-4 py-2 text-sm text-slate-300 hover:text-white bg-slate-700 hover:bg-slate-600 rounded-lg transition-colors"
+                        className="px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded-lg transition-colors"
                     >
                         Đóng
                     </button>
                     <Link
                         href={`/hop-dong/${contract.id}`}
-                        className="px-4 py-2 text-sm text-white bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-lg transition-all shadow-lg shadow-purple-500/25"
+                        className="px-4 py-2 text-sm text-white bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-pink-600 hover:bg-slate-800 dark:hover:from-purple-700 dark:hover:to-pink-700 rounded-lg transition-all shadow-sm dark:shadow-lg dark:shadow-purple-500/25 border border-slate-950 dark:border-transparent"
                     >
                         {userRole === "USER2" ? "Cập nhật →" : "Xem chi tiết →"}
                     </Link>
@@ -201,15 +201,15 @@ function InfoItem({
 }) {
     return (
         <div className="flex flex-col gap-0.5">
-            <span className="text-xs text-slate-500 uppercase tracking-wider">{label}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-500 uppercase tracking-wider">{label}</span>
             <span
                 className={`text-sm font-medium ${highlight
-                    ? "text-purple-400"
+                    ? "text-purple-600 dark:text-purple-400"
                     : status === "success"
-                        ? "text-emerald-400"
+                        ? "text-emerald-600 dark:text-emerald-400"
                         : status === "pending"
-                            ? "text-amber-400"
-                            : "text-slate-300"
+                            ? "text-amber-600 dark:text-amber-400"
+                            : "text-slate-700 dark:text-slate-300"
                     }`}
             >
                 {value}

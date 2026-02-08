@@ -24,21 +24,21 @@ export default async function CreateContractPage() {
         <div className="max-w-2xl mx-auto space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white">Tạo hợp đồng mới</h1>
-                <p className="text-slate-400 mt-1">
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Tạo hợp đồng mới</h1>
+                <p className="text-slate-600 dark:text-slate-400 mt-1">
                     Nhập số hợp đồng và giao cho người thực hiện
                 </p>
             </div>
 
             {/* Form Card */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+            <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 shadow-sm dark:shadow-none">
                 <CreateContractForm users={users} />
             </div>
 
             {/* Help */}
-            <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
-                <h3 className="text-blue-400 font-medium mb-2">💡 Hướng dẫn</h3>
-                <ul className="text-sm text-slate-400 space-y-1">
+            <div className="bg-blue-50 dark:bg-blue-500/10 border border-blue-200 dark:border-blue-500/30 rounded-xl p-4">
+                <h3 className="text-blue-600 dark:text-blue-400 font-medium mb-2">💡 Hướng dẫn</h3>
+                <ul className="text-sm text-slate-600 dark:text-slate-400 space-y-1">
                     <li>• Số hợp đồng phải là duy nhất trong hệ thống</li>
                     <li>• Người thực hiện sẽ có quyền nhập chi tiết hợp đồng</li>
                     <li>• Bạn có thể cập nhật thông tin sau khi tạo</li>

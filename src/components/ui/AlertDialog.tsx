@@ -51,10 +51,10 @@ export default function AlertDialog({
     };
 
     const buttonClass = {
-        success: "bg-gradient-to-r from-green-600 to-emerald-600 hover:from-green-700 hover:to-emerald-700",
-        error: "bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700",
-        info: "bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700",
-        warning: "bg-gradient-to-r from-orange-600 to-amber-600 hover:from-orange-700 hover:to-amber-700",
+        success: "bg-green-600 dark:bg-gradient-to-r dark:from-green-600 dark:to-emerald-600 hover:bg-green-700 dark:hover:from-green-700 dark:hover:to-emerald-700 border border-green-700 dark:border-transparent",
+        error: "bg-red-600 dark:bg-gradient-to-r dark:from-red-600 dark:to-rose-600 hover:bg-red-700 dark:hover:from-red-700 dark:hover:to-rose-700 border border-red-700 dark:border-transparent",
+        info: "bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-pink-600 hover:bg-slate-800 dark:hover:from-purple-700 dark:hover:to-pink-700 border border-slate-950 dark:border-transparent",
+        warning: "bg-orange-600 dark:bg-gradient-to-r dark:from-orange-600 dark:to-amber-600 hover:bg-orange-700 dark:hover:from-orange-700 dark:hover:to-amber-700 border border-orange-700 dark:border-transparent",
     };
 
     return (
@@ -66,15 +66,15 @@ export default function AlertDialog({
             ></div>
 
             {/* Dialog */}
-            <div className="relative bg-slate-800 border border-slate-700 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-200">
+            <div className="relative bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-2xl p-6 max-w-md w-full mx-4 animate-in fade-in zoom-in duration-200">
                 <div className="flex flex-col items-center text-center">
                     {iconByType[type]}
 
-                    <h3 className="text-lg font-semibold text-white mb-2">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-2">
                         {title}
                     </h3>
 
-                    <p className="text-slate-400 text-sm mb-6">
+                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-6">
                         {message}
                     </p>
                 </div>

@@ -147,25 +147,25 @@ export default async function DashboardPage() {
         {
             title: "Chưa lập hợp đồng",
             items: serializeWarningItems(stats.warnings.incomplete),
-            color: "text-yellow-400",
+            color: "text-yellow-600 dark:text-yellow-400",
             bgColor: "bg-yellow-500/10"
         },
         {
             title: "Hợp đồng giao hàng chậm",
             items: serializeWarningItems(stats.warnings.lateDelivery),
-            color: "text-red-400",
+            color: "text-red-600 dark:text-red-400",
             bgColor: "bg-red-500/10"
         },
         {
             title: "Hợp đồng có đảm bảo sắp hết hiệu lực",
             items: serializeWarningItems(stats.warnings.expiringGuarantee),
-            color: "text-orange-400",
+            color: "text-orange-600 dark:text-orange-400",
             bgColor: "bg-orange-500/10"
         },
         {
             title: "Hợp đồng đã kết thúc (hết bảo hành)",
             items: serializeWarningItems(stats.warnings.completed),
-            color: "text-green-400",
+            color: "text-green-600 dark:text-green-400",
             bgColor: "bg-green-500/10"
         },
     ].filter((g) => g.items.length > 0);
@@ -174,9 +174,9 @@ export default async function DashboardPage() {
         <div className="space-y-6 md:space-y-8">
             {/* Header */}
             <div>
-                <h1 className="text-xl md:text-3xl font-bold text-white">Dashboard</h1>
-                <p className="text-slate-400 text-sm md:text-base mt-2">
-                    Xin chào, <span className="text-white font-medium">{session?.user?.name}</span>!{" "}
+                <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white">Dashboard</h1>
+                <p className="text-slate-600 dark:text-slate-400 text-sm md:text-base mt-2">
+                    Xin chào, <span className="text-slate-900 dark:text-white font-medium">{session?.user?.name}</span>!{" "}
                     <span className="text-slate-500">
                         {session?.user?.role === "USER1" ? "(Lãnh đạo)" : "(Người thực hiện)"}
                     </span>
@@ -184,43 +184,43 @@ export default async function DashboardPage() {
             </div>
 
             {/* Stats List Section */}
-            <div className="bg-slate-800/30 border border-slate-700/50 rounded-xl p-6 md:p-8 space-y-4">
+            <div className="bg-white dark:bg-slate-800/30 border border-slate-200 dark:border-slate-700/50 rounded-xl p-6 md:p-8 space-y-4 shadow-sm dark:shadow-none">
                 <div className="flex items-baseline gap-2">
-                    <span className="text-lg md:text-xl text-slate-300">Tổng số hợp đồng:</span>
-                    <span className="text-2xl md:text-3xl font-bold text-white">{stats.totalContracts}</span>
+                    <span className="text-lg md:text-xl text-slate-700 dark:text-slate-300">Tổng số hợp đồng:</span>
+                    <span className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-white">{stats.totalContracts}</span>
                 </div>
 
                 <div className="space-y-3 pt-2">
                     <div className="flex items-baseline gap-2">
-                        <span className="text-lg text-slate-300">Hợp đồng công trình đầu tư xây dựng:</span>
-                        <span className="text-xl font-bold text-purple-400">{stats.ciTotal}</span>
+                        <span className="text-lg text-slate-700 dark:text-slate-300">Hợp đồng công trình đầu tư xây dựng:</span>
+                        <span className="text-xl font-bold text-purple-600 dark:text-purple-400">{stats.ciTotal}</span>
                     </div>
 
-                    <ul className="ml-8 space-y-2 text-slate-400">
+                    <ul className="ml-8 space-y-2 text-slate-600 dark:text-slate-400">
                         <li className="flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />
                             <span>Chưa lập hợp đồng:</span>
-                            <span className="text-white font-medium">{stats.ciIncomplete}</span>
+                            <span className="text-slate-900 dark:text-white font-medium">{stats.ciIncomplete}</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />
                             <span>Đang giao nhận hàng:</span>
-                            <span className="text-white font-medium">{stats.ciDelivering}</span>
+                            <span className="text-slate-900 dark:text-white font-medium">{stats.ciDelivering}</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />
                             <span>Đã duyệt thanh toán:</span>
-                            <span className="text-white font-medium">{stats.ciApproved}</span>
+                            <span className="text-slate-900 dark:text-white font-medium">{stats.ciApproved}</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />
                             <span>Đã thanh toán:</span>
-                            <span className="text-white font-medium">{stats.ciPaid}</span>
+                            <span className="text-slate-900 dark:text-white font-medium">{stats.ciPaid}</span>
                         </li>
                         <li className="flex items-center gap-3">
-                            <span className="w-1.5 h-1.5 bg-slate-600 rounded-full" />
+                            <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />
                             <span>Đã quyết toán công trình:</span>
-                            <span className="text-white font-medium">{stats.ciSettled}</span>
+                            <span className="text-slate-900 dark:text-white font-medium">{stats.ciSettled}</span>
                         </li>
                     </ul>
                 </div>

@@ -66,12 +66,12 @@ interface ReassignConfirmState {
 // ========================================
 const SectionDivider = ({ title, icon }: { title: string; icon: string }) => (
     <div className="flex items-center gap-4 py-8">
-        <div className="flex-1 h-px bg-gradient-to-r from-slate-700 to-transparent" />
-        <div className="flex items-center gap-2 text-slate-300 text-sm font-semibold px-4 py-2 bg-slate-800/80 rounded-full border border-slate-700/50 shadow-lg">
+        <div className="flex-1 h-px bg-gradient-to-r from-slate-300 dark:from-slate-700 to-transparent" />
+        <div className="flex items-center gap-2 text-slate-700 dark:text-slate-300 text-sm font-semibold px-4 py-2 bg-slate-100 dark:bg-slate-800/80 rounded-full border border-slate-200 dark:border-slate-700/50 shadow-lg">
             <span>{icon}</span>
             <span className="uppercase tracking-wider">{title}</span>
         </div>
-        <div className="flex-1 h-px bg-gradient-to-l from-slate-700 to-transparent" />
+        <div className="flex-1 h-px bg-gradient-to-l from-slate-300 dark:from-slate-700 to-transparent" />
     </div>
 );
 
@@ -231,7 +231,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     // ========================================
     // Render Helper Functions
     // ========================================
-    const inputClass = "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
+    const inputClass = "w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed";
 
     const renderInputField = (
         label: string,
@@ -249,9 +249,9 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
         return (
             <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                     {label}
-                    {!isEditable && <span className="text-xs text-slate-500 ml-2">* Chỉ quản lý mới có thể chỉnh sửa thông tin này</span>}
+                    {!isEditable && <span className="text-xs text-slate-500 dark:text-slate-500 ml-2">* Chỉ quản lý mới có thể chỉnh sửa thông tin này</span>}
                 </label>
                 {type === "textarea" ? (
                     <textarea
@@ -278,8 +278,8 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
     const renderReadOnlyField = (label: string, value: string | null | undefined) => (
         <div>
-            <label className="block text-sm font-medium text-slate-400 mb-2">{label}</label>
-            <p className="px-4 py-3 bg-slate-900/30 border border-slate-600/50 rounded-lg text-white">
+            <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">{label}</label>
+            <p className="px-4 py-3 bg-slate-100 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white">
                 {value || "—"}
             </p>
         </div>
@@ -311,9 +311,9 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
         return (
             <div>
-                <label className="block text-sm font-medium text-slate-300 mb-2">
+                <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                     {label}
-                    {!isEditable && <span className="text-xs text-slate-500 ml-2">* Chỉ quản lý mới có thể chỉnh sửa thông tin này</span>}
+                    {!isEditable && <span className="text-xs text-slate-500 dark:text-slate-500 ml-2">* Chỉ quản lý mới có thể chỉnh sửa thông tin này</span>}
                 </label>
                 <input
                     type="text"
@@ -333,7 +333,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     // ========================================
     const renderSectionPeople = () => (
         <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>👤</span> Thông tin giao nhận
             </h3>
 
@@ -343,19 +343,19 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                 {/* Người thực hiện hợp đồng */}
                 <div>
-                    <label className="block text-sm font-medium text-slate-300 mb-2">
+                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                         Người thực hiện hợp đồng
                     </label>
                     {contract.nguoiThucHien ? (
-                        <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50 space-y-2">
-                            <p className="text-white font-medium">
+                        <div className="bg-slate-100 dark:bg-slate-900/30 rounded-lg p-4 border border-slate-200 dark:border-slate-700/50 space-y-2">
+                            <p className="text-slate-900 dark:text-white font-medium">
                                 Hiện tại: {contract.nguoiThucHien.hoTen}
                             </p>
                             {userRole === "USER1" && (
                                 <div className="flex gap-2">
                                     <select
                                         id="executorSelect"
-                                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                        className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-sm"
                                     >
                                         <option value="">-- Chọn người mới --</option>
                                         {users.filter(u => u.id !== contract.nguoiThucHienId).map((u) => (
@@ -373,11 +373,11 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                             )}
                         </div>
                     ) : userRole === "USER1" ? (
-                        <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50">
+                        <div className="bg-slate-100 dark:bg-slate-900/30 rounded-lg p-4 border border-slate-200 dark:border-slate-700/50">
                             <div className="flex gap-2">
                                 <select
                                     id="executorSelect"
-                                    className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                    className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-sm"
                                 >
                                     <option value="">-- Chọn người thực hiện --</option>
                                     {users.map((u) => (
@@ -394,7 +394,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                             </div>
                         </div>
                     ) : (
-                        <p className="text-slate-500 italic px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
+                        <p className="text-slate-500 dark:text-slate-500 italic px-4 py-3 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600/50 rounded-lg">
                             Chưa được giao
                         </p>
                     )}
@@ -408,7 +408,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     // ========================================
     const renderSectionContractInfo = () => (
         <div className="space-y-6">
-            <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+            <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                 <span>📋</span> Thông tin hợp đồng
             </h3>
 
@@ -441,7 +441,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
         return (
             <div className="space-y-6">
-                <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                     <span>📊</span> Tiến độ thực hiện
                 </h3>
 
@@ -456,12 +456,12 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-slate-400">Tiến độ giao hàng</span>
-                                <span className="text-white">
+                                <span className="text-slate-500 dark:text-slate-400">Tiến độ giao hàng</span>
+                                <span className="text-slate-900 dark:text-white">
                                     {Math.min(100, Math.round(((contract.giaTriGiaoNhan || 0) / contract.giaTriHopDong) * 100))}%
                                 </span>
                             </div>
-                            <div className="w-full bg-slate-700 rounded-full h-3">
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
                                 <div
                                     className="bg-gradient-to-r from-blue-500 to-cyan-500 h-3 rounded-full transition-all"
                                     style={{
@@ -472,12 +472,12 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         </div>
                         <div>
                             <div className="flex justify-between text-sm mb-2">
-                                <span className="text-slate-400">Tiến độ nghiệm thu</span>
-                                <span className="text-white">
+                                <span className="text-slate-500 dark:text-slate-400">Tiến độ nghiệm thu</span>
+                                <span className="text-slate-900 dark:text-white">
                                     {Math.min(100, Math.round(((contract.giaTriNghiemThu || 0) / contract.giaTriHopDong) * 100))}%
                                 </span>
                             </div>
-                            <div className="w-full bg-slate-700 rounded-full h-3">
+                            <div className="w-full bg-slate-200 dark:bg-slate-700 rounded-full h-3">
                                 <div
                                     className="bg-gradient-to-r from-emerald-500 to-green-500 h-3 rounded-full transition-all"
                                     style={{
@@ -489,7 +489,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     </div>
                 )}
 
-                <hr className="border-slate-700" />
+                <hr className="border-slate-200 dark:border-slate-700" />
 
                 {/* Bảo hành & Thanh toán */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -500,9 +500,9 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 {/* Quyết toán ĐTXD - Chỉ hiển thị cho công trình ĐTXD */}
                 {contract.isConstructionInvestment && (
                     <>
-                        <hr className="border-slate-700" />
+                        <hr className="border-slate-200 dark:border-slate-700" />
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-2">
+                            <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                                 Giá trị quyết toán công trình ĐTXD (Đồng)
                             </label>
                             <input
@@ -532,11 +532,11 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         </div>
 
                         {contract.giaTriQuyetToan !== null && (
-                            <div className="p-4 bg-purple-900/20 rounded-lg border border-purple-500/30">
-                                <label className="block text-sm font-medium text-purple-300 mb-1">
+                            <div className="p-4 bg-slate-100 dark:bg-purple-900/20 rounded-lg border border-slate-200 dark:border-purple-500/30">
+                                <label className="block text-sm font-medium text-slate-600 dark:text-purple-300 mb-1">
                                     Trị giá thừa so với hợp đồng
                                 </label>
-                                <p className={`text-xl font-bold ${giaTriQT - (contract.giaTriHopDong || 0) > 0 ? 'text-amber-400' : 'text-green-400'}`}>
+                                <p className={`text-xl font-bold ${giaTriQT - (contract.giaTriHopDong || 0) > 0 ? 'text-amber-600 dark:text-amber-400' : 'text-green-600 dark:text-green-400'}`}>
                                     {formatCurrency(giaTriQT - (contract.giaTriHopDong || 0))}
                                 </p>
                                 <p className="text-xs text-slate-500 mt-1">
@@ -549,8 +549,8 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                 {/* Warnings */}
                 {contract.hieuLucBaoDam && new Date(contract.hieuLucBaoDam) < new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) && (
-                    <div className="p-4 bg-orange-500/10 border border-orange-500/30 rounded-lg">
-                        <p className="text-orange-400 flex items-center gap-2">
+                    <div className="p-4 bg-orange-50 dark:bg-orange-500/10 border border-orange-200 dark:border-orange-500/30 rounded-lg">
+                        <p className="text-orange-600 dark:text-orange-400 flex items-center gap-2">
                             <span>⚠️</span>
                             Đảm bảo thực hiện hợp đồng sắp hết hiệu lực!
                         </p>
@@ -558,8 +558,8 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 )}
 
                 {contract.hanBaoHanh && new Date(contract.hanBaoHanh) < new Date() && (
-                    <div className="p-4 bg-slate-500/10 border border-slate-500/30 rounded-lg">
-                        <p className="text-slate-400 flex items-center gap-2">
+                    <div className="p-4 bg-slate-50 dark:bg-slate-500/10 border border-slate-200 dark:border-slate-500/30 rounded-lg">
+                        <p className="text-slate-600 dark:text-slate-400 flex items-center gap-2">
                             <span>🏁</span>
                             Đã hết thời hạn bảo hành
                         </p>
@@ -575,7 +575,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     const renderSectionTCKT = () => {
         const isTCKTAssigned = userRole === "USER2_TCKT" && contract.nguoiThanhToanId === userId;
         const canEditPayment = (userRole === "ADMIN" || isTCKTAssigned) && !contract.daQuyetToan;
-        const paymentInputClass = "w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed text-right";
+        const paymentInputClass = "w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all disabled:opacity-50 disabled:cursor-not-allowed text-right";
 
         const giaTriHD = contract.giaTriHopDong || 0;
         const daThanhToan = contract.giaTriThanhToan || 0;
@@ -584,11 +584,11 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         return (
             <div className="space-y-6">
                 <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-white flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-2">
                         <span>💰</span> Thanh toán (TCKT)
                     </h3>
                     {contract.daQuyetToan && (
-                        <span className="px-3 py-1 bg-emerald-500/20 text-emerald-400 text-xs font-medium rounded-full border border-emerald-500/30">
+                        <span className="px-3 py-1 bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 text-xs font-medium rounded-full border border-emerald-200 dark:border-emerald-500/30">
                             Đã kết thúc
                         </span>
                     )}
@@ -597,30 +597,30 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {/* Người giao việc thanh toán */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-400 mb-2">
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
                             Người giao việc thanh toán
                         </label>
                         {/* Hiển thị người giao việc thanh toán (USER1_TCKT) */}
-                        <p className="px-4 py-3 bg-slate-900/30 border border-slate-600/50 rounded-lg text-white">
+                        <p className="px-4 py-3 bg-slate-100 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white">
                             {contract.nguoiGiaoThanhToan?.hoTen || "—"}
                         </p>
                     </div>
 
                     {/* Người thực hiện thanh toán */}
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             Người thực hiện thanh toán
                         </label>
                         {contract.nguoiThanhToan ? (
-                            <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50 space-y-2">
-                                <p className="text-white font-medium">
+                            <div className="bg-slate-100 dark:bg-slate-900/30 rounded-lg p-4 border border-slate-200 dark:border-slate-700/50 space-y-2">
+                                <p className="text-slate-900 dark:text-white font-medium">
                                     Hiện tại: {contract.nguoiThanhToan.hoTen}
                                 </p>
                                 {(userRole === "USER1_TCKT" || userRole === "ADMIN") && (
                                     <div className="flex gap-2">
                                         <select
                                             id="tcktSelect"
-                                            className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                            className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-sm"
                                         >
                                             <option value="">-- Chọn người mới --</option>
                                             {tcktUsers.filter(u => u.id !== contract.nguoiThanhToanId).map((u) => (
@@ -630,7 +630,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                         <button
                                             type="button"
                                             onClick={() => initiateReassign("tckt", "tcktSelect")}
-                                            className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                            className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-700 text-white text-sm rounded-lg transition-colors border border-slate-950 dark:border-transparent"
                                         >
                                             Chuyển giao
                                         </button>
@@ -638,11 +638,11 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                 )}
                             </div>
                         ) : (userRole === "USER1_TCKT" || userRole === "ADMIN") ? (
-                            <div className="bg-slate-900/30 rounded-lg p-4 border border-slate-700/50">
+                            <div className="bg-slate-100 dark:bg-slate-900/30 rounded-lg p-4 border border-slate-200 dark:border-slate-700/50">
                                 <div className="flex gap-2">
                                     <select
                                         id="tcktSelect"
-                                        className="flex-1 px-3 py-2 bg-slate-800 border border-slate-600 rounded-lg text-white text-sm"
+                                        className="flex-1 px-3 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-white text-sm"
                                     >
                                         <option value="">-- Chọn nhân viên TCKT --</option>
                                         {tcktUsers.map((u) => (
@@ -652,35 +652,35 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                     <button
                                         type="button"
                                         onClick={() => initiateReassign("tckt", "tcktSelect")}
-                                        className="px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm rounded-lg transition-colors"
+                                        className="px-4 py-2 bg-slate-900 dark:bg-purple-600 hover:bg-slate-800 dark:hover:bg-purple-700 text-white text-sm rounded-lg transition-colors border border-slate-950 dark:border-transparent"
                                     >
                                         Giao việc
                                     </button>
                                 </div>
                             </div>
                         ) : (
-                            <p className="text-slate-500 italic px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg">
+                            <p className="text-slate-500 dark:text-slate-500 italic px-4 py-3 bg-slate-100 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-600/50 rounded-lg">
                                 Chưa được giao
                             </p>
                         )}
                     </div>
                 </div>
 
-                <hr className="border-slate-700" />
+                <hr className="border-slate-200 dark:border-slate-700" />
 
                 {/* Giá trị thanh toán */}
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
-                        <label className="block text-sm font-medium text-slate-400 mb-1">
+                    <div className="p-4 bg-slate-100 dark:bg-slate-900/30 rounded-lg border border-slate-200 dark:border-slate-700/50">
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                             Giá trị hợp đồng
                         </label>
-                        <p className="text-xl font-bold text-white">
+                        <p className="text-xl font-bold text-slate-900 dark:text-white">
                             {formatCurrency(giaTriHD)}
                         </p>
                     </div>
 
                     <div>
-                        <label className="block text-sm font-medium text-slate-300 mb-2">
+                        <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
                             Giá trị thanh toán (Đồng)
                         </label>
                         <input
@@ -709,11 +709,11 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         )}
                     </div>
 
-                    <div className="p-4 bg-slate-900/30 rounded-lg border border-slate-700/50">
-                        <label className="block text-sm font-medium text-slate-400 mb-1">
+                    <div className="p-4 bg-slate-100 dark:bg-slate-900/30 rounded-lg border border-slate-200 dark:border-slate-700/50">
+                        <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-1">
                             Còn lại
                         </label>
-                        <p className={`text-xl font-bold ${conLai >= 0 ? 'text-amber-400' : 'text-red-400'}`}>
+                        <p className={`text-xl font-bold ${conLai >= 0 ? 'text-amber-600 dark:text-amber-400' : 'text-red-600 dark:text-red-400'}`}>
                             {formatCurrency(conLai)}
                         </p>
                         <p className="text-xs text-slate-500 mt-1">
@@ -759,8 +759,8 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             {message && (
                 <div
                     className={`p-4 rounded-lg ${message.type === "success"
-                        ? "bg-green-500/10 border border-green-500/50 text-green-400"
-                        : "bg-red-500/10 border border-red-500/50 text-red-400"
+                        ? "bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/50 text-green-600 dark:text-green-400"
+                        : "bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-400"
                         }`}
                 >
                     {message.text}
@@ -768,7 +768,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             )}
 
             {/* Content - Single Page Layout */}
-            <form onSubmit={handleSubmit} className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 shadow-sm dark:shadow-none">
                 {sections.map((section, index) => (
                     <div key={section.id}>
                         {/* Divider between sections (skip for first one) */}
@@ -785,7 +785,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         <button
                             type="submit"
                             disabled={loading}
-                            className="px-6 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50"
+                            className="px-6 py-3 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-pink-600 hover:bg-slate-800 dark:hover:from-purple-700 dark:hover:to-pink-700 text-white font-semibold rounded-lg shadow-sm dark:shadow-lg dark:shadow-purple-500/25 border border-slate-950 dark:border-transparent transition-all disabled:opacity-50"
                         >
                             {loading ? "Đang lưu..." : "Lưu thay đổi"}
                         </button>

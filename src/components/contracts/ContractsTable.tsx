@@ -163,56 +163,56 @@ export default function ContractsTable({
             <div className="overflow-x-auto">
                 <table className="w-full">
                     <thead>
-                        <tr className="text-left bg-slate-900/80 border-b-2 border-slate-700 shadow-sm relative z-10">
+                        <tr className="text-left bg-slate-100 dark:bg-slate-900/80 border-b-2 border-slate-200 dark:border-slate-700 shadow-sm relative z-10">
                             {/* Số hợp đồng */}
                             <th className="px-6 py-5">
                                 <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Số hợp đồng</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Số hợp đồng</span>
                                     <input
                                         type="text"
                                         placeholder="🔍 Tìm kiếm..."
                                         value={searchSoHD}
                                         onChange={(e) => setSearchSoHD(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-500 transition-all font-normal outline-none"
+                                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all font-normal outline-none"
                                     />
                                 </div>
                             </th>
                             {/* Tên hợp đồng */}
                             <th className="px-6 py-5">
                                 <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Tên hợp đồng</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Tên hợp đồng</span>
                                     <input
                                         type="text"
                                         placeholder="🔍 Tìm kiếm..."
                                         value={searchTenHD}
                                         onChange={(e) => setSearchTenHD(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-500 transition-all font-normal outline-none"
+                                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all font-normal outline-none"
                                     />
                                 </div>
                             </th>
                             {/* Giá trị - sortable */}
                             <th
-                                className="px-6 py-5 cursor-pointer hover:bg-slate-800/50 transition-colors select-none group"
+                                className="px-6 py-5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/50 transition-colors select-none group"
                                 onClick={() => handleSort('giaTriHopDong')}
                             >
                                 <div className="flex items-center gap-2 mb-10">
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider group-hover:text-purple-400 transition-colors">Giá trị</span>
-                                    <div className="flex flex-col text-[10px] leading-none text-slate-500 group-hover:text-purple-400">
-                                        <span className={sortField === 'giaTriHopDong' && sortDirection === 'asc' ? 'text-purple-400' : ''}>▲</span>
-                                        <span className={sortField === 'giaTriHopDong' && sortDirection === 'desc' ? 'text-purple-400' : ''}>▼</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Giá trị</span>
+                                    <div className="flex flex-col text-[10px] leading-none text-slate-400 dark:text-slate-500 group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                                        <span className={sortField === 'giaTriHopDong' && sortDirection === 'asc' ? 'text-purple-500 dark:text-purple-400' : ''}>▲</span>
+                                        <span className={sortField === 'giaTriHopDong' && sortDirection === 'desc' ? 'text-purple-500 dark:text-purple-400' : ''}>▼</span>
                                     </div>
                                 </div>
                             </th>
                             {/* Ngày ký - sortable */}
                             <th
-                                className="px-6 py-5 cursor-pointer hover:bg-slate-800/50 transition-colors select-none group"
+                                className="px-6 py-5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/50 transition-colors select-none group"
                                 onClick={() => handleSort('ngayKy')}
                             >
                                 <div className="flex items-center gap-2 mb-10">
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider group-hover:text-purple-400 transition-colors">Ngày ký</span>
-                                    <div className="flex flex-col text-[10px] leading-none text-slate-500 group-hover:text-purple-400">
-                                        <span className={sortField === 'ngayKy' && sortDirection === 'asc' ? 'text-purple-400' : ''}>▲</span>
-                                        <span className={sortField === 'ngayKy' && sortDirection === 'desc' ? 'text-purple-400' : ''}>▼</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">Ngày ký</span>
+                                    <div className="flex flex-col text-[10px] leading-none text-slate-400 dark:text-slate-500 group-hover:text-purple-600 dark:group-hover:text-purple-400">
+                                        <span className={sortField === 'ngayKy' && sortDirection === 'asc' ? 'text-purple-500 dark:text-purple-400' : ''}>▲</span>
+                                        <span className={sortField === 'ngayKy' && sortDirection === 'desc' ? 'text-purple-500 dark:text-purple-400' : ''}>▼</span>
                                     </div>
                                 </div>
                             </th>
@@ -220,15 +220,15 @@ export default function ContractsTable({
                             {["USER1", "USER1_TCKT", "ADMIN"].includes(currentUser?.role || "") && (
                                 <th className="px-6 py-5">
                                     <div className="space-y-2.5">
-                                        <span className="text-sm font-bold text-white uppercase tracking-wider">Người thực hiện</span>
+                                        <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Người thực hiện</span>
                                         <select
                                             value={filterNguoiThucHien}
                                             onChange={(e) => setFilterNguoiThucHien(e.target.value)}
-                                            className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
+                                            className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
                                         >
                                             <option value="">Tất cả</option>
                                             {users.map((user) => (
-                                                <option key={user.id} value={user.id} className="bg-slate-900">
+                                                <option key={user.id} value={user.id} className="bg-white dark:bg-slate-900">
                                                     {user.hoTen}
                                                 </option>
                                             ))}
@@ -239,14 +239,14 @@ export default function ContractsTable({
                             {/* Trạng thái */}
                             <th className="px-6 py-5">
                                 <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-white uppercase tracking-wider">Trạng thái</span>
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trạng thái</span>
                                     <select
                                         value={filterTrangThai}
                                         onChange={(e) => setFilterTrangThai(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-slate-950/50 text-white rounded-lg border border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
+                                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
                                     >
                                         {statusOptions.map((option) => (
-                                            <option key={option.value} value={option.value} className="bg-slate-900">
+                                            <option key={option.value} value={option.value} className="bg-white dark:bg-slate-900">
                                                 {option.label}
                                             </option>
                                         ))}
@@ -257,7 +257,7 @@ export default function ContractsTable({
                             <th className="px-6 py-5"></th>
                         </tr>
                     </thead>
-                    <tbody className="text-slate-300">
+                    <tbody className="text-slate-700 dark:text-slate-300">
                         {filteredContracts.map((contract) => {
                             const stale = isStale(contract);
                             const showWarning = stale && (
@@ -268,12 +268,12 @@ export default function ContractsTable({
                             return (
                                 <tr
                                     key={contract.id}
-                                    className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+                                    className="border-t border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
                                 >
-                                    <td className={`px-6 py-4 font-medium ${showWarning ? "text-red-500 animate-pulse-slow" : "text-white"}`}>
+                                    <td className={`px-6 py-4 font-medium ${showWarning ? "text-red-500 animate-pulse-slow" : "text-slate-900 dark:text-white"}`}>
                                         <button
                                             onClick={() => setPreviewContract(contract)}
-                                            className="flex items-center gap-2 hover:text-purple-400 transition-colors cursor-pointer text-left"
+                                            className="flex items-center gap-2 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer text-left"
                                         >
                                             {contract.soHopDong}
                                             {showWarning && (
@@ -307,34 +307,34 @@ export default function ContractsTable({
                                     {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
                                     {["USER1", "USER1_TCKT", "ADMIN"].includes(currentUser?.role || "") && (
                                         <td className="px-6 py-4">
-                                            <span className={canReassign ? "text-purple-400" : "text-slate-300"}>
+                                            <span className={canReassign ? "text-purple-600 dark:text-purple-400" : "text-slate-700 dark:text-slate-300"}>
                                                 {contract.nguoiThucHien?.hoTen || "—"}
                                             </span>
                                         </td>
                                     )}
                                     <td className="px-6 py-4">
                                         {!contract.tenHopDong ? (
-                                            <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-200 dark:border-yellow-800/50">
                                                 Chưa lập hợp đồng
                                             </span>
                                         ) : contract.daQuyetToan ? (
-                                            <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full border border-slate-500/30">
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-500/20 text-slate-600 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-500/30">
                                                 ✅ Đã quyết toán
                                             </span>
                                         ) : contract.ngayDuyetThanhToan ? (
-                                            <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800/50">
                                                 Đã duyệt thanh toán
                                             </span>
                                         ) : contract.giaTriNghiemThu ? (
-                                            <span className="px-2 py-1 text-xs bg-emerald-500/20 text-emerald-400 rounded-full">
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/50">
                                                 Đã nghiệm thu
                                             </span>
                                         ) : contract.giaTriGiaoNhan ? (
-                                            <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800/50">
                                                 Đang giao nhận
                                             </span>
                                         ) : (
-                                            <span className="px-2 py-1 text-xs bg-slate-500/20 text-slate-400 rounded-full">
+                                            <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-500/20 text-slate-500 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-500/30">
                                                 Mới tạo
                                             </span>
                                         )}
@@ -342,7 +342,7 @@ export default function ContractsTable({
                                     <td className="px-6 py-4">
                                         <Link
                                             href={`/hop-dong/${contract.id}`}
-                                            className="text-purple-400 hover:text-purple-300 text-sm"
+                                            className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-sm"
                                         >
                                             {currentUser?.role === "USER2" ? "Cập nhật →" : "Chi tiết →"}
                                         </Link>

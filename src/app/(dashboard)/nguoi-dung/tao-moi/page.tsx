@@ -56,12 +56,12 @@ export default function CreateUserPage() {
         <div className="max-w-2xl mx-auto space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white">Thêm người dùng</h1>
-                <p className="text-slate-400 mt-1">Tạo tài khoản người dùng mới</p>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Thêm người dùng</h1>
+                <p className="text-slate-600 dark:text-slate-400 mt-1">Tạo tài khoản người dùng mới</p>
             </div>
 
             {/* Form */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl p-6">
+            <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 shadow-sm dark:shadow-none">
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {error && (
                         <div className="bg-red-500/10 border border-red-500/50 rounded-lg p-4 text-red-400">
@@ -70,8 +70,8 @@ export default function CreateUserPage() {
                     )}
 
                     <div>
-                        <label htmlFor="username" className="block text-sm font-medium text-slate-300 mb-2">
-                            Tên đăng nhập <span className="text-red-400">*</span>
+                        <label htmlFor="username" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Tên đăng nhập <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="username"
@@ -79,13 +79,13 @@ export default function CreateUserPage() {
                             type="text"
                             required
                             placeholder="VD: nhanvien3"
-                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="password" className="block text-sm font-medium text-slate-300 mb-2">
-                            Mật khẩu <span className="text-red-400">*</span>
+                        <label htmlFor="password" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Mật khẩu <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="password"
@@ -93,13 +93,13 @@ export default function CreateUserPage() {
                             type="password"
                             required
                             placeholder="Nhập mật khẩu"
-                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                     </div>
 
                     <div>
-                        <label htmlFor="hoTen" className="block text-sm font-medium text-slate-300 mb-2">
-                            Họ tên <span className="text-red-400">*</span>
+                        <label htmlFor="hoTen" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Họ tên <span className="text-red-500">*</span>
                         </label>
                         <input
                             id="hoTen"
@@ -107,20 +107,20 @@ export default function CreateUserPage() {
                             type="text"
                             required
                             placeholder="VD: Nguyễn Văn A"
-                            className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                         />
                     </div>
 
                     {!isUser1 && (
                         <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-slate-300 mb-2">
-                                Vai trò <span className="text-red-400">*</span>
+                            <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                                Vai trò <span className="text-red-500">*</span>
                             </label>
                             <select
                                 id="role"
                                 name="role"
                                 required
-                                className="w-full px-4 py-3 bg-slate-900/50 border border-slate-600/50 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
                             >
                                 <option value="USER2">Người thực hiện hợp đồng</option>
                                 <option value="USER1">Lãnh đạo hợp đồng</option>
@@ -134,14 +134,14 @@ export default function CreateUserPage() {
                         <button
                             type="submit"
                             disabled={loading}
-                            className="flex-1 py-3 px-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold rounded-lg shadow-lg shadow-purple-500/25 transition-all disabled:opacity-50"
+                            className="flex-1 py-3 px-4 bg-slate-900 dark:bg-gradient-to-r dark:from-purple-600 dark:to-pink-600 hover:bg-slate-800 dark:hover:from-purple-700 dark:hover:to-pink-700 text-white font-semibold rounded-lg shadow-sm dark:shadow-lg dark:shadow-purple-500/25 border border-slate-950 dark:border-transparent transition-all disabled:opacity-50"
                         >
                             {loading ? "Đang tạo..." : "Tạo người dùng"}
                         </button>
                         <button
                             type="button"
                             onClick={() => router.back()}
-                            className="px-6 py-3 bg-slate-700 hover:bg-slate-600 text-white rounded-lg transition-all"
+                            className="px-6 py-3 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white rounded-lg border border-slate-200 dark:border-transparent transition-all font-medium"
                         >
                             Hủy
                         </button>

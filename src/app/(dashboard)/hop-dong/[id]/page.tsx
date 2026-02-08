@@ -84,32 +84,32 @@ export default async function ContractDetailPage({
     return (
         <div className="space-y-6">
             {/* Breadcrumb */}
-            <div className="flex items-center gap-2 text-sm text-slate-400">
-                <Link href="/hop-dong" className="hover:text-white transition-colors">
+            <div className="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                <Link href="/hop-dong" className="hover:text-slate-900 dark:hover:text-white transition-colors">
                     Hợp đồng
                 </Link>
                 <span>/</span>
-                <span className="text-white">{contract.soHopDong}</span>
+                <span className="text-slate-900 dark:text-white">{contract.soHopDong}</span>
             </div>
 
             {/* Header */}
             <div className="flex items-start justify-between">
                 <div>
-                    <h1 className="text-3xl font-bold text-white flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
                         {contract.soHopDong}
                         {!contract.tenHopDong && (
-                            <span className="px-2 py-1 text-xs bg-yellow-500/20 text-yellow-400 rounded-full">
+                            <span className="px-2 py-1 text-xs font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-200 dark:border-yellow-800/50">
                                 Chưa lập hợp đồng
                             </span>
                         )}
                     </h1>
-                    <p className="text-slate-400 mt-1">
+                    <p className="text-slate-600 dark:text-slate-400 mt-1">
                         {contract.tenHopDong || "Chưa có tên hợp đồng"}
                     </p>
                 </div>
 
                 {!canEdit && (
-                    <div className="px-3 py-1.5 bg-slate-700/50 text-slate-400 rounded-lg text-sm">
+                    <div className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 rounded-lg text-sm">
                         🔒 Chỉ xem
                     </div>
                 )}

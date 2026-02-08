@@ -120,8 +120,8 @@ export default async function ReportPage({
         <div className="space-y-6">
             {/* Header */}
             <div>
-                <h1 className="text-3xl font-bold text-white">Báo cáo</h1>
-                <p className="text-slate-400 mt-1">Truy xuất báo cáo theo trạng thái và người thực hiện</p>
+                <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Báo cáo</h1>
+                <p className="text-slate-600 dark:text-slate-400 mt-1">Truy xuất báo cáo theo trạng thái và người thực hiện</p>
             </div>
 
             {/* Report Type Cards */}
@@ -132,14 +132,14 @@ export default async function ReportPage({
                         href={buildUrl(type.value, nguoiThucHienId)}
                         className={`p-4 rounded-xl border transition-all ${reportType === type.value
                             ? "bg-purple-600/20 border-purple-500"
-                            : "bg-slate-800/50 border-slate-700/50 hover:border-slate-600"
+                            : "bg-white dark:bg-slate-800/50 border-slate-200 dark:border-slate-700/50 hover:border-purple-300 dark:hover:border-slate-600"
                             }`}
                     >
                         <div className="flex items-center justify-between">
                             <span className={`w-3 h-3 rounded-full ${type.color}`}></span>
-                            <span className="text-2xl font-bold text-white">{type.count}</span>
+                            <span className="text-2xl font-bold text-slate-900 dark:text-white">{type.count}</span>
                         </div>
-                        <p className="text-sm text-slate-400 mt-2">{type.label}</p>
+                        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">{type.label}</p>
                     </Link>
                 ))}
             </div>
@@ -152,9 +152,9 @@ export default async function ReportPage({
             />
 
             {/* Result Table */}
-            <div className="bg-slate-800/50 border border-slate-700/50 rounded-2xl overflow-hidden">
-                <div className="p-4 border-b border-slate-700 flex items-center justify-between">
-                    <h3 className="font-semibold text-white">
+            <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl overflow-hidden shadow-sm dark:shadow-none">
+                <div className="p-4 border-b border-slate-200 dark:border-slate-700 flex items-center justify-between">
+                    <h3 className="font-semibold text-slate-900 dark:text-white">
                         {reportTypes.find((t) => t.value === reportType)?.label} ({contracts.length} hợp đồng)
                     </h3>
                 </div>
@@ -162,13 +162,13 @@ export default async function ReportPage({
                 {contracts.length === 0 ? (
                     <div className="text-center py-16">
                         <div className="text-6xl mb-4">📋</div>
-                        <p className="text-slate-400">Không có hợp đồng nào</p>
+                        <p className="text-slate-500 dark:text-slate-400">Không có hợp đồng nào</p>
                     </div>
                 ) : (
                     <div className="overflow-x-auto">
                         <table className="w-full">
                             <thead>
-                                <tr className="text-left text-slate-400 text-sm bg-slate-900/50">
+                                <tr className="text-left text-slate-500 dark:text-slate-400 text-sm bg-slate-100 dark:bg-slate-900/50">
                                     <th className="px-6 py-4 font-medium">Số hợp đồng</th>
                                     <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
                                     <th className="px-6 py-4 font-medium">Giá trị</th>
@@ -180,14 +180,14 @@ export default async function ReportPage({
                                     <th className="px-6 py-4 font-medium">Quyết toán</th>
                                 </tr>
                             </thead>
-                            <tbody className="text-slate-300">
+                            <tbody className="text-slate-700 dark:text-slate-300">
                                 {contracts.map((contract) => (
                                     <tr
                                         key={contract.id}
-                                        className="border-t border-slate-700/50 hover:bg-slate-700/20 transition-colors"
+                                        className="border-t border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
                                     >
                                         <td className="px-6 py-4">
-                                            <Link href={`/hop-dong/${contract.id}`} className="text-purple-400 hover:text-purple-300">
+                                            <Link href={`/hop-dong/${contract.id}`} className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300">
                                                 {contract.soHopDong}
                                             </Link>
                                         </td>
@@ -216,7 +216,7 @@ export default async function ReportPage({
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriThanhToan)
                                                 : "—"}
                                         </td>
-                                        <td className="px-6 py-4 text-amber-400 font-medium">
+                                        <td className="px-6 py-4 text-amber-600 dark:text-amber-400 font-medium">
                                             {contract.giaTriQuyetToan
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriQuyetToan)
                                                 : "—"}

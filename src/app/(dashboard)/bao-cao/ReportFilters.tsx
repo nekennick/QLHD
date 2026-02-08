@@ -66,13 +66,13 @@ export default function ReportFilters({ users, currentUserId, reportType }: Prop
     };
 
     return (
-        <div className="bg-slate-800/50 border border-slate-700/50 rounded-xl p-4">
+        <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-xl p-4 shadow-sm dark:shadow-none">
             <div className="flex items-center gap-4 flex-wrap">
-                <span className="text-sm text-slate-400">Người thực hiện:</span>
+                <span className="text-sm text-slate-600 dark:text-slate-400">Người thực hiện:</span>
                 <select
                     value={currentUserId || ""}
                     onChange={(e) => handleUserChange(e.target.value)}
-                    className="px-4 py-2 bg-slate-700 text-white rounded-lg border-none focus:ring-2 focus:ring-purple-500"
+                    className="px-4 py-2 bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white rounded-lg border border-slate-200 dark:border-transparent focus:ring-2 focus:ring-purple-500"
                 >
                     <option value="">Tất cả</option>
                     {users.map((user) => (

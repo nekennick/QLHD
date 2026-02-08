@@ -78,7 +78,7 @@ export default function DeleteUserButton({ userId, userName }: DeleteUserButtonP
             <button
                 onClick={handleDeleteClick}
                 disabled={loading}
-                className="p-2 text-red-400 hover:text-red-300 hover:bg-red-400/10 rounded-lg transition-colors ml-2"
+                className="p-2 text-red-600 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300 hover:bg-red-50 dark:hover:bg-red-400/10 rounded-lg transition-colors ml-2"
                 title="Xóa người dùng"
             >
                 {loading ? (
