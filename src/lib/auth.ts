@@ -52,6 +52,20 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         enableWebAuthn: true,
     },
     callbacks: {
+        async signIn({ user }) {
+            // Cập nhật lastLogin mỗi khi đăng nhập thành công
+            if (user?.id) {
+                try {
+                    await prisma.user.update({
+                        where: { id: user.id },
+                        data: { lastLogin: new Date() },
+                    });
+                } catch (error) {
+                    console.error("Error updating lastLogin:", error);
+                }
+            }
+            return true;
+        },
         async jwt({ token, user, account }) {
             // For Credentials login, user object contains all info
             if (user) {

@@ -24,6 +24,7 @@ model User {
   hoTen     String
   role      String   @default("USER2") // ADMIN: Quản trị, USER1: Lãnh đạo, USER2: Người thực hiện
   mustChangePassword Boolean @default(false)
+  lastLogin DateTime? // Thời điểm đăng nhập cuối cùng
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

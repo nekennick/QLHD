@@ -1,46 +1,45 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import bcrypt from "bcryptjs";
 
-// Seed initial users
-export async function GET() {
+// Seed initial admin user
+export async function GET(request: NextRequest) {
     try {
+        const { searchParams } = new URL(request.url);
+        const reset = searchParams.get("reset") === "true";
+
+        // Reset: Xóa hết users nếu có tham số reset=true
+        if (reset) {
+            await prisma.notification.deleteMany({});
+            await prisma.pushSubscription.deleteMany({});
+            await prisma.hopDong.deleteMany({});
+            await prisma.authenticator.deleteMany({});
+            await prisma.account.deleteMany({});
+            await prisma.user.deleteMany({});
+        }
+
         // Check if users exist
         const existingUsers = await prisma.user.count();
         if (existingUsers > 0) {
-            return NextResponse.json({ message: "Users already exist", count: existingUsers });
+            return NextResponse.json({ message: "Users already exist", count: existingUsers, hint: "Thêm ?reset=true vào URL để xóa và tạo lại" });
         }
 
-        // Create default users
-        const hashedPassword = await bcrypt.hash("123456", 10);
+        // Create admin user only
+        const hashedPassword = await bcrypt.hash("admin123", 10);
 
-        const users = await prisma.user.createMany({
-            data: [
-                {
-                    username: "lanhdao",
-                    password: hashedPassword,
-                    hoTen: "Lãnh Đạo",
-                    role: "USER1",
-                },
-                {
-                    username: "nhanvien1",
-                    password: hashedPassword,
-                    hoTen: "Nhân Viên 1",
-                    role: "USER2",
-                },
-                {
-                    username: "nhanvien2",
-                    password: hashedPassword,
-                    hoTen: "Nhân Viên 2",
-                    role: "USER2",
-                },
-            ],
+        const admin = await prisma.user.create({
+            data: {
+                username: "admin",
+                password: hashedPassword,
+                hoTen: "Administrator",
+                role: "ADMIN",
+            },
         });
 
         return NextResponse.json({
             message: "Seed completed",
-            created: users.count,
-            credentials: "Tất cả tài khoản có mật khẩu: 123456",
+            admin: { username: admin.username, role: admin.role },
+            credentials: "Tài khoản: admin / Mật khẩu: admin123",
         });
     } catch (error) {
         console.error("Seed error:", error);

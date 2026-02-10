@@ -163,7 +163,7 @@ export default async function DashboardPage() {
             bgColor: "bg-orange-500/10"
         },
         {
-            title: "Hợp đồng đã kết thúc (hết bảo hành)",
+            title: "Hợp đồng đã kết thúc",
             items: serializeWarningItems(stats.warnings.completed),
             color: "text-green-600 dark:text-green-400",
             bgColor: "bg-green-500/10"
