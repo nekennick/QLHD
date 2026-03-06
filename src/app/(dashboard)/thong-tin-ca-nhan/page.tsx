@@ -3,12 +3,13 @@
 import { useSession, signOut } from "next-auth/react";
 import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 export default function ProfilePage() {
     const { data: session, update } = useSession();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
+    const { showToast } = useToast();
 
     const [formData, setFormData] = useState({
         hoTen: "",
@@ -24,10 +25,9 @@ export default function ProfilePage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setMessage(null);
 
         if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
-            setMessage({ type: "error", text: "Mật khẩu xác nhận không khớp" });
+            showToast("Mật khẩu xác nhận không khớp", "error");
             return;
         }
 
@@ -54,7 +54,7 @@ export default function ProfilePage() {
                 return;
             }
 
-            setMessage({ type: "success", text: "Cập nhật thông tin thành công!" });
+            showToast("Cập nhật thông tin thành công!", "success");
 
             // Cập nhật session client-side
             await update({ name: formData.hoTen });
@@ -64,7 +64,7 @@ export default function ProfilePage() {
             router.refresh();
 
         } catch (err) {
-            setMessage({ type: "error", text: err instanceof Error ? err.message : "Có lỗi xảy ra" });
+            showToast(err instanceof Error ? err.message : "Có lỗi xảy ra", "error");
         } finally {
             setLoading(false);
         }
@@ -79,14 +79,6 @@ export default function ProfilePage() {
 
             <div className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 shadow-sm dark:shadow-none">
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    {message && (
-                        <div className={`p-4 rounded-lg ${message.type === "success"
-                            ? "bg-green-500/10 border border-green-500/50 text-green-400"
-                            : "bg-red-500/10 border border-red-500/50 text-red-400"
-                            }`}>
-                            {message.text}
-                        </div>
-                    )}
 
                     <div>
                         <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
@@ -161,7 +153,7 @@ export default function ProfilePage() {
                             const { signIn } = await import("next-auth/webauthn");
                             await signIn("passkey", { action: "register" });
                         } catch (err) {
-                            alert("Có lỗi xảy ra khi đăng ký Passkey: " + (err instanceof Error ? err.message : "Unknown error"));
+                            showToast("Có lỗi xảy ra khi đăng ký Passkey: " + (err instanceof Error ? err.message : "Unknown error"), "error");
                         }
                     }}
                     className="w-full py-3 px-4 bg-slate-100 dark:bg-slate-700 hover:bg-slate-200 dark:hover:bg-slate-600 text-slate-700 dark:text-white font-semibold rounded-lg border border-slate-200 dark:border-slate-600 transition-all duration-200 flex items-center justify-center gap-2"

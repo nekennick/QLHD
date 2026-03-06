@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface Contract {
     id: string;
@@ -25,6 +26,7 @@ interface Contract {
     isConstructionInvestment: boolean;
     giaTriQuyetToan: number | null;
     ngayQuyetToan: string | null;
+    giaTriVatTuThuaDaXuLy: number | null;
     // TCKT
     nguoiGiaoThanhToan: { id: string; hoTen: string } | null;
     nguoiGiaoThanhToanId: string | null;
@@ -77,8 +79,8 @@ const SectionDivider = ({ title, icon }: { title: string; icon: string }) => (
 
 export default function ContractDetail({ contract, canEdit, userRole, userId, users = [], tcktUsers = [] }: Props) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState(false);
-    const [message, setMessage] = useState<{ type: "success" | "error"; text: string } | null>(null);
     const [reassignConfirm, setReassignConfirm] = useState<ReassignConfirmState>({
         show: false,
         type: "executor",
@@ -100,10 +102,10 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 router.refresh();
             } else {
                 const data = await res.json();
-                setMessage({ type: "error", text: data.message || "Có lỗi xảy ra" });
+                showToast(data.message || "Có lỗi xảy ra", "error");
             }
         } catch {
-            setMessage({ type: "error", text: "Có lỗi xảy ra khi xóa hợp đồng" });
+            showToast("Có lỗi xảy ra khi xóa hợp đồng", "error");
         }
         setLoading(false);
         setShowDeleteConfirm(false);
@@ -117,7 +119,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const newId = selectEl?.value;
         if (!newId) {
             const errorText = type === "executor" ? "Vui lòng chọn người thực hiện" : "Vui lòng chọn nhân viên TCKT";
-            setMessage({ type: "error", text: errorText });
+            showToast(errorText, "error");
             return;
         }
         const newName = selectEl?.options[selectEl.selectedIndex]?.text || "";
@@ -150,14 +152,14 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 });
             }
             if (res.ok) {
-                setMessage({ type: "success", text: "Chuyển giao thành công!" });
+                showToast("Chuyển giao thành công!", "success");
                 router.refresh();
             } else {
                 const data = await res.json();
-                setMessage({ type: "error", text: data.error || "Có lỗi xảy ra" });
+                showToast(data.error || "Có lỗi xảy ra", "error");
             }
         } catch {
-            setMessage({ type: "error", text: "Có lỗi xảy ra khi chuyển giao" });
+            showToast("Có lỗi xảy ra khi chuyển giao", "error");
         }
         setReassignConfirm({ show: false, type: "executor", newId: "", newName: "" });
     };
@@ -191,7 +193,6 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         if (!canEdit) return;
 
         setLoading(true);
-        setMessage(null);
 
         const formData = new FormData(e.currentTarget);
         const data: Record<string, unknown> = {};
@@ -199,13 +200,22 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         // Process form fields
         for (const [key, value] of formData.entries()) {
             if (key === "updatePayment") continue;
-            if (["giaTriHopDong", "giaTriGiaoNhan", "giaTriNghiemThu", "giaTriThanhToan", "giaTriQuyetToan"].includes(key)) {
+            if (["giaTriHopDong", "giaTriGiaoNhan", "giaTriNghiemThu", "giaTriThanhToan", "giaTriQuyetToan", "giaTriVatTuThuaDaXuLy"].includes(key)) {
                 data[key] = parseFormattedNumber(value as string);
             } else if (["ngayKy", "ngayHieuLuc", "ngayGiaoHang", "hieuLucBaoDam", "ngayDuyetThanhToan", "hanBaoHanh", "ngayQuyetToan"].includes(key)) {
                 data[key] = value || null;
             } else {
                 data[key] = value || null;
             }
+        }
+
+        // Validate: Giá trị thanh toán không được vượt giá trị hợp đồng
+        const giaTriHD = data.giaTriHopDong as number || contract.giaTriHopDong || 0;
+        const giaTriTT = data.giaTriThanhToan as number;
+        if (giaTriTT && giaTriHD && giaTriTT > giaTriHD) {
+            showToast(`Giá trị thanh toán (${formatCurrency(giaTriTT)}) không được vượt giá trị hợp đồng (${formatCurrency(giaTriHD)})`, "error");
+            setLoading(false);
+            return;
         }
 
         try {
@@ -216,14 +226,14 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             });
 
             if (res.ok) {
-                setMessage({ type: "success", text: "Cập nhật thành công!" });
+                showToast("Cập nhật thành công!", "success");
                 router.refresh();
             } else {
                 const responseData = await res.json();
-                setMessage({ type: "error", text: responseData.error || "Có lỗi xảy ra" });
+                showToast(responseData.error || "Có lỗi xảy ra", "error");
             }
         } catch {
-            setMessage({ type: "error", text: "Có lỗi xảy ra khi cập nhật" });
+            showToast("Có lỗi xảy ra khi cập nhật", "error");
         }
         setLoading(false);
     };
@@ -438,6 +448,10 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         const canEditSettlement = (userRole === "ADMIN" || isTCKTAssigned) && !contract.daQuyetToan;
 
         const giaTriQT = contract.giaTriQuyetToan || 0;
+        const giaTriTT = contract.giaTriThanhToan || 0;
+        const giaTriVTTDaXuLy = contract.giaTriVatTuThuaDaXuLy || 0;
+        const vatTuThua = giaTriTT - giaTriQT;
+        const vatTuThuaChuaXuLy = giaTriTT - (giaTriQT + giaTriVTTDaXuLy);
 
         return (
             <div className="space-y-6">
@@ -542,6 +556,69 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                 <p className="text-xs text-slate-500 mt-1">
                                     = Quyết toán - Giá trị hợp đồng
                                 </p>
+                            </div>
+                        )}
+
+                        {/* Vật tư thừa ĐTXD */}
+                        {contract.giaTriThanhToan !== null && contract.giaTriQuyetToan !== null && vatTuThua > 0 && (
+                            <div className="space-y-4">
+                                <div className="p-4 bg-amber-50 dark:bg-amber-900/20 rounded-lg border border-amber-200 dark:border-amber-500/30">
+                                    <label className="block text-sm font-medium text-amber-700 dark:text-amber-300 mb-1">
+                                        Tổng trị giá vật tư thừa
+                                    </label>
+                                    <p className="text-xl font-bold text-amber-600 dark:text-amber-400">
+                                        {formatCurrency(vatTuThua)}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        = Thanh toán - Quyết toán
+                                    </p>
+                                </div>
+
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-600 dark:text-slate-300 mb-2">
+                                        Trị giá vật tư thừa đã xử lý (Đồng)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        name="giaTriVatTuThuaDaXuLy"
+                                        defaultValue={formatNumberWithSeparator(contract.giaTriVatTuThuaDaXuLy)}
+                                        onInput={(e) => {
+                                            const input = e.currentTarget;
+                                            const cursorPos = input.selectionStart || 0;
+                                            const oldLength = input.value.length;
+                                            const rawValue = input.value.replace(/[^\d]/g, "");
+                                            const numValue = parseInt(rawValue) || 0;
+                                            input.value = numValue > 0 ? formatNumberWithSeparator(numValue) : "";
+                                            const newLength = input.value.length;
+                                            const newPos = cursorPos + (newLength - oldLength);
+                                            input.setSelectionRange(newPos, newPos);
+                                        }}
+                                        disabled={!canEditSettlement}
+                                        placeholder="0"
+                                        className={inputClass + " text-right"}
+                                    />
+                                </div>
+
+                                <div className={`p-4 rounded-lg border ${vatTuThuaChuaXuLy <= 0
+                                        ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-500/30'
+                                        : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-500/30'
+                                    }`}>
+                                    <label className={`block text-sm font-medium mb-1 ${vatTuThuaChuaXuLy <= 0
+                                            ? 'text-green-700 dark:text-green-300'
+                                            : 'text-red-700 dark:text-red-300'
+                                        }`}>
+                                        Vật tư thừa chưa xử lý
+                                    </label>
+                                    <p className={`text-xl font-bold ${vatTuThuaChuaXuLy <= 0
+                                            ? 'text-green-600 dark:text-green-400'
+                                            : 'text-red-600 dark:text-red-400'
+                                        }`}>
+                                        {formatCurrency(vatTuThuaChuaXuLy)}
+                                    </p>
+                                    <p className="text-xs text-slate-500 mt-1">
+                                        = Thanh toán - (Quyết toán + Đã xử lý)
+                                    </p>
+                                </div>
                             </div>
                         )}
                     </>
@@ -755,17 +832,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     return (
         <div className="space-y-6">
 
-            {/* Message */}
-            {message && (
-                <div
-                    className={`p-4 rounded-lg ${message.type === "success"
-                        ? "bg-green-50 dark:bg-green-500/10 border border-green-200 dark:border-green-500/50 text-green-600 dark:text-green-400"
-                        : "bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/50 text-red-600 dark:text-red-400"
-                        }`}
-                >
-                    {message.text}
-                </div>
-            )}
+
 
             {/* Content - Single Page Layout */}
             <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/50 rounded-2xl p-6 shadow-sm dark:shadow-none">

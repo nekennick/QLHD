@@ -121,6 +121,7 @@ model HopDong {
   isConstructionInvestment Boolean @default(false) // Là hợp đồng công trình đầu tư xây dựng
   giaTriQuyetToan    Float?     // Trị giá quyết toán công trình
   ngayQuyetToan      DateTime?  // Ngày quyết toán
+  giaTriVatTuThuaDaXuLy Float?  // Trị giá vật tư thừa đã xử lý
 
   // ==========================================
   // Module 3: Giao nhận - Nghiệm thu - Thanh toán

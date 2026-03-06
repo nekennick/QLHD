@@ -22,6 +22,12 @@ async function getStats(userRole?: string, userId?: string) {
 
     const [
         totalContracts,
+        // All contracts stats
+        allIncomplete,
+        allDelivering,
+        allApproved,
+        allPaid,
+        allSettled,
         // CI stats
         ciTotal,
         ciIncomplete,
@@ -36,6 +42,25 @@ async function getStats(userRole?: string, userId?: string) {
         completedList,
     ] = await Promise.all([
         prisma.hopDong.count({ where: baseWhere }),
+        // All contracts
+        prisma.hopDong.count({
+            where: {
+                ...baseWhere,
+                OR: [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }],
+            },
+        }),
+        prisma.hopDong.count({
+            where: { ...baseWhere, giaTriGiaoNhan: { not: null }, ngayDuyetThanhToan: null },
+        }),
+        prisma.hopDong.count({
+            where: { ...baseWhere, ngayDuyetThanhToan: { not: null } },
+        }),
+        prisma.hopDong.count({
+            where: { ...baseWhere, giaTriThanhToan: { not: null } },
+        }),
+        prisma.hopDong.count({
+            where: { ...baseWhere, daQuyetToan: true },
+        }),
         // CI Specific
         prisma.hopDong.count({ where: { ...baseWhere, isConstructionInvestment: true } }),
         prisma.hopDong.count({
@@ -113,6 +138,11 @@ async function getStats(userRole?: string, userId?: string) {
 
     return {
         totalContracts,
+        allIncomplete,
+        allDelivering,
+        allApproved,
+        allPaid,
+        allSettled,
         ciTotal,
         ciIncomplete,
         ciDelivering,
@@ -200,7 +230,7 @@ export default async function DashboardPage() {
                         <li className="flex items-center gap-3">
                             <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />
                             <span>Chưa lập hợp đồng:</span>
-                            <span className="text-slate-900 dark:text-white font-medium">{stats.ciIncomplete}</span>
+                            <span className="text-slate-900 dark:text-white font-medium">{stats.allIncomplete}</span>
                         </li>
                         <li className="flex items-center gap-3">
                             <span className="w-1.5 h-1.5 bg-slate-400 dark:bg-slate-600 rounded-full" />

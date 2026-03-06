@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface DeleteContractButtonProps {
     contractId: string;
@@ -17,6 +18,7 @@ export default function DeleteContractButton({
 }: DeleteContractButtonProps) {
     const [showConfirm, setShowConfirm] = useState(false);
     const router = useRouter();
+    const { showToast } = useToast();
 
     const handleDelete = async () => {
         try {
@@ -37,7 +39,7 @@ export default function DeleteContractButton({
             }
         } catch (error) {
             console.error("Error deleting contract:", error);
-            alert(error instanceof Error ? error.message : "Lỗi khi xóa hợp đồng");
+            showToast(error instanceof Error ? error.message : "Lỗi khi xóa hợp đồng", "error");
         }
     };
 

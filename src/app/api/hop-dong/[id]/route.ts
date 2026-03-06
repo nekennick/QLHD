@@ -146,6 +146,16 @@ export async function PUT(
             }
         }
 
+        // Validate: Giá trị thanh toán không vượt giá trị hợp đồng
+        const finalGiaTriTT = updateData.giaTriThanhToan as number | undefined;
+        const finalGiaTriHD = (updateData.giaTriHopDong as number | undefined) ?? existing.giaTriHopDong;
+        if (finalGiaTriTT && finalGiaTriHD && finalGiaTriTT > finalGiaTriHD) {
+            return NextResponse.json(
+                { error: `Giá trị thanh toán (${finalGiaTriTT.toLocaleString("vi-VN")} đ) không được vượt giá trị hợp đồng (${finalGiaTriHD.toLocaleString("vi-VN")} đ)` },
+                { status: 400 }
+            );
+        }
+
         const contract = await prisma.hopDong.update({
             where: { id },
             data: updateData,
@@ -249,10 +259,17 @@ export async function DELETE(
 
         const { id } = await params;
 
-        // Kiểm tra điều kiện xóa: chỉ xóa được nếu chưa có tên VÀ chưa có ngày hiệu lực
+        // Kiểm tra điều kiện xóa
         const contract = await prisma.hopDong.findUnique({
             where: { id },
-            select: { tenHopDong: true, ngayHieuLuc: true },
+            select: {
+                tenHopDong: true,
+                ngayHieuLuc: true,
+                isConstructionInvestment: true,
+                giaTriThanhToan: true,
+                giaTriQuyetToan: true,
+                giaTriVatTuThuaDaXuLy: true,
+            },
         });
 
         if (!contract) {
@@ -267,6 +284,17 @@ export async function DELETE(
                 { message: "Không thể xóa hợp đồng đã có tên hoặc ngày hiệu lực" },
                 { status: 400 }
             );
+        }
+
+        // HĐ ĐTXD: Chặn xóa nếu có vật tư thừa chưa xử lý
+        if (contract.isConstructionInvestment && contract.giaTriThanhToan && contract.giaTriQuyetToan) {
+            const vatTuThuaChuaXuLy = contract.giaTriThanhToan - (contract.giaTriQuyetToan + (contract.giaTriVatTuThuaDaXuLy || 0));
+            if (vatTuThuaChuaXuLy > 0) {
+                return NextResponse.json(
+                    { message: `Không thể xóa - còn ${vatTuThuaChuaXuLy.toLocaleString("vi-VN")} đồng vật tư thừa chưa xử lý` },
+                    { status: 400 }
+                );
+            }
         }
 
         await prisma.hopDong.delete({ where: { id } });

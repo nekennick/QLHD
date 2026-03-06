@@ -2,6 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface User {
     id: string;
@@ -16,6 +17,7 @@ interface Props {
 
 export default function ReportFilters({ users, currentUserId, reportType }: Props) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [exporting, setExporting] = useState<string | null>(null);
 
     const buildUrl = (type?: string, user?: string) => {
@@ -59,7 +61,7 @@ export default function ReportFilters({ users, currentUserId, reportType }: Prop
             window.URL.revokeObjectURL(url);
         } catch (error) {
             console.error("Export error:", error);
-            alert("Xuất báo cáo thất bại. Vui lòng thử lại.");
+            showToast("Xuất báo cáo thất bại. Vui lòng thử lại.", "error");
         } finally {
             setExporting(null);
         }

@@ -79,7 +79,7 @@ export default function CreateContractForm({ users }: { users: User[] }) {
                         className="w-5 h-5 rounded border-slate-400 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-orange-500 focus:ring-orange-500 focus:ring-offset-0 cursor-pointer"
                     />
                     <label htmlFor="isConstructionInvestment" className="text-slate-700 dark:text-slate-300 cursor-pointer select-none">
-                        🏗️ Công trình đầu tư xây dựng
+                        Công trình đầu tư xây dựng
                     </label>
                 </div>
             </div>

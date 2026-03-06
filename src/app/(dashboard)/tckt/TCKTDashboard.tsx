@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import AssignmentConfirmDialog from "@/components/contracts/AssignmentConfirmDialog";
+import { useToast } from "@/components/ui/ToastProvider";
 
 interface Contract {
     id: string;
@@ -36,6 +37,7 @@ export default function TCKTDashboard({
     userId,
 }: TCKTDashboardProps) {
     const router = useRouter();
+    const { showToast } = useToast();
     const [loading, setLoading] = useState<string | null>(null);
 
     // State cho hộp thoại xác nhận
@@ -68,13 +70,13 @@ export default function TCKTDashboard({
 
             if (!res.ok) {
                 const data = await res.json();
-                alert(data.message || "Có lỗi xảy ra");
+                showToast(data.message || "Có lỗi xảy ra", "error");
                 return;
             }
 
             router.refresh();
         } catch {
-            alert("Có lỗi xảy ra");
+            showToast("Có lỗi xảy ra", "error");
         } finally {
             setLoading(null);
             setAssignTarget(null);
