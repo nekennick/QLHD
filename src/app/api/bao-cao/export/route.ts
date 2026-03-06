@@ -15,10 +15,12 @@ import {
 } from "docx";
 import ExcelJS from "exceljs";
 
-type ReportType = "all" | "incomplete" | "delivering" | "late" | "expiring" | "accepted" | "paid" | "completed";
+type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "expiring" | "accepted" | "paid" | "completed";
 
 async function getReportData(type: ReportType, nguoiThucHienId?: string) {
     const today = new Date();
+    const fiveDaysLater = new Date(today);
+    fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
@@ -38,6 +40,10 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string) {
             break;
         case "late":
             where.ngayGiaoHang = { lt: today };
+            where.giaTriGiaoNhan = null;
+            break;
+        case "upcoming":
+            where.ngayGiaoHang = { gte: today, lte: fiveDaysLater };
             where.giaTriGiaoNhan = null;
             break;
         case "expiring":

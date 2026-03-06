@@ -8,12 +8,15 @@ interface WarningItem {
     tenHopDong: string | null;
     hieuLucBaoDam?: Date | null;
     hanBaoHanh?: Date | null;
+    ngayGiaoHang?: Date | null;
     giaTriHopDong?: number | null;
     nguoiThucHien?: { hoTen: string } | null;
 }
 
 async function getStats(userRole?: string, userId?: string) {
     const today = new Date();
+    const fiveDaysLater = new Date(today);
+    fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
@@ -38,6 +41,7 @@ async function getStats(userRole?: string, userId?: string) {
         // Detailed warnings
         incompleteList,
         lateDeliveryList,
+        upcomingDeliveryList,
         expiringGuaranteeList,
         completedList,
     ] = await Promise.all([
@@ -109,6 +113,21 @@ async function getStats(userRole?: string, userId?: string) {
         prisma.hopDong.findMany({
             where: {
                 ...baseWhere,
+                ngayGiaoHang: { gte: today, lte: fiveDaysLater },
+                giaTriGiaoNhan: null,
+            },
+            select: {
+                id: true,
+                soHopDong: true,
+                tenHopDong: true,
+                ngayGiaoHang: true,
+                giaTriHopDong: true,
+                nguoiThucHien: { select: { hoTen: true } }
+            },
+        }),
+        prisma.hopDong.findMany({
+            where: {
+                ...baseWhere,
                 hieuLucBaoDam: { gte: today, lte: sevenDaysLater },
             },
             select: {
@@ -152,6 +171,7 @@ async function getStats(userRole?: string, userId?: string) {
         warnings: {
             incomplete: incompleteList as WarningItem[],
             lateDelivery: lateDeliveryList as WarningItem[],
+            upcomingDelivery: upcomingDeliveryList as WarningItem[],
             expiringGuarantee: expiringGuaranteeList as WarningItem[],
             completed: completedList as WarningItem[],
         }
@@ -164,6 +184,7 @@ function serializeWarningItems(items: WarningItem[]) {
         ...item,
         hieuLucBaoDam: item.hieuLucBaoDam?.toISOString() || null,
         hanBaoHanh: item.hanBaoHanh?.toISOString() || null,
+        ngayGiaoHang: item.ngayGiaoHang?.toISOString() || null,
     }));
 }
 
@@ -185,6 +206,12 @@ export default async function DashboardPage() {
             items: serializeWarningItems(stats.warnings.lateDelivery),
             color: "text-red-600 dark:text-red-400",
             bgColor: "bg-red-500/10"
+        },
+        {
+            title: "Sắp đến hạn giao hàng (5 ngày)",
+            items: serializeWarningItems(stats.warnings.upcomingDelivery),
+            color: "text-blue-600 dark:text-blue-400",
+            bgColor: "bg-blue-500/10"
         },
         {
             title: "Hợp đồng có đảm bảo sắp hết hiệu lực",

@@ -3,10 +3,12 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import ReportFilters from "./ReportFilters";
 
-type ReportType = "all" | "incomplete" | "delivering" | "late" | "expiring" | "accepted" | "paid" | "completed";
+type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "expiring" | "accepted" | "paid" | "completed";
 
 async function getReportData(type: ReportType, nguoiThucHienId?: string) {
     const today = new Date();
+    const fiveDaysLater = new Date(today);
+    fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
@@ -28,6 +30,10 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string) {
             break;
         case "late":
             where.ngayGiaoHang = { lt: today };
+            where.giaTriGiaoNhan = null;
+            break;
+        case "upcoming":
+            where.ngayGiaoHang = { gte: today, lte: fiveDaysLater };
             where.giaTriGiaoNhan = null;
             break;
         case "expiring":
@@ -64,21 +70,24 @@ async function getUsers() {
 
 async function getStats() {
     const today = new Date();
+    const fiveDaysLater = new Date(today);
+    fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
 
-    const [total, incomplete, delivering, late, expiring, accepted, paid, completed] = await Promise.all([
+    const [total, incomplete, delivering, late, upcoming, expiring, accepted, paid, completed] = await Promise.all([
         prisma.hopDong.count(),
         prisma.hopDong.count({ where: { OR: [{ tenHopDong: null }, { giaTriHopDong: null }] } }),
         prisma.hopDong.count({ where: { giaTriGiaoNhan: { not: null }, ngayDuyetThanhToan: null } }),
         prisma.hopDong.count({ where: { ngayGiaoHang: { lt: today }, giaTriGiaoNhan: null } }),
+        prisma.hopDong.count({ where: { ngayGiaoHang: { gte: today, lte: fiveDaysLater }, giaTriGiaoNhan: null } }),
         prisma.hopDong.count({ where: { hieuLucBaoDam: { gte: today, lte: sevenDaysLater } } }),
         prisma.hopDong.count({ where: { giaTriNghiemThu: { not: null }, ngayDuyetThanhToan: null } }),
         prisma.hopDong.count({ where: { ngayDuyetThanhToan: { not: null } } }),
         prisma.hopDong.count({ where: { hanBaoHanh: { lt: today } } }),
     ]);
 
-    return { total, incomplete, delivering, late, expiring, accepted, paid, completed };
+    return { total, incomplete, delivering, late, upcoming, expiring, accepted, paid, completed };
 }
 
 export default async function ReportPage({
@@ -102,6 +111,7 @@ export default async function ReportPage({
         { value: "incomplete", label: "Chưa lập hợp đồng", count: stats.incomplete, color: "bg-yellow-600" },
         { value: "delivering", label: "Đang giao nhận", count: stats.delivering, color: "bg-blue-600" },
         { value: "late", label: "Giao chậm", count: stats.late, color: "bg-red-600" },
+        { value: "upcoming", label: "Sắp đến hạn giao", count: stats.upcoming, color: "bg-sky-600" },
         { value: "expiring", label: "Đảm bảo sắp hết", count: stats.expiring, color: "bg-orange-600" },
         { value: "accepted", label: "Đã nghiệm thu", count: stats.accepted, color: "bg-emerald-600" },
         { value: "paid", label: "Đã thanh toán", count: stats.paid, color: "bg-green-600" },
