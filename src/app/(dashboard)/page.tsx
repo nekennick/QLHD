@@ -9,6 +9,7 @@ interface WarningItem {
     hieuLucBaoDam?: Date | null;
     hanBaoHanh?: Date | null;
     ngayGiaoHang?: Date | null;
+    ngayDuyetThanhToan?: Date | null;
     giaTriHopDong?: number | null;
     nguoiThucHien?: { hoTen: string } | null;
 }
@@ -19,6 +20,8 @@ async function getStats(userRole?: string, userId?: string) {
     fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     // Role-based base filter: USER2 chỉ thấy HĐ được giao cho mình
     const baseWhere = (userRole === "USER2" && userId) ? { nguoiThucHienId: userId } : {};
@@ -42,6 +45,7 @@ async function getStats(userRole?: string, userId?: string) {
         incompleteList,
         lateDeliveryList,
         upcomingDeliveryList,
+        slowPaymentList,
         expiringGuaranteeList,
         completedList,
     ] = await Promise.all([
@@ -153,6 +157,21 @@ async function getStats(userRole?: string, userId?: string) {
                 nguoiThucHien: { select: { hoTen: true } }
             },
         }),
+        prisma.hopDong.findMany({
+            where: {
+                ...baseWhere,
+                ngayDuyetThanhToan: { not: null, lt: sevenDaysAgo },
+                giaTriThanhToan: null,
+            },
+            select: {
+                id: true,
+                soHopDong: true,
+                tenHopDong: true,
+                ngayDuyetThanhToan: true,
+                giaTriHopDong: true,
+                nguoiThucHien: { select: { hoTen: true } }
+            },
+        }),
     ]);
 
     return {
@@ -172,6 +191,7 @@ async function getStats(userRole?: string, userId?: string) {
             incomplete: incompleteList as WarningItem[],
             lateDelivery: lateDeliveryList as WarningItem[],
             upcomingDelivery: upcomingDeliveryList as WarningItem[],
+            slowPayment: slowPaymentList as WarningItem[],
             expiringGuarantee: expiringGuaranteeList as WarningItem[],
             completed: completedList as WarningItem[],
         }
@@ -185,6 +205,7 @@ function serializeWarningItems(items: WarningItem[]) {
         hieuLucBaoDam: item.hieuLucBaoDam?.toISOString() || null,
         hanBaoHanh: item.hanBaoHanh?.toISOString() || null,
         ngayGiaoHang: item.ngayGiaoHang?.toISOString() || null,
+        ngayDuyetThanhToan: item.ngayDuyetThanhToan?.toISOString() || null,
     }));
 }
 
@@ -212,6 +233,12 @@ export default async function DashboardPage() {
             items: serializeWarningItems(stats.warnings.upcomingDelivery),
             color: "text-blue-600 dark:text-blue-400",
             bgColor: "bg-blue-500/10"
+        },
+        {
+            title: "Thanh toán chậm",
+            items: serializeWarningItems(stats.warnings.slowPayment),
+            color: "text-pink-600 dark:text-pink-400",
+            bgColor: "bg-pink-500/10"
         },
         {
             title: "Hợp đồng có đảm bảo sắp hết hiệu lực",

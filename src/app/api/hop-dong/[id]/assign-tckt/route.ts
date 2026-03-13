@@ -39,10 +39,10 @@ export async function POST(
 
         const currentUserRole = session.user.role;
 
-        // Kiểm tra quyền: chỉ lãnh đạo TCKT hoặc ADMIN mới được giao việc
-        if (currentUserRole !== "USER1_TCKT" && currentUserRole !== "ADMIN") {
+        // Kiểm tra quyền: chỉ ADMIN mới được giao việc
+        if (currentUserRole !== "ADMIN") {
             return NextResponse.json(
-                { message: "Chỉ lãnh đạo TCKT mới có quyền giao việc quyết toán" },
+                { message: "Chỉ quản trị viên mới có quyền giao việc quyết toán" },
                 { status: 403 }
             );
         }

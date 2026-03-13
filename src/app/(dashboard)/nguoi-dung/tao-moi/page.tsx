@@ -124,7 +124,6 @@ export default function CreateUserPage() {
                             >
                                 <option value="USER2">Người thực hiện hợp đồng</option>
                                 <option value="USER1">Lãnh đạo hợp đồng</option>
-                                <option value="USER1_TCKT">Lãnh đạo TCKT</option>
                                 <option value="USER2_TCKT">Nhân viên TCKT</option>
                             </select>
                         </div>

@@ -23,7 +23,7 @@ export async function GET(request: NextRequest) {
 
         // Chỉ lãnh đạo mới có quyền xem danh sách để chuyển giao
         const currentUserRole = session.user.role;
-        if (currentUserRole !== "USER1" && currentUserRole !== "USER1_TCKT") {
+        if (currentUserRole !== "USER1" && currentUserRole !== "ADMIN") {
             return NextResponse.json(
                 { message: "Chỉ lãnh đạo mới có quyền chuyển giao hợp đồng" },
                 { status: 403 }
@@ -47,26 +47,11 @@ export async function GET(request: NextRequest) {
                     hoTen: "asc",
                 },
             });
-        } else if (currentUserRole === "USER1_TCKT") {
-            // Lãnh đạo TCKT chuyển giao cho nhân viên TCKT (USER2_TCKT)
-            // Chỉ chuyển giao được hợp đồng đã có ngayDuyetThanhToan
-            if (contractId) {
-                const contract = await prisma.hopDong.findUnique({
-                    where: { id: contractId },
-                    select: { ngayDuyetThanhToan: true },
-                });
-
-                if (!contract?.ngayDuyetThanhToan) {
-                    return NextResponse.json(
-                        { message: "Hợp đồng chưa đến giai đoạn thanh toán" },
-                        { status: 400 }
-                    );
-                }
-            }
-
+        } else if (currentUserRole === "ADMIN") {
+            // ADMIN có thể chuyển giao cho cả USER2 và USER2_TCKT
             assignableUsers = await prisma.user.findMany({
                 where: {
-                    role: "USER2_TCKT",
+                    role: { in: ["USER2", "USER2_TCKT"] },
                 },
                 select: {
                     id: true,

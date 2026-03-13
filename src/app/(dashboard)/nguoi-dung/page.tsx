@@ -107,10 +107,6 @@ export default async function UsersPage() {
                                             <span className="px-2 py-0.5 text-xs bg-red-500/10 dark:bg-red-500/20 text-red-700 dark:text-red-400 rounded-full border border-red-200 dark:border-red-800">
                                                 Quản trị viên
                                             </span>
-                                        ) : user.role === "USER1_TCKT" ? (
-                                            <span className="px-2 py-0.5 text-xs bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800">
-                                                Lãnh đạo TCKT
-                                            </span>
                                         ) : user.role === "USER2_TCKT" ? (
                                             <span className="px-2 py-0.5 text-xs bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800">
                                                 Nhân viên TCKT

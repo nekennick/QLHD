@@ -39,8 +39,8 @@ export async function POST(
 
         const currentUserRole = session.user.role;
 
-        // Kiểm tra quyền: chỉ lãnh đạo mới được chuyển giao
-        if (currentUserRole !== "USER1" && currentUserRole !== "USER1_TCKT") {
+        // Kiểm tra quyền: chỉ lãnh đạo hoặc ADMIN mới được chuyển giao
+        if (currentUserRole !== "USER1" && currentUserRole !== "ADMIN") {
             return NextResponse.json(
                 { message: "Chỉ lãnh đạo mới có quyền chuyển giao hợp đồng" },
                 { status: 403 }
@@ -80,11 +80,11 @@ export async function POST(
                     { status: 403 }
                 );
             }
-        } else if (currentUserRole === "USER1_TCKT") {
-            // Lãnh đạo TCKT chỉ chuyển giao cho USER2_TCKT
-            if (newExecutor.role !== "USER2_TCKT") {
+        } else if (currentUserRole === "ADMIN") {
+            // ADMIN có thể chuyển giao cho cả USER2 và USER2_TCKT
+            if (newExecutor.role !== "USER2" && newExecutor.role !== "USER2_TCKT") {
                 return NextResponse.json(
-                    { message: "Lãnh đạo TCKT chỉ có thể chuyển giao cho nhân viên TCKT" },
+                    { message: "Chỉ có thể chuyển giao cho nhân viên hợp đồng hoặc nhân viên TCKT" },
                     { status: 403 }
                 );
             }

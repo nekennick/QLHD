@@ -217,7 +217,7 @@ export default function ContractsTable({
                                 </div>
                             </th>
                             {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
-                            {["USER1", "USER1_TCKT", "ADMIN"].includes(currentUser?.role || "") && (
+                            {["USER1", "ADMIN"].includes(currentUser?.role || "") && (
                                 <th className="px-6 py-5">
                                     <div className="space-y-2.5">
                                         <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Người thực hiện</span>
@@ -305,7 +305,7 @@ export default function ContractsTable({
                                             : "—"}
                                     </td>
                                     {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
-                                    {["USER1", "USER1_TCKT", "ADMIN"].includes(currentUser?.role || "") && (
+                                    {["USER1", "ADMIN"].includes(currentUser?.role || "") && (
                                         <td className="px-6 py-4">
                                             <span className={canReassign ? "text-purple-600 dark:text-purple-400" : "text-slate-700 dark:text-slate-300"}>
                                                 {contract.nguoiThucHien?.hoTen || "—"}

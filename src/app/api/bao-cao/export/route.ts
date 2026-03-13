@@ -15,7 +15,7 @@ import {
 } from "docx";
 import ExcelJS from "exceljs";
 
-type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "expiring" | "accepted" | "paid" | "completed";
+type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "completed";
 
 async function getReportData(type: ReportType, nguoiThucHienId?: string) {
     const today = new Date();
@@ -23,6 +23,8 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string) {
     fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
     const sevenDaysLater = new Date(today);
     sevenDaysLater.setDate(sevenDaysLater.getDate() + 7);
+    const sevenDaysAgo = new Date(today);
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
     const where: Record<string, unknown> = {};
 
@@ -45,6 +47,10 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string) {
         case "upcoming":
             where.ngayGiaoHang = { gte: today, lte: fiveDaysLater };
             where.giaTriGiaoNhan = null;
+            break;
+        case "slow_payment":
+            where.ngayDuyetThanhToan = { not: null, lt: sevenDaysAgo };
+            where.giaTriThanhToan = null;
             break;
         case "expiring":
             where.hieuLucBaoDam = { gte: today, lte: sevenDaysLater };

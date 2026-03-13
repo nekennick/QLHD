@@ -118,11 +118,11 @@ export async function PUT(
             if (body.ngayQuyetToan !== undefined) updateData.ngayQuyetToan = body.ngayQuyetToan ? new Date(body.ngayQuyetToan) : null;
         }
 
-        // USER1_TCKT được giao việc thanh toán (set nguoiThanhToanId + nguoiGiaoThanhToanId)
-        if (["USER1_TCKT", "ADMIN"].includes(role)) {
+        // ADMIN được giao việc thanh toán (set nguoiThanhToanId + nguoiGiaoThanhToanId)
+        if (role === "ADMIN") {
             if (body.nguoiThanhToanId !== undefined) {
                 updateData.nguoiThanhToanId = body.nguoiThanhToanId || null;
-                // Lưu người giao việc thanh toán là user hiện tại (USER1_TCKT hoặc ADMIN)
+                // Lưu người giao việc thanh toán là ADMIN hiện tại
                 if (body.nguoiThanhToanId) {
                     updateData.nguoiGiaoThanhToanId = session.user.id;
                 }
@@ -156,6 +156,18 @@ export async function PUT(
             );
         }
 
+        // Validate: Trị giá thanh toán có data → ngày duyệt tạm ứng/thanh toán phải có
+        const hasGiaTriTT = finalGiaTriTT ?? existing.giaTriThanhToan;
+        const hasNgayDuyet = updateData.ngayDuyetThanhToan !== undefined
+            ? updateData.ngayDuyetThanhToan
+            : existing.ngayDuyetThanhToan;
+        if (hasGiaTriTT && !hasNgayDuyet) {
+            return NextResponse.json(
+                { error: "Phải có \"Ngày duyệt tạm ứng, thanh toán\" trước khi nhập trị giá thanh toán" },
+                { status: 400 }
+            );
+        }
+
         const contract = await prisma.hopDong.update({
             where: { id },
             data: updateData,
@@ -166,7 +178,7 @@ export async function PUT(
         // ========================================
         if (role === "USER2" || role === "USER2_TCKT") {
             // Tìm tất cả lãnh đạo tương ứng để gửi thông báo
-            const leaderRoles = role === "USER2" ? ["USER1", "ADMIN"] : ["USER1_TCKT", "ADMIN"];
+            const leaderRoles = role === "USER2" ? ["USER1", "ADMIN"] : ["ADMIN"];
             const leaders = await prisma.user.findMany({
                 where: { role: { in: leaderRoles } },
                 select: { id: true },
@@ -200,7 +212,7 @@ export async function PUT(
         if (body.ngayDuyetThanhToan && !existing.ngayDuyetThanhToan) {
             // Chỉ gửi khi ngayDuyetThanhToan được set lần đầu
             const tcktLeaders = await prisma.user.findMany({
-                where: { role: { in: ["USER1_TCKT", "ADMIN"] } },
+                where: { role: "ADMIN" },
                 select: { id: true },
             });
             const contractName = contract.tenHopDong || contract.soHopDong;
@@ -210,7 +222,7 @@ export async function PUT(
                     createNotification({
                         userId: leader.id,
                         title: "Hợp đồng cần thanh toán",
-                        message: `Hợp đồng "${contractName}" đã có ngày thanh toán, cần phân công nhân viên TCKT`,
+                        message: `Hợp đồng "${contractName}" đã có ngày duyệt tạm ứng/thanh toán, cần phân công nhân viên TCKT`,
                         type: "payment_pending",
                         link: `/hop-dong/${contract.id}`,
                     }).catch(() => { })

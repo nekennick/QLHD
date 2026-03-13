@@ -10,7 +10,7 @@ export async function GET() {
         // Chỉ TCKT và ADMIN được xem
         if (
             !session?.user ||
-            !["USER1_TCKT", "USER2_TCKT", "ADMIN"].includes(session.user.role)
+            !["USER2_TCKT", "ADMIN"].includes(session.user.role)
         ) {
             return NextResponse.json({ message: "Forbidden" }, { status: 403 });
         }

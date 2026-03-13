@@ -218,6 +218,16 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             return;
         }
 
+        // Client-side validation: giaTriThanhToan có data → ngayDuyetThanhToan bắt buộc
+        const ngayDuyet = data.ngayDuyetThanhToan as string | null | undefined;
+        const effectiveGiaTriTT = giaTriTT ?? (contract.giaTriThanhToan ? parseFloat(String(contract.giaTriThanhToan)) : null);
+        const effectiveNgayDuyet = ngayDuyet !== undefined ? ngayDuyet : contract.ngayDuyetThanhToan;
+        if (effectiveGiaTriTT && !effectiveNgayDuyet) {
+            showToast("Phải có \"Ngày duyệt tạm ứng, thanh toán\" trước khi nhập trị giá thanh toán", "error");
+            setLoading(false);
+            return;
+        }
+
         try {
             const res = await fetch(`/api/hop-dong/${contract.id}`, {
                 method: "PUT",
@@ -508,7 +518,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 {/* Bảo hành & Thanh toán */}
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {renderInputField("Hạn bảo hành hàng hóa", "hanBaoHanh", "date", contract.hanBaoHanh)}
-                    {renderInputField("Ngày duyệt thanh toán", "ngayDuyetThanhToan", "date", contract.ngayDuyetThanhToan)}
+                    {renderInputField("Ngày duyệt tạm ứng, thanh toán", "ngayDuyetThanhToan", "date", contract.ngayDuyetThanhToan)}
                 </div>
 
                 {/* Quyết toán ĐTXD - Chỉ hiển thị cho công trình ĐTXD */}
@@ -677,7 +687,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         <label className="block text-sm font-medium text-slate-500 dark:text-slate-400 mb-2">
                             Người giao việc thanh toán
                         </label>
-                        {/* Hiển thị người giao việc thanh toán (USER1_TCKT) */}
+                        {/* Hiển thị người giao việc thanh toán (ADMIN) */}
                         <p className="px-4 py-3 bg-slate-100 dark:bg-slate-900/30 border border-slate-200 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white">
                             {contract.nguoiGiaoThanhToan?.hoTen || "—"}
                         </p>
@@ -693,7 +703,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                 <p className="text-slate-900 dark:text-white font-medium">
                                     Hiện tại: {contract.nguoiThanhToan.hoTen}
                                 </p>
-                                {(userRole === "USER1_TCKT" || userRole === "ADMIN") && (
+                                {(userRole === "ADMIN") && (
                                     <div className="flex gap-2">
                                         <select
                                             id="tcktSelect"
@@ -714,7 +724,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                     </div>
                                 )}
                             </div>
-                        ) : (userRole === "USER1_TCKT" || userRole === "ADMIN") ? (
+                        ) : (userRole === "ADMIN") ? (
                             <div className="bg-slate-100 dark:bg-slate-900/30 rounded-lg p-4 border border-slate-200 dark:border-slate-700/50">
                                 <div className="flex gap-2">
                                     <select

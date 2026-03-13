@@ -9,7 +9,7 @@ export async function GET() {
 
         if (
             !session?.user ||
-            !["USER1_TCKT", "USER2_TCKT", "ADMIN"].includes(session.user.role)
+            !["USER2_TCKT", "ADMIN"].includes(session.user.role)
         ) {
             return NextResponse.json({ count: 0 });
         }
@@ -17,13 +17,12 @@ export async function GET() {
         const role = session.user.role;
         let count = 0;
 
-        if (role === "USER1_TCKT") {
-            // Đếm HĐ chờ thanh toán CHƯA được giao (nguoiThanhToanId = null)
+        if (role === "ADMIN") {
+            // Admin thấy tổng số HĐ chờ thanh toán
             count = await prisma.hopDong.count({
                 where: {
                     ngayDuyetThanhToan: { not: null },
                     daQuyetToan: false,
-                    nguoiThanhToanId: null,
                 },
             });
         } else if (role === "USER2_TCKT") {
@@ -33,14 +32,6 @@ export async function GET() {
                     ngayDuyetThanhToan: { not: null },
                     daQuyetToan: false,
                     nguoiThanhToanId: session.user.id,
-                },
-            });
-        } else if (role === "ADMIN") {
-            // Admin thấy tổng số HĐ chờ thanh toán
-            count = await prisma.hopDong.count({
-                where: {
-                    ngayDuyetThanhToan: { not: null },
-                    daQuyetToan: false,
                 },
             });
         }

@@ -110,9 +110,9 @@ export default function TCKTDashboard({
                             <th className="px-6 py-4 font-medium">Số hợp đồng</th>
                             <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
                             <th className="px-6 py-4 font-medium">Giá trị</th>
-                            <th className="px-6 py-4 font-medium">Ngày đề nghị</th>
+                            <th className="px-6 py-4 font-medium">Ngày duyệt TƯ/TT</th>
                             <th className="px-6 py-4 font-medium">Người thực hiện hợp đồng</th>
-                            {["USER1_TCKT", "ADMIN"].includes(userRole) && (
+                            {userRole === "ADMIN" && (
                                 <th className="px-6 py-4 font-medium">Giao cho</th>
                             )}
                             <th className="px-6 py-4 font-medium text-right"></th>
@@ -148,7 +148,7 @@ export default function TCKTDashboard({
                                     <td className="px-6 py-4 text-sm">
                                         {contract.nguoiThucHien?.hoTen || "-"}
                                     </td>
-                                    {["USER1_TCKT", "ADMIN"].includes(userRole) && (
+                                    {userRole === "ADMIN" && (
                                         <td className="px-6 py-4">
                                             <select
                                                 value={contract.nguoiThanhToanId || ""}
