@@ -264,13 +264,13 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         return Math.min(100, Math.round((value / base) * 100));
     };
 
-    // Inline row: label left, input right
+    // Inline row: label left, input right (Responsive)
     const Row = ({ label, children, highlight }: { label: string; children: React.ReactNode; highlight?: boolean }) => (
-        <div className={`flex items-start gap-4 py-2 border-b border-slate-100 dark:border-slate-700/30 ${highlight ? 'bg-yellow-50/50 dark:bg-yellow-900/10 -mx-4 px-4 rounded' : ''}`}>
-            <span className={`text-sm min-w-[200px] md:min-w-[280px] pt-1 shrink-0 ${highlight ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}>
+        <div className={`flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-2 border-b border-slate-100 dark:border-slate-700/30 ${highlight ? 'bg-yellow-50/50 dark:bg-yellow-900/10 -mx-4 px-4 rounded' : ''}`}>
+            <span className={`text-sm sm:min-w-[200px] md:min-w-[280px] sm:pt-1 shrink-0 ${highlight ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}>
                 {label}
             </span>
-            <div className="flex-1 min-w-0">{children}</div>
+            <div className="flex-1 min-w-0 w-full">{children}</div>
         </div>
     );
 
@@ -361,7 +361,14 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     </Row>
 
                     <Row label="Tên HĐ:">
-                        <input type="text" name="tenHopDong" defaultValue={contract.tenHopDong ?? ""} disabled={!isFieldEditable} placeholder="Nhập tên hợp đồng" className={inputClass} />
+                        <textarea 
+                            name="tenHopDong" 
+                            defaultValue={contract.tenHopDong ?? ""} 
+                            disabled={!isFieldEditable} 
+                            placeholder="Nhập tên hợp đồng" 
+                            rows={2}
+                            className={inputClass + " w-full resize-y"} 
+                        />
                     </Row>
 
                     <Row label="Hợp đồng công trình ĐTXD:">
