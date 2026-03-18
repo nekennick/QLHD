@@ -111,7 +111,7 @@ export default function TCKTDashboard({
                             <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
                             <th className="px-6 py-4 font-medium">Giá trị</th>
                             <th className="px-6 py-4 font-medium">Ngày duyệt TƯ/TT</th>
-                            <th className="px-6 py-4 font-medium">Người thực hiện hợp đồng</th>
+                            <th className="px-6 py-4 font-medium">Nhân viên HĐ</th>
                             {userRole === "ADMIN" && (
                                 <th className="px-6 py-4 font-medium">Giao cho</th>
                             )}

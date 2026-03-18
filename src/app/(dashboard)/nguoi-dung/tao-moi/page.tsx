@@ -111,23 +111,21 @@ export default function CreateUserPage() {
                         />
                     </div>
 
-                    {!isUser1 && (
-                        <div>
-                            <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Vai trò <span className="text-red-500">*</span>
-                            </label>
-                            <select
-                                id="role"
-                                name="role"
-                                required
-                                className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
-                            >
-                                <option value="USER2">Người thực hiện hợp đồng</option>
-                                <option value="USER1">Lãnh đạo hợp đồng</option>
-                                <option value="USER2_TCKT">Nhân viên TCKT</option>
-                            </select>
-                        </div>
-                    )}
+                    <div>
+                        <label htmlFor="role" className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                            Vai trò <span className="text-red-500">*</span>
+                        </label>
+                        <select
+                            id="role"
+                            name="role"
+                            required
+                            className="w-full px-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-300 dark:border-slate-600/50 rounded-lg text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                        >
+                            <option value="USER2">Nhân viên HĐ</option>
+                            {!isUser1 && <option value="USER1">Lãnh đạo hợp đồng</option>}
+                            <option value="USER2_TCKT">Nhân viên TCKT</option>
+                        </select>
+                    </div>
 
                     <div className="flex gap-4 pt-4">
                         <button

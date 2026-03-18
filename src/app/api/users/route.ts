@@ -69,10 +69,11 @@ export async function POST(request: Request) {
 
         const hashedPassword = await bcrypt.hash(password, 10);
 
-        // Nếu là USER1, chỉ được tạo USER2. Nếu là ADMIN, được tạo role tùy ý (hoặc theo body passed)
+        // USER1 được tạo USER2 và USER2_TCKT. ADMIN được tạo role tùy ý.
         let newRole = role;
         if (session.user.role === "USER1") {
-            newRole = "USER2";
+            const allowedRoles = ["USER2", "USER2_TCKT"];
+            newRole = allowedRoles.includes(role) ? role : "USER2";
         }
         // Nếu ADMIN không truyền role, mặc định là USER2
         if (session.user.role === "ADMIN" && !newRole) {

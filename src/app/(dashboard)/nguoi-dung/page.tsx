@@ -113,8 +113,8 @@ export default async function UsersPage() {
                                             </span>
                                         ) : (
                                             <span className="px-2 py-0.5 text-xs bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800">
-                                                Người thực hiện hợp đồng
-                                            </span>
+                                                 Nhân viên HĐ
+                                             </span>
                                         )}
                                     </td>
                                     <td className="px-6 py-4">{user._count.hopDongThucHien}</td>
