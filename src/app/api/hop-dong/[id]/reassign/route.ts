@@ -28,9 +28,9 @@ export async function POST(
         const params = await context.params;
         const contractId = params.id;
         const body = await request.json();
-        const { newExecutorId } = body;
+        const { nguoiThucHienId } = body;
 
-        if (!newExecutorId) {
+        if (!nguoiThucHienId) {
             return NextResponse.json(
                 { message: "Thiếu thông tin người thực hiện mới" },
                 { status: 400 }
@@ -61,7 +61,7 @@ export async function POST(
 
         // Lấy thông tin người thực hiện mới
         const newExecutor = await prisma.user.findUnique({
-            where: { id: newExecutorId },
+            where: { id: nguoiThucHienId },
         });
 
         if (!newExecutor) {
@@ -103,7 +103,7 @@ export async function POST(
         const updatedContract = await prisma.hopDong.update({
             where: { id: contractId },
             data: {
-                nguoiThucHienId: newExecutorId,
+                nguoiThucHienId: nguoiThucHienId,
             },
             include: {
                 nguoiThucHien: {
@@ -117,7 +117,7 @@ export async function POST(
 
         // Tạo thông báo cho người nhận mới
         await createNotification({
-            userId: newExecutorId,
+            userId: nguoiThucHienId,
             title: "Hợp đồng mới được giao",
             message: `Bạn được giao hợp đồng ${contract.soHopDong}`,
             type: "contract_assigned",
@@ -125,7 +125,7 @@ export async function POST(
         });
 
         // Tạo thông báo cho người được giải phóng (nếu có)
-        if (oldExecutorId && oldExecutorId !== newExecutorId) {
+        if (oldExecutorId && oldExecutorId !== nguoiThucHienId) {
             await createNotification({
                 userId: oldExecutorId,
                 title: "Hợp đồng đã được chuyển giao",

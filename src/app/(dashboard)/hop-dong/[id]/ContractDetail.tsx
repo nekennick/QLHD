@@ -144,7 +144,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 router.refresh();
             } else {
                 const data = await res.json();
-                showToast(data.error || "Có lỗi xảy ra", "error");
+                showToast(data.message || data.error || "Có lỗi xảy ra", "error");
             }
         } catch {
             showToast("Có lỗi xảy ra khi chuyển giao", "error");
