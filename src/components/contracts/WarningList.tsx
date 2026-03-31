@@ -77,10 +77,10 @@ export default function WarningList({ groups, userRole }: WarningListProps) {
                             <table className="w-full text-sm text-left border-collapse">
                                 <thead className="bg-slate-100 dark:bg-slate-900/60 text-slate-500 dark:text-slate-400 text-xs uppercase font-semibold tracking-wide">
                                     <tr>
-                                        <th className="px-4 py-3 w-[25%]">Người thực hiện</th>
-                                        <th className="px-4 py-3 w-[20%]">Số hợp đồng</th>
+                                        <th className="px-4 py-3 w-[25%] hidden sm:table-cell">Người thực hiện</th>
+                                        <th className="px-4 py-3 md:w-[20%]">Số hợp đồng</th>
                                         <th className="px-4 py-3 w-[15%] text-right">Giá trị</th>
-                                        <th className="px-4 py-3 w-[40%]">Tên hợp đồng</th>
+                                        <th className="px-4 py-3 w-[40%] hidden md:table-cell">Tên hợp đồng</th>
                                         <th className="px-2 py-3 w-[40px]"></th>
                                     </tr>
                                 </thead>
@@ -90,23 +90,51 @@ export default function WarningList({ groups, userRole }: WarningListProps) {
                                             key={item.id}
                                             className="hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group"
                                         >
-                                            <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium text-xs md:text-sm">
+                                            <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-medium text-xs md:text-sm hidden sm:table-cell">
                                                 <div className="truncate" title={item.nguoiThucHien?.hoTen}>
                                                     {item.nguoiThucHien?.hoTen || "—"}
                                                 </div>
                                             </td>
-                                            <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 font-mono text-xs md:text-sm whitespace-nowrap">
+                                            <td className="px-4 py-2.5 text-slate-700 dark:text-slate-300 text-xs md:text-sm">
                                                 <Link
                                                     href={`/hop-dong/${item.id}`}
-                                                    className="hover:text-purple-600 dark:hover:text-purple-400 transition-colors border-b border-transparent hover:border-purple-400/50 pb-0.5"
+                                                    className="font-mono hover:text-purple-600 dark:hover:text-purple-400 transition-colors border-b border-transparent hover:border-purple-400/50 pb-0.5 block mt-0.5"
                                                 >
                                                     {item.soHopDong}
                                                 </Link>
+
+                                                {/* Khu vực Mobile: Hiển thị thêm Tên + Tags + Người thực hiện */}
+                                                <div className="md:hidden mt-2 flex flex-col gap-1.5 whitespace-normal">
+                                                    <span className="text-slate-600 dark:text-slate-400 text-xs leading-snug" title={item.tenHopDong || undefined}>
+                                                        {item.tenHopDong || "(Chưa có tên)"}
+                                                    </span>
+
+                                                    <span className="sm:hidden text-slate-500 text-[10px] italic">
+                                                        Người thực hiện: {item.nguoiThucHien?.hoTen || "—"}
+                                                    </span>
+
+                                                    {(item.hieuLucBaoDam || item.hanBaoHanh) && (
+                                                        <div className="flex flex-wrap gap-1 mt-0.5">
+                                                            {item.hieuLucBaoDam && (
+                                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-orange-600 dark:text-orange-400">
+                                                                    <span>⚠️</span>
+                                                                    Hết ĐB: {new Date(item.hieuLucBaoDam).toLocaleDateString('vi-VN')}
+                                                                </span>
+                                                            )}
+                                                            {item.hanBaoHanh && (
+                                                                <span className="inline-flex items-center gap-1 text-[10px] font-medium text-emerald-600 dark:text-emerald-400">
+                                                                    <span>✅</span>
+                                                                    Hết BH: {new Date(item.hanBaoHanh).toLocaleDateString('vi-VN')}
+                                                                </span>
+                                                            )}
+                                                        </div>
+                                                    )}
+                                                </div>
                                             </td>
                                             <td className="px-4 py-2.5 text-right text-slate-700 dark:text-slate-300 font-mono text-xs md:text-sm whitespace-nowrap">
                                                 {formatCurrency(item.giaTriHopDong)}
                                             </td>
-                                            <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400">
+                                            <td className="px-4 py-2.5 text-slate-500 dark:text-slate-400 hidden md:table-cell">
                                                 <div className="flex flex-col">
                                                     <span
                                                         className="text-slate-700 dark:text-slate-300 font-medium group-hover:text-purple-600 dark:group-hover:text-purple-300 transition-colors block"

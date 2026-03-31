@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
@@ -76,6 +76,32 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         newName: "",
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+
+    // Xử lý tự động tính Thời gian giao hàng theo yêu cầu
+    const [ngayHieuLuc, setNgayHieuLuc] = useState<string>(
+        contract.ngayHieuLuc ? new Date(contract.ngayHieuLuc).toISOString().split("T")[0] : ""
+    );
+    const [thoiGianDuration, setThoiGianDuration] = useState<string>(() => {
+        if (contract.ngayHieuLuc && contract.ngayGiaoHang) {
+            const hieuLucDate = new Date(contract.ngayHieuLuc).getTime();
+            const giaoHangDate = new Date(contract.ngayGiaoHang).getTime();
+            const diffDays = Math.round((giaoHangDate - hieuLucDate) / (1000 * 3600 * 24));
+            return diffDays.toString();
+        }
+        return "";
+    });
+
+    const calculatedGiaoHang = useMemo(() => {
+        if (ngayHieuLuc && thoiGianDuration) {
+            const date = new Date(ngayHieuLuc);
+            const duration = parseInt(thoiGianDuration);
+            if (!isNaN(duration)) {
+                date.setDate(date.getDate() + duration);
+                return date.toLocaleDateString("vi-VN");
+            }
+        }
+        return null;
+    }, [ngayHieuLuc, thoiGianDuration]);
 
     // Điều kiện cho phép xóa: USER1/ADMIN + chưa có tên + chưa có ngày hiệu lực
     const canDelete = ["USER1", "ADMIN"].includes(userRole || "") && !contract.tenHopDong && !contract.ngayHieuLuc;
@@ -197,11 +223,41 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             }
         }
 
+        // Xử lý tự động tính Hạn giao hàng
+        const thoiGianGiaoHangVal = formData.get("thoiGianGiaoHang") as string;
+        const ngayHieuLucVal = data.ngayHieuLuc as string | null;
+
+        if (thoiGianGiaoHangVal && !ngayHieuLucVal) {
+            showToast("Vui lòng nhập Ngày hiệu lực trước khi nhập Thời gian giao hàng", "error");
+            setLoading(false);
+            return;
+        }
+
+        if (thoiGianGiaoHangVal && ngayHieuLucVal) {
+            const d = new Date(ngayHieuLucVal);
+            d.setDate(d.getDate() + parseInt(thoiGianGiaoHangVal));
+            // Keep ISO format yyyy-mm-ddT00:00:00.000Z
+            data.ngayGiaoHang = d.toISOString();
+        } else {
+            data.ngayGiaoHang = null;
+        }
+
+        // Remove thoiGianGiaoHang since backend doesn't schema-support it
+        delete data.thoiGianGiaoHang;
+
         // Validate: Giá trị thanh toán không được vượt giá trị hợp đồng
         const giaTriHD = data.giaTriHopDong as number || contract.giaTriHopDong || 0;
         const giaTriTT = data.giaTriThanhToan as number;
         if (giaTriTT && giaTriHD && giaTriTT > giaTriHD) {
             showToast(`Giá trị thanh toán (${formatCurrency(giaTriTT)}) không được vượt giá trị hợp đồng (${formatCurrency(giaTriHD)})`, "error");
+            setLoading(false);
+            return;
+        }
+
+        // Validate: Giá trị thanh toán không được vượt giá trị hàng giao nhận
+        const giaTriGN = data.giaTriGiaoNhan as number || contract.giaTriGiaoNhan || 0;
+        if (giaTriTT && giaTriGN && giaTriTT > giaTriGN) {
+            showToast(`Giá trị thanh toán (${formatCurrency(giaTriTT)}) không được vượt quá giá trị hàng giao nhận (${formatCurrency(giaTriGN)})`, "error");
             setLoading(false);
             return;
         }
@@ -387,14 +443,33 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                     <Row label="HĐ hiệu lực từ ngày:">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <input type="date" name="ngayHieuLuc" defaultValue={formatDate(contract.ngayHieuLuc)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
+                            <input type="date" name="ngayHieuLuc" value={ngayHieuLuc} onChange={(e) => setNgayHieuLuc(e.target.value)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
                             <span className="text-sm text-slate-500">đến ngày</span>
                             <input type="date" name="hieuLucBaoDam" defaultValue={formatDate(contract.hieuLucBaoDam)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
                         </div>
                     </Row>
 
-                    <Row label="Ngày giao hàng:">
-                        <input type="date" name="ngayGiaoHang" defaultValue={formatDate(contract.ngayGiaoHang)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
+                    <Row label="Thời gian giao hàng:">
+                        <div className="flex flex-col gap-1">
+                            <div className="flex items-center gap-2">
+                                <input 
+                                    type="number" 
+                                    name="thoiGianGiaoHang" 
+                                    value={thoiGianDuration}
+                                    onChange={(e) => setThoiGianDuration(e.target.value)}
+                                    disabled={!isFieldEditable} 
+                                    placeholder="Nhập số ngày..." 
+                                    className={inputClass + " max-w-[150px]"} 
+                                    min="0"
+                                />
+                                <span className="text-sm text-slate-500">ngày</span>
+                            </div>
+                            {calculatedGiaoHang && (
+                                <span className="text-xs text-slate-400 italic">
+                                    👉 Dự kiến: {calculatedGiaoHang}
+                                </span>
+                            )}
+                        </div>
                     </Row>
 
                     <Row label="Thông tin tu chỉnh:">

@@ -93,24 +93,20 @@ export default async function ContractDetailPage({
             </div>
 
             {/* Header */}
-            <div className="flex items-start justify-between">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                        {contract.soHopDong}
-                        {!contract.tenHopDong && (
-                            <span className="px-2 py-1 text-xs font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-200 dark:border-yellow-800/50">
-                                Chưa lập hợp đồng
-                            </span>
-                        )}
-                    </h1>
-                    <p className="text-slate-600 dark:text-slate-400 mt-1">
-                        {contract.tenHopDong || "Chưa có tên hợp đồng"}
-                    </p>
-                </div>
-
+            <div className="mb-6">
+                <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white flex flex-wrap items-center gap-2 md:gap-3 leading-snug">
+                    {contract.tenHopDong || "(Chưa có tên hợp đồng)"}
+                    {!contract.tenHopDong && (
+                        <span className="px-2 py-1 text-xs font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-200 dark:border-yellow-800/50 whitespace-nowrap">
+                            Chưa lập hợp đồng
+                        </span>
+                    )}
+                </h1>
                 {!canEdit && (
-                    <div className="px-3 py-1.5 bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 rounded-lg text-sm">
-                        🔒 Chỉ xem
+                    <div className="mt-3 flex items-center">
+                        <div className="px-2.5 py-1 bg-slate-200 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 rounded text-xs font-medium flex items-center shadow-sm">
+                            🔒 Chỉ xem
+                        </div>
                     </div>
                 )}
             </div>

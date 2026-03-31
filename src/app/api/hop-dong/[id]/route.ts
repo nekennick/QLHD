@@ -156,6 +156,15 @@ export async function PUT(
             );
         }
 
+        // Validate: Giá trị thanh toán không được vượt giá trị hàng giao nhận (nếu có)
+        const finalGiaTriGN = (updateData.giaTriGiaoNhan as number | undefined) ?? existing.giaTriGiaoNhan;
+        if (finalGiaTriTT && finalGiaTriGN && finalGiaTriTT > finalGiaTriGN) {
+            return NextResponse.json(
+                { error: `Giá trị thanh toán (${finalGiaTriTT.toLocaleString("vi-VN")} đ) không được vượt quá giá trị hàng giao nhận (${finalGiaTriGN.toLocaleString("vi-VN")} đ)` },
+                { status: 400 }
+            );
+        }
+
         // Validate: Trị giá thanh toán có data → ngày duyệt tạm ứng/thanh toán phải có
         const hasGiaTriTT = finalGiaTriTT ?? existing.giaTriThanhToan;
         const hasNgayDuyet = updateData.ngayDuyetThanhToan !== undefined
