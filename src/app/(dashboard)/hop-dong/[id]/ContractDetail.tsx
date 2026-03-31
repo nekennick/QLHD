@@ -47,6 +47,22 @@ interface TCKTUser {
     hoTen: string;
 }
 
+// ========================================
+// Reusable Layout Components
+// ========================================
+const Row = ({ label, children, highlight }: { label: string; children: React.ReactNode; highlight?: boolean }) => (
+    <div className={`flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-2 border-b border-slate-100 dark:border-slate-700/30 ${highlight ? 'bg-yellow-50/50 dark:bg-yellow-900/10 -mx-4 px-4 rounded' : ''}`}>
+        <span className={`text-sm sm:min-w-[200px] md:min-w-[280px] sm:pt-1 shrink-0 ${highlight ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}>
+            {label}
+        </span>
+        <div className="flex-1 min-w-0 w-full">{children}</div>
+    </div>
+);
+
+const ReadOnlyValue = ({ value }: { value: string | null | undefined }) => (
+    <span className="text-sm text-slate-900 dark:text-white py-1 inline-block">{value || "—"}</span>
+);
+
 interface Props {
     contract: Contract;
     canEdit: boolean;
@@ -86,9 +102,28 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             const hieuLucDate = new Date(contract.ngayHieuLuc).getTime();
             const giaoHangDate = new Date(contract.ngayGiaoHang).getTime();
             const diffDays = Math.round((giaoHangDate - hieuLucDate) / (1000 * 3600 * 24));
+            
+            // Re-calculate basic units for display convenience
+            if (diffDays > 0) {
+                if (diffDays % 30 === 0) return (diffDays / 30).toString();
+                if (diffDays % 7 === 0) return (diffDays / 7).toString();
+            }
             return diffDays.toString();
         }
         return "";
+    });
+
+    const [thoiGianUnit, setThoiGianUnit] = useState<"days"|"weeks"|"months">(() => {
+        if (contract.ngayHieuLuc && contract.ngayGiaoHang) {
+            const hieuLucDate = new Date(contract.ngayHieuLuc).getTime();
+            const giaoHangDate = new Date(contract.ngayGiaoHang).getTime();
+            const diffDays = Math.round((giaoHangDate - hieuLucDate) / (1000 * 3600 * 24));
+            if (diffDays > 0) {
+                if (diffDays % 30 === 0) return "months";
+                if (diffDays % 7 === 0) return "weeks";
+            }
+        }
+        return "days";
     });
 
     const calculatedGiaoHang = useMemo(() => {
@@ -96,12 +131,18 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
             const date = new Date(ngayHieuLuc);
             const duration = parseInt(thoiGianDuration);
             if (!isNaN(duration)) {
-                date.setDate(date.getDate() + duration);
+                if (thoiGianUnit === "months") {
+                    date.setMonth(date.getMonth() + duration);
+                } else if (thoiGianUnit === "weeks") {
+                    date.setDate(date.getDate() + duration * 7);
+                } else {
+                    date.setDate(date.getDate() + duration);
+                }
                 return date.toLocaleDateString("vi-VN");
             }
         }
         return null;
-    }, [ngayHieuLuc, thoiGianDuration]);
+    }, [ngayHieuLuc, thoiGianDuration, thoiGianUnit]);
 
     // Điều kiện cho phép xóa: USER1/ADMIN + chưa có tên + chưa có ngày hiệu lực
     const canDelete = ["USER1", "ADMIN"].includes(userRole || "") && !contract.tenHopDong && !contract.ngayHieuLuc;
@@ -226,6 +267,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         // Xử lý tự động tính Hạn giao hàng
         const thoiGianGiaoHangVal = formData.get("thoiGianGiaoHang") as string;
         const ngayHieuLucVal = data.ngayHieuLuc as string | null;
+        const unit = formData.get("thoiGianUnit") as string;
 
         if (thoiGianGiaoHangVal && !ngayHieuLucVal) {
             showToast("Vui lòng nhập Ngày hiệu lực trước khi nhập Thời gian giao hàng", "error");
@@ -235,15 +277,23 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
         if (thoiGianGiaoHangVal && ngayHieuLucVal) {
             const d = new Date(ngayHieuLucVal);
-            d.setDate(d.getDate() + parseInt(thoiGianGiaoHangVal));
+            const duration = parseInt(thoiGianGiaoHangVal);
+            if (unit === "months") {
+                d.setMonth(d.getMonth() + duration);
+            } else if (unit === "weeks") {
+                d.setDate(d.getDate() + duration * 7);
+            } else {
+                d.setDate(d.getDate() + duration);
+            }
             // Keep ISO format yyyy-mm-ddT00:00:00.000Z
             data.ngayGiaoHang = d.toISOString();
         } else {
             data.ngayGiaoHang = null;
         }
 
-        // Remove thoiGianGiaoHang since backend doesn't schema-support it
+        // Remove ephemeral fields
         delete data.thoiGianGiaoHang;
+        delete data.thoiGianUnit;
 
         // Validate: Giá trị thanh toán không được vượt giá trị hợp đồng
         const giaTriHD = data.giaTriHopDong as number || contract.giaTriHopDong || 0;
@@ -320,19 +370,6 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         return Math.min(100, Math.round((value / base) * 100));
     };
 
-    // Inline row: label left, input right (Responsive)
-    const Row = ({ label, children, highlight }: { label: string; children: React.ReactNode; highlight?: boolean }) => (
-        <div className={`flex flex-col sm:flex-row sm:items-start gap-1 sm:gap-4 py-2 border-b border-slate-100 dark:border-slate-700/30 ${highlight ? 'bg-yellow-50/50 dark:bg-yellow-900/10 -mx-4 px-4 rounded' : ''}`}>
-            <span className={`text-sm sm:min-w-[200px] md:min-w-[280px] sm:pt-1 shrink-0 ${highlight ? 'font-semibold text-amber-700 dark:text-amber-400' : 'text-slate-600 dark:text-slate-400'}`}>
-                {label}
-            </span>
-            <div className="flex-1 min-w-0 w-full">{children}</div>
-        </div>
-    );
-
-    const ReadOnlyValue = ({ value }: { value: string | null | undefined }) => (
-        <span className="text-sm text-slate-900 dark:text-white py-1 inline-block">{value || "—"}</span>
-    );
 
     const isTCKTAssigned = userRole === "USER2_TCKT" && contract.nguoiThanhToanId === userId;
     const canEditSettlement = (userRole === "ADMIN" || isTCKTAssigned) && !contract.daQuyetToan;
@@ -458,15 +495,25 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                     value={thoiGianDuration}
                                     onChange={(e) => setThoiGianDuration(e.target.value)}
                                     disabled={!isFieldEditable} 
-                                    placeholder="Nhập số ngày..." 
-                                    className={inputClass + " max-w-[150px]"} 
+                                    placeholder="Nhập số..." 
+                                    className={inputClass + " max-w-[100px] text-right"} 
                                     min="0"
                                 />
-                                <span className="text-sm text-slate-500">ngày</span>
+                                <select
+                                    name="thoiGianUnit"
+                                    value={thoiGianUnit}
+                                    onChange={(e) => setThoiGianUnit(e.target.value as "days"|"weeks"|"months")}
+                                    disabled={!isFieldEditable}
+                                    className="px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-purple-500"
+                                >
+                                    <option value="days">Ngày</option>
+                                    <option value="weeks">Tuần</option>
+                                    <option value="months">Tháng</option>
+                                </select>
                             </div>
                             {calculatedGiaoHang && (
                                 <span className="text-xs text-slate-400 italic">
-                                    👉 Dự kiến: {calculatedGiaoHang}
+                                    👉 Hạn dự kiến: {calculatedGiaoHang}
                                 </span>
                             )}
                         </div>
