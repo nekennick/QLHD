@@ -5,7 +5,7 @@ import ReportFilters from "./ReportFilters";
 
 type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "completed";
 
-async function getReportData(type: ReportType, nguoiThucHienId?: string) {
+async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarranty?: boolean, isCompleted?: boolean) {
     const today = new Date();
     const fiveDaysLater = new Date(today);
     fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
@@ -57,6 +57,30 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string) {
             break;
     }
 
+    const andConditions: any[] = [];
+    if (isWarranty && !isCompleted) {
+        andConditions.push({ hanBaoHanh: { gte: today } });
+    } else if (isCompleted && !isWarranty) {
+        andConditions.push({
+            OR: [
+                { hanBaoHanh: { lt: today } },
+                { hanBaoHanh: null, daQuyetToan: true }
+            ]
+        });
+    } else if (isWarranty && isCompleted) {
+        andConditions.push({
+            OR: [
+                { hanBaoHanh: { gte: today } },
+                { hanBaoHanh: { lt: today } },
+                { hanBaoHanh: null, daQuyetToan: true }
+            ]
+        });
+    }
+
+    if (andConditions.length > 0) {
+        where.AND = andConditions;
+    }
+
     return prisma.hopDong.findMany({
         where,
         orderBy: { createdAt: "desc" },
@@ -102,15 +126,17 @@ async function getStats() {
 export default async function ReportPage({
     searchParams,
 }: {
-    searchParams: Promise<{ type?: string; nguoiThucHien?: string }>;
+    searchParams: Promise<{ type?: string; nguoiThucHien?: string; isWarranty?: string; isCompleted?: string }>;
 }) {
     await auth();
     const params = await searchParams;
     const reportType = (params.type as ReportType) || "all";
     const nguoiThucHienId = params.nguoiThucHien;
+    const isWarranty = params.isWarranty === "true";
+    const isCompleted = params.isCompleted === "true";
 
     const [contracts, users, stats] = await Promise.all([
-        getReportData(reportType, nguoiThucHienId),
+        getReportData(reportType, nguoiThucHienId, isWarranty, isCompleted),
         getUsers(),
         getStats(),
     ]);
@@ -132,6 +158,8 @@ export default async function ReportPage({
         const urlParams = new URLSearchParams();
         if (type) urlParams.set("type", type);
         if (user) urlParams.set("nguoiThucHien", user);
+        if (isWarranty) urlParams.set("isWarranty", "true");
+        if (isCompleted) urlParams.set("isCompleted", "true");
         const queryString = urlParams.toString();
         return `/bao-cao${queryString ? `?${queryString}` : ""}`;
     };
@@ -189,15 +217,15 @@ export default async function ReportPage({
                         <table className="w-full">
                             <thead>
                                 <tr className="text-left text-slate-500 dark:text-slate-400 text-sm bg-slate-100 dark:bg-slate-900/50">
-                                    <th className="px-6 py-4 font-medium">Số hợp đồng</th>
-                                    <th className="px-6 py-4 font-medium">Tên hợp đồng</th>
-                                    <th className="px-6 py-4 font-medium">Giá trị</th>
-                                    <th className="px-6 py-4 font-medium">Ngày ký</th>
-                                    <th className="px-6 py-4 font-medium">Người thực hiện</th>
-                                    <th className="px-6 py-4 font-medium">Giao nhận</th>
-                                    <th className="px-6 py-4 font-medium">Nghiệm thu</th>
-                                    <th className="px-6 py-4 font-medium">Thanh toán</th>
-                                    <th className="px-6 py-4 font-medium">Quyết toán</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[180px]">Số hợp đồng</th>
+                                    <th className="px-4 py-4 font-medium min-w-[280px]">Tên hợp đồng</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[150px]">Giá trị</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[120px]">Ngày ký</th>
+                                    <th className="px-4 py-4 font-medium min-w-[160px]">Người thực hiện</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[150px]">Giao nhận</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[150px]">Nghiệm thu</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[150px]">Thanh toán</th>
+                                    <th className="px-4 py-4 font-medium whitespace-nowrap min-w-[150px]">Quyết toán</th>
                                 </tr>
                             </thead>
                             <tbody className="text-slate-700 dark:text-slate-300">
@@ -206,37 +234,37 @@ export default async function ReportPage({
                                         key={contract.id}
                                         className="border-t border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
                                     >
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4">
                                             <Link href={`/hop-dong/${contract.id}`} className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300">
                                                 {contract.soHopDong}
                                             </Link>
                                         </td>
-                                        <td className="px-6 py-4">{contract.tenHopDong || "—"}</td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4">{contract.tenHopDong || "—"}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             {contract.giaTriHopDong
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriHopDong)
                                                 : "—"}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             {contract.ngayKy ? new Date(contract.ngayKy).toLocaleDateString("vi-VN") : "—"}
                                         </td>
-                                        <td className="px-6 py-4">{contract.nguoiThucHien?.hoTen || "—"}</td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4 min-w-[160px]">{contract.nguoiThucHien?.hoTen || "—"}</td>
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             {contract.giaTriGiaoNhan
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriGiaoNhan)
                                                 : "—"}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             {contract.giaTriNghiemThu
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriNghiemThu)
                                                 : "—"}
                                         </td>
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4 whitespace-nowrap">
                                             {contract.giaTriThanhToan
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriThanhToan)
                                                 : "—"}
                                         </td>
-                                        <td className="px-6 py-4 text-amber-600 dark:text-amber-400 font-medium">
+                                        <td className="px-4 py-4 whitespace-nowrap text-amber-600 dark:text-amber-400 font-medium">
                                             {contract.giaTriQuyetToan
                                                 ? new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(contract.giaTriQuyetToan)
                                                 : "—"}

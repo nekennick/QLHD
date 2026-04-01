@@ -165,7 +165,7 @@ export default function ContractsTable({
                     <thead>
                         <tr className="text-left bg-slate-100 dark:bg-slate-900/80 border-b-2 border-slate-200 dark:border-slate-700 shadow-sm relative z-10">
                             {/* Số hợp đồng */}
-                            <th className="px-6 py-5">
+                            <th className="px-4 py-5 min-w-[200px]">
                                 <div className="space-y-2.5">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Số hợp đồng</span>
                                     <input
@@ -178,7 +178,7 @@ export default function ContractsTable({
                                 </div>
                             </th>
                             {/* Tên hợp đồng */}
-                            <th className="px-6 py-5">
+                            <th className="px-4 py-5 min-w-[300px]">
                                 <div className="space-y-2.5">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Tên hợp đồng</span>
                                     <input
@@ -192,7 +192,7 @@ export default function ContractsTable({
                             </th>
                             {/* Giá trị - sortable */}
                             <th
-                                className="px-6 py-5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/50 transition-colors select-none group"
+                                className="px-4 py-5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/50 transition-colors select-none group min-w-[150px] whitespace-nowrap"
                                 onClick={() => handleSort('giaTriHopDong')}
                             >
                                 <div className="flex items-center gap-2 mb-10">
@@ -205,7 +205,7 @@ export default function ContractsTable({
                             </th>
                             {/* Ngày ký - sortable */}
                             <th
-                                className="px-6 py-5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/50 transition-colors select-none group"
+                                className="px-4 py-5 cursor-pointer hover:bg-slate-200 dark:hover:bg-slate-800/50 transition-colors select-none group min-w-[150px] whitespace-nowrap"
                                 onClick={() => handleSort('ngayKy')}
                             >
                                 <div className="flex items-center gap-2 mb-10">
@@ -218,7 +218,7 @@ export default function ContractsTable({
                             </th>
                             {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
                             {["USER1", "ADMIN"].includes(currentUser?.role || "") && (
-                                <th className="px-6 py-5">
+                                <th className="px-4 py-5 min-w-[180px]">
                                     <div className="space-y-2.5">
                                         <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Người thực hiện</span>
                                         <select
@@ -237,7 +237,7 @@ export default function ContractsTable({
                                 </th>
                             )}
                             {/* Trạng thái */}
-                            <th className="px-6 py-5">
+                            <th className="px-4 py-5 min-w-[180px]">
                                 <div className="space-y-2.5">
                                     <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trạng thái</span>
                                     <select
@@ -254,7 +254,7 @@ export default function ContractsTable({
                                 </div>
                             </th>
                             {/* Actions */}
-                            <th className="px-6 py-5"></th>
+                            <th className="px-4 py-5 min-w-[120px]"></th>
                         </tr>
                     </thead>
                     <tbody className="text-slate-700 dark:text-slate-300">
@@ -270,7 +270,7 @@ export default function ContractsTable({
                                     key={contract.id}
                                     className="border-t border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
                                 >
-                                    <td className={`px-6 py-4 font-medium ${showWarning ? "text-red-500 animate-pulse-slow" : "text-slate-900 dark:text-white"}`}>
+                                    <td className={`px-4 py-4 font-medium ${showWarning ? "text-red-500 animate-pulse-slow" : "text-slate-900 dark:text-white"}`}>
                                         <button
                                             onClick={() => setPreviewContract(contract)}
                                             className="flex items-center gap-2 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer text-left"
@@ -283,7 +283,7 @@ export default function ContractsTable({
                                             )}
                                         </button>
                                     </td>
-                                    <td className={`px-6 py-4 max-w-[250px] ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <td className={`px-4 py-4 max-w-[280px] ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                         <span
                                             className="line-clamp-3"
                                             title={contract.tenHopDong || undefined}
@@ -291,7 +291,7 @@ export default function ContractsTable({
                                             {contract.tenHopDong || "—"}
                                         </span>
                                     </td>
-                                    <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <td className={`px-4 py-4 whitespace-nowrap ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                         {contract.giaTriHopDong
                                             ? new Intl.NumberFormat("vi-VN", {
                                                 style: "currency",
@@ -299,20 +299,20 @@ export default function ContractsTable({
                                             }).format(contract.giaTriHopDong)
                                             : "—"}
                                     </td>
-                                    <td className={`px-6 py-4 ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <td className={`px-4 py-4 whitespace-nowrap ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                         {contract.ngayKy
                                             ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
                                             : "—"}
                                     </td>
                                     {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
                                     {["USER1", "ADMIN"].includes(currentUser?.role || "") && (
-                                        <td className="px-6 py-4">
+                                        <td className="px-4 py-4">
                                             <span className={canReassign ? "text-purple-600 dark:text-purple-400" : "text-slate-700 dark:text-slate-300"}>
                                                 {contract.nguoiThucHien?.hoTen || "—"}
                                             </span>
                                         </td>
                                     )}
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4 whitespace-nowrap">
                                         {!contract.tenHopDong ? (
                                             <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-200 dark:border-yellow-800/50">
                                                 Chưa lập hợp đồng
@@ -339,7 +339,7 @@ export default function ContractsTable({
                                             </span>
                                         )}
                                     </td>
-                                    <td className="px-6 py-4">
+                                    <td className="px-4 py-4 whitespace-nowrap">
                                         <Link
                                             href={`/hop-dong/${contract.id}`}
                                             className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-sm"

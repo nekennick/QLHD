@@ -1,6 +1,6 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useToast } from "@/components/ui/ToastProvider";
 
@@ -17,13 +17,29 @@ interface Props {
 
 export default function ReportFilters({ users, currentUserId, reportType }: Props) {
     const router = useRouter();
+    const searchParams = useSearchParams();
     const { showToast } = useToast();
     const [exporting, setExporting] = useState<string | null>(null);
 
-    const buildUrl = (type?: string, user?: string) => {
-        const params = new URLSearchParams();
+    const isWarranty = searchParams.get("isWarranty") === "true";
+    const isCompleted = searchParams.get("isCompleted") === "true";
+
+    const buildUrl = (type?: string, user?: string, overrides?: Record<string, string>) => {
+        const params = new URLSearchParams(searchParams.toString());
         if (type) params.set("type", type);
-        if (user) params.set("nguoiThucHien", user);
+        
+        if (user !== undefined) {
+            if (user) params.set("nguoiThucHien", user);
+            else params.delete("nguoiThucHien");
+        }
+        
+        if (overrides) {
+            Object.entries(overrides).forEach(([k, v]) => {
+                if (v === "false") params.delete(k); // Clean url
+                else params.set(k, v);
+            });
+        }
+        
         const queryString = params.toString();
         return `/bao-cao${queryString ? `?${queryString}` : ""}`;
     };
@@ -32,10 +48,14 @@ export default function ReportFilters({ users, currentUserId, reportType }: Prop
         router.push(buildUrl(reportType, userId));
     };
 
+    const handleFilterChange = (key: string, value: boolean) => {
+        router.push(buildUrl(reportType, currentUserId, { [key]: value.toString() }));
+    };
+
     const handleExport = async (format: "docx" | "xlsx" | "pdf") => {
         setExporting(format);
         try {
-            const params = new URLSearchParams();
+            const params = new URLSearchParams(searchParams.toString());
             params.set("format", format);
             if (reportType) params.set("type", reportType);
             if (currentUserId) params.set("nguoiThucHien", currentUserId);
@@ -83,6 +103,28 @@ export default function ReportFilters({ users, currentUserId, reportType }: Prop
                         </option>
                     ))}
                 </select>
+
+                <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden sm:block"></div>
+
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
+                    <input
+                        type="checkbox"
+                        checked={isWarranty}
+                        onChange={(e) => handleFilterChange("isWarranty", e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus:ring-purple-500 bg-white dark:bg-slate-800"
+                    />
+                    Đang bảo hành
+                </label>
+
+                <label className="flex items-center gap-2 cursor-pointer text-sm text-slate-700 dark:text-slate-300">
+                    <input
+                        type="checkbox"
+                        checked={isCompleted}
+                        onChange={(e) => handleFilterChange("isCompleted", e.target.checked)}
+                        className="w-4 h-4 rounded border-slate-300 dark:border-slate-600 text-purple-600 focus:ring-purple-500 bg-white dark:bg-slate-800"
+                    />
+                    Đã hoàn tất
+                </label>
 
                 {/* Export buttons */}
                 <div className="ml-auto flex gap-2">

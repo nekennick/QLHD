@@ -17,7 +17,7 @@ import ExcelJS from "exceljs";
 
 type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "completed";
 
-async function getReportData(type: ReportType, nguoiThucHienId?: string) {
+async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarranty?: boolean, isCompleted?: boolean) {
     const today = new Date();
     const fiveDaysLater = new Date(today);
     fiveDaysLater.setDate(fiveDaysLater.getDate() + 5);
@@ -65,6 +65,30 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string) {
         case "completed":
             where.hanBaoHanh = { lt: today };
             break;
+    }
+
+    const andConditions: any[] = [];
+    if (isWarranty && !isCompleted) {
+        andConditions.push({ hanBaoHanh: { gte: today } });
+    } else if (isCompleted && !isWarranty) {
+        andConditions.push({
+            OR: [
+                { hanBaoHanh: { lt: today } },
+                { hanBaoHanh: null, daQuyetToan: true }
+            ]
+        });
+    } else if (isWarranty && isCompleted) {
+        andConditions.push({
+            OR: [
+                { hanBaoHanh: { gte: today } },
+                { hanBaoHanh: { lt: today } },
+                { hanBaoHanh: null, daQuyetToan: true }
+            ]
+        });
+    }
+
+    if (andConditions.length > 0) {
+        where.AND = andConditions;
     }
 
     return prisma.hopDong.findMany({
@@ -239,9 +263,11 @@ export async function GET(request: NextRequest) {
     const format = searchParams.get("format") || "xlsx";
     const type = (searchParams.get("type") as ReportType) || "all";
     const nguoiThucHienId = searchParams.get("nguoiThucHien") || undefined;
+    const isWarranty = searchParams.get("isWarranty") === "true";
+    const isCompleted = searchParams.get("isCompleted") === "true";
 
     try {
-        const contracts = await getReportData(type, nguoiThucHienId);
+        const contracts = await getReportData(type, nguoiThucHienId, isWarranty, isCompleted);
 
         let buffer: Buffer | ArrayBuffer;
         let contentType: string;
