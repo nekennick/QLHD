@@ -4,6 +4,7 @@ import { useState, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "@/components/ui/ConfirmDialog";
 import { useToast } from "@/components/ui/ToastProvider";
+import DatePickerVN from "@/components/ui/DatePickerVN";
 
 interface Contract {
     id: string;
@@ -453,7 +454,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     </Row>
 
                     <Row label="Ngày ký HĐ:">
-                        <input type="date" name="ngayKy" defaultValue={formatDate(contract.ngayKy)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
+                        <DatePickerVN name="ngayKy" defaultValue={formatDate(contract.ngayKy)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
                     </Row>
 
                     <Row label="Tên HĐ:">
@@ -483,9 +484,9 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                     <Row label="HĐ hiệu lực từ ngày:">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <input type="date" name="ngayHieuLuc" value={ngayHieuLuc} onChange={(e) => setNgayHieuLuc(e.target.value)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
+                            <DatePickerVN name="ngayHieuLuc" value={ngayHieuLuc} onChange={(v) => setNgayHieuLuc(v)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
                             <span className="text-sm text-slate-500">đến ngày</span>
-                            <input type="date" name="hieuLucBaoDam" defaultValue={formatDate(contract.hieuLucBaoDam)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
+                            <DatePickerVN name="hieuLucBaoDam" defaultValue={formatDate(contract.hieuLucBaoDam)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
                         </div>
                     </Row>
 
@@ -550,11 +551,11 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     </Row>
 
                     <Row label="Hạn bảo hành:">
-                        <input type="date" name="hanBaoHanh" defaultValue={formatDate(contract.hanBaoHanh)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
+                        <DatePickerVN name="hanBaoHanh" defaultValue={formatDate(contract.hanBaoHanh)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
                     </Row>
 
                     <Row label="Ngày duyệt tạm ứng, thanh toán:">
-                        <input type="date" name="ngayDuyetThanhToan" defaultValue={formatDate(contract.ngayDuyetThanhToan)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
+                        <DatePickerVN name="ngayDuyetThanhToan" defaultValue={formatDate(contract.ngayDuyetThanhToan)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
                     </Row>
 
                     {/* === QUYẾT TOÁN ĐTXD === */}
