@@ -353,6 +353,9 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         (userRole === "USER2" && contract.nguoiThucHienId === userId)
     );
 
+    const canEditSoHopDong = isFieldEditable && !(userRole === "USER2" && contract.soHopDong);
+    const canEditTenHopDong = isFieldEditable && !(userRole === "USER2" && contract.tenHopDong);
+
     const handleCurrencyInput = (e: React.FormEvent<HTMLInputElement>) => {
         const input = e.currentTarget;
         const cursorPos = input.selectionStart || 0;
@@ -446,7 +449,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                     {/* === THÔNG TIN HỢP ĐỒNG === */}
                     <Row label="Số hợp đồng:">
-                        <input type="text" name="soHopDong" defaultValue={contract.soHopDong ?? ""} disabled={!isFieldEditable} className={inputClass} />
+                        <input type="text" name="soHopDong" defaultValue={contract.soHopDong ?? ""} disabled={!canEditSoHopDong} className={inputClass} />
                     </Row>
 
                     <Row label="Ngày ký HĐ:">
@@ -457,7 +460,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         <textarea 
                             name="tenHopDong" 
                             defaultValue={contract.tenHopDong ?? ""} 
-                            disabled={!isFieldEditable} 
+                            disabled={!canEditTenHopDong} 
                             placeholder="Nhập tên hợp đồng" 
                             rows={2}
                             className={inputClass + " w-full resize-y"} 

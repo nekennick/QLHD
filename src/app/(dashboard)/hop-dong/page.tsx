@@ -43,6 +43,7 @@ async function getContracts(searchParams: { status?: string; nguoiThucHien?: str
             giaTriGiaoNhan: true,
             giaTriNghiemThu: true,
             ngayDuyetThanhToan: true,
+            giaTriThanhToan: true,
             hanBaoHanh: true,
             daQuyetToan: true,
             nguoiThucHienId: true,

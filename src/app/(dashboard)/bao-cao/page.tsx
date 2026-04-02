@@ -3,7 +3,7 @@ import { prisma } from "@/lib/db";
 import Link from "next/link";
 import ReportFilters from "./ReportFilters";
 
-type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "completed";
+type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "warranty" | "settled" | "completed";
 
 async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarranty?: boolean, isCompleted?: boolean) {
     const today = new Date();
@@ -27,8 +27,9 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarra
             where.OR = [{ tenHopDong: null }, { giaTriHopDong: null }, { ngayKy: null }];
             break;
         case "delivering":
+            // Đang giao nhận: có giá trị giao nhận, NHƯNG chưa nghiệm thu
             where.giaTriGiaoNhan = { not: null };
-            where.ngayDuyetThanhToan = null;
+            where.giaTriNghiemThu = null;
             break;
         case "late":
             where.ngayGiaoHang = { lt: today };
@@ -46,14 +47,29 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarra
             where.hieuLucBaoDam = { gte: today, lte: sevenDaysLater };
             break;
         case "accepted":
+            // Đã nghiệm thu: có giá trị nghiệm thu, NHƯNG chưa duyệt thanh toán
             where.giaTriNghiemThu = { not: null };
             where.ngayDuyetThanhToan = null;
             break;
         case "paid":
-            where.ngayDuyetThanhToan = { not: null };
+            // Đã thanh toán: có giá trị thanh toán thực tế, chưa quyết toán
+            where.giaTriThanhToan = { not: null };
+            where.daQuyetToan = false;
+            break;
+        case "warranty":
+            // Đang bảo hành: hạn bảo hành còn hiệu lực
+            where.hanBaoHanh = { gte: today };
+            break;
+        case "settled":
+            // Đã quyết toán TCKT
+            where.daQuyetToan = true;
             break;
         case "completed":
-            where.hanBaoHanh = { lt: today };
+            // Đã kết thúc: hết bảo hành HOẶC (đã quyết toán + không có bảo hành)
+            where.OR = [
+                { hanBaoHanh: { lt: today } },
+                { hanBaoHanh: null, daQuyetToan: true }
+            ];
             break;
     }
 
@@ -107,20 +123,33 @@ async function getStats() {
     const sevenDaysAgo = new Date(today);
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-    const [total, incomplete, delivering, late, upcoming, slowPayment, expiring, accepted, paid, completed] = await Promise.all([
+    const [total, incomplete, delivering, late, upcoming, slowPayment, expiring, accepted, paid, warranty, settled, completed] = await Promise.all([
         prisma.hopDong.count(),
+        // Chưa lập HĐ: thiếu tên hoặc giá trị
         prisma.hopDong.count({ where: { OR: [{ tenHopDong: null }, { giaTriHopDong: null }] } }),
-        prisma.hopDong.count({ where: { giaTriGiaoNhan: { not: null }, ngayDuyetThanhToan: null } }),
+        // Đang giao nhận: có giao nhận NHƯNG chưa nghiệm thu (để không đếm trùng với Đã nghiệm thu)
+        prisma.hopDong.count({ where: { giaTriGiaoNhan: { not: null }, giaTriNghiemThu: null } }),
+        // Giao chậm: quá hạn giao, chưa có giá trị giao nhận
         prisma.hopDong.count({ where: { ngayGiaoHang: { lt: today }, giaTriGiaoNhan: null } }),
+        // Sắp đến hạn giao: trong 5 ngày tới, chưa giao nhận
         prisma.hopDong.count({ where: { ngayGiaoHang: { gte: today, lte: fiveDaysLater }, giaTriGiaoNhan: null } }),
+        // Thanh toán chậm: đã duyệt > 7 ngày nhưng chưa có giá trị thanh toán
         prisma.hopDong.count({ where: { ngayDuyetThanhToan: { not: null, lt: sevenDaysAgo }, giaTriThanhToan: null } }),
+        // Đảm bảo sắp hết: hiệu lực bảo đảm hết trong 7 ngày tới
         prisma.hopDong.count({ where: { hieuLucBaoDam: { gte: today, lte: sevenDaysLater } } }),
+        // Đã nghiệm thu: có giá trị nghiệm thu, chưa duyệt thanh toán
         prisma.hopDong.count({ where: { giaTriNghiemThu: { not: null }, ngayDuyetThanhToan: null } }),
-        prisma.hopDong.count({ where: { ngayDuyetThanhToan: { not: null } } }),
-        prisma.hopDong.count({ where: { hanBaoHanh: { lt: today } } }),
+        // Đã thanh toán: có giá trị thanh toán thực tế, chưa quyết toán
+        prisma.hopDong.count({ where: { giaTriThanhToan: { not: null }, daQuyetToan: false } }),
+        // Đang bảo hành: hạn bảo hành còn hiệu lực
+        prisma.hopDong.count({ where: { hanBaoHanh: { gte: today } } }),
+        // Đã quyết toán: TCKT đã chốt
+        prisma.hopDong.count({ where: { daQuyetToan: true } }),
+        // Đã kết thúc: hết bảo hành HOẶC (đã quyết toán + ko có bảo hành)
+        prisma.hopDong.count({ where: { OR: [{ hanBaoHanh: { lt: today } }, { hanBaoHanh: null, daQuyetToan: true }] } }),
     ]);
 
-    return { total, incomplete, delivering, late, upcoming, slowPayment, expiring, accepted, paid, completed };
+    return { total, incomplete, delivering, late, upcoming, slowPayment, expiring, accepted, paid, warranty, settled, completed };
 }
 
 export default async function ReportPage({
@@ -151,6 +180,8 @@ export default async function ReportPage({
         { value: "expiring", label: "Đảm bảo sắp hết", count: stats.expiring, color: "bg-orange-600" },
         { value: "accepted", label: "Đã nghiệm thu", count: stats.accepted, color: "bg-emerald-600" },
         { value: "paid", label: "Đã thanh toán", count: stats.paid, color: "bg-green-600" },
+        { value: "warranty", label: "Đang bảo hành", count: stats.warranty, color: "bg-cyan-600" },
+        { value: "settled", label: "Đã quyết toán", count: stats.settled, color: "bg-teal-600" },
         { value: "completed", label: "Đã kết thúc", count: stats.completed, color: "bg-slate-500" },
     ];
 

@@ -20,6 +20,7 @@ interface Contract {
     giaTriGiaoNhan: number | null;
     giaTriNghiemThu: number | null;
     ngayDuyetThanhToan: Date | null;
+    giaTriThanhToan: number | null;
     hanBaoHanh: Date | null;
     daQuyetToan: boolean;
     nguoiGiao: { hoTen: string } | null;
@@ -45,10 +46,12 @@ interface ContractsTableProps {
 }
 
 // Map trạng thái hiển thị sang giá trị filter
+// Thứ tự ưu tiên: trạng thái cao nhất (cuối vòng đời) → thấp nhất
 const getStatusValue = (contract: Contract): string => {
     if (!contract.tenHopDong) return "chua_lap_hd";
     if (contract.daQuyetToan) return "da_quyet_toan";
     if (contract.hanBaoHanh && new Date(contract.hanBaoHanh) > new Date()) return "bao_hanh";
+    if (contract.giaTriThanhToan) return "da_thanh_toan";
     if (contract.ngayDuyetThanhToan) return "da_duyet_thanh_toan";
     if (contract.giaTriNghiemThu) return "da_nghiem_thu";
     if (contract.giaTriGiaoNhan) return "dang_giao_nhan";
@@ -76,8 +79,7 @@ export default function ContractsTable({
     const [previewContract, setPreviewContract] = useState<Contract | null>(null);
 
     // Filter states
-    const [searchSoHD, setSearchSoHD] = useState("");
-    const [searchTenHD, setSearchTenHD] = useState("");
+    const [searchQuery, setSearchQuery] = useState("");
     const [filterNguoiThucHien, setFilterNguoiThucHien] = useState("");
     const [filterTrangThai, setFilterTrangThai] = useState("");
 
@@ -114,13 +116,14 @@ export default function ContractsTable({
     const filteredContracts = useMemo(() => {
         // Bước 1: Lọc
         let result = contracts.filter((contract) => {
-            // Tìm kiếm theo Số HĐ
-            if (searchSoHD && !contract.soHopDong.toLowerCase().includes(searchSoHD.toLowerCase())) {
-                return false;
-            }
-            // Tìm kiếm theo Tên HĐ
-            if (searchTenHD && !(contract.tenHopDong || "").toLowerCase().includes(searchTenHD.toLowerCase())) {
-                return false;
+            // Tìm kiếm theo Số HĐ hoặc Tên HĐ
+            if (searchQuery) {
+                const query = searchQuery.toLowerCase();
+                const matchSoHD = contract.soHopDong.toLowerCase().includes(query);
+                const matchTenHD = (contract.tenHopDong || "").toLowerCase().includes(query);
+                if (!matchSoHD && !matchTenHD) {
+                    return false;
+                }
             }
             // Lọc theo người thực hiện
             if (filterNguoiThucHien && contract.nguoiThucHienId !== filterNguoiThucHien) {
@@ -156,7 +159,7 @@ export default function ContractsTable({
         }
 
         return result;
-    }, [contracts, searchSoHD, searchTenHD, filterNguoiThucHien, filterTrangThai, sortField, sortDirection]);
+    }, [contracts, searchQuery, filterNguoiThucHien, filterTrangThai, sortField, sortDirection]);
 
     return (
         <>
@@ -164,30 +167,31 @@ export default function ContractsTable({
                 <table className="w-full">
                     <thead>
                         <tr className="text-left bg-slate-100 dark:bg-slate-900/80 border-b-2 border-slate-200 dark:border-slate-700 shadow-sm relative z-10">
-                            {/* Số hợp đồng */}
-                            <th className="px-4 py-5 min-w-[200px]">
-                                <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Số hợp đồng</span>
-                                    <input
-                                        type="text"
-                                        placeholder="🔍 Tìm kiếm..."
-                                        value={searchSoHD}
-                                        onChange={(e) => setSearchSoHD(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all font-normal outline-none"
-                                    />
-                                </div>
-                            </th>
-                            {/* Tên hợp đồng */}
-                            <th className="px-4 py-5 min-w-[300px]">
-                                <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Tên hợp đồng</span>
-                                    <input
-                                        type="text"
-                                        placeholder="🔍 Tìm kiếm..."
-                                        value={searchTenHD}
-                                        onChange={(e) => setSearchTenHD(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all font-normal outline-none"
-                                    />
+                            {/* Thông tin hợp đồng */}
+                            <th className="px-4 py-3 min-w-[320px]">
+                                <div className="space-y-3">
+                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Thông tin hợp đồng</span>
+                                    <div className="flex flex-col sm:flex-row gap-2">
+                                        <input
+                                            type="text"
+                                            placeholder="🔍 Tìm Số HĐ hoặc tên hợp đồng..."
+                                            value={searchQuery}
+                                            onChange={(e) => setSearchQuery(e.target.value)}
+                                            className="flex-1 min-w-0 px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 placeholder:text-slate-400 dark:placeholder:text-slate-500 transition-all font-normal outline-none"
+                                        />
+                                        <select
+                                            value={filterTrangThai}
+                                            onChange={(e) => setFilterTrangThai(e.target.value)}
+                                            className="w-full sm:w-[150px] flex-shrink-0 px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
+                                        >
+                                            <option value="">Tất cả trạng thái</option>
+                                            {statusOptions.slice(1).map((option) => (
+                                                <option key={option.value} value={option.value} className="bg-white dark:bg-slate-900 line-clamp-1">
+                                                    {option.label}
+                                                </option>
+                                            ))}
+                                        </select>
+                                    </div>
                                 </div>
                             </th>
                             {/* Giá trị - sortable */}
@@ -236,23 +240,7 @@ export default function ContractsTable({
                                     </div>
                                 </th>
                             )}
-                            {/* Trạng thái */}
-                            <th className="px-4 py-5 min-w-[180px]">
-                                <div className="space-y-2.5">
-                                    <span className="text-sm font-bold text-slate-900 dark:text-white uppercase tracking-wider">Trạng thái</span>
-                                    <select
-                                        value={filterTrangThai}
-                                        onChange={(e) => setFilterTrangThai(e.target.value)}
-                                        className="w-full px-3 py-1.5 text-sm bg-white dark:bg-slate-950/50 text-slate-900 dark:text-white rounded-lg border border-slate-300 dark:border-slate-600 focus:border-purple-500 focus:ring-1 focus:ring-purple-500 transition-all font-normal cursor-pointer outline-none"
-                                    >
-                                        {statusOptions.map((option) => (
-                                            <option key={option.value} value={option.value} className="bg-white dark:bg-slate-900">
-                                                {option.label}
-                                            </option>
-                                        ))}
-                                    </select>
-                                </div>
-                            </th>
+
                             {/* Actions */}
                             <th className="px-4 py-5 min-w-[120px]"></th>
                         </tr>
@@ -270,28 +258,66 @@ export default function ContractsTable({
                                     key={contract.id}
                                     className="border-t border-slate-200 dark:border-slate-700/50 hover:bg-slate-50 dark:hover:bg-slate-700/20 transition-colors"
                                 >
-                                    <td className={`px-4 py-4 font-medium ${showWarning ? "text-red-500 animate-pulse-slow" : "text-slate-900 dark:text-white"}`}>
-                                        <button
-                                            onClick={() => setPreviewContract(contract)}
-                                            className="flex items-center gap-2 hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer text-left"
-                                        >
-                                            {contract.soHopDong}
-                                            {showWarning && (
-                                                <span title="Hơn 7 ngày không có cập nhật" className="animate-bounce">
-                                                    ⚠️
-                                                </span>
-                                            )}
-                                        </button>
+                                    {/* THÔNG TIN HỢP ĐỒNG (Gộp) */}
+                                    <td className={`px-4 py-4 min-w-[320px] align-top ${showWarning ? "bg-red-50/30 dark:bg-red-900/10" : ""}`}>
+                                        <div className="flex flex-col items-start gap-1.5">
+                                            {/* 1. Số hợp đồng */}
+                                            <button
+                                                onClick={() => setPreviewContract(contract)}
+                                                className={`font-semibold hover:text-purple-600 dark:hover:text-purple-400 transition-colors cursor-pointer text-left text-[15px] ${showWarning ? "text-red-500 animate-pulse-slow" : "text-slate-900 dark:text-white"}`}
+                                            >
+                                                {contract.soHopDong}
+                                                {showWarning && (
+                                                    <span title="Hơn 7 ngày không có cập nhật" className="animate-bounce ml-2 inline-block">
+                                                        ⚠️
+                                                    </span>
+                                                )}
+                                            </button>
+
+                                            {/* 2. Trạng thái */}
+                                            <div className="flex items-center">
+                                                {!contract.tenHopDong ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-lg border border-yellow-200 dark:border-yellow-800/50">
+                                                        Chưa lập hợp đồng
+                                                    </span>
+                                                ) : contract.daQuyetToan ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-slate-100 dark:bg-slate-500/20 text-slate-600 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-500/30">
+                                                        ✅ Đã quyết toán
+                                                    </span>
+                                                ) : contract.hanBaoHanh && new Date(contract.hanBaoHanh) > new Date() ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-cyan-500/10 dark:bg-cyan-500/20 text-cyan-700 dark:text-cyan-400 rounded-lg border border-cyan-200 dark:border-cyan-800/50">
+                                                        🛡️ Đang bảo hành
+                                                    </span>
+                                                ) : contract.giaTriThanhToan ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-teal-500/10 dark:bg-teal-500/20 text-teal-700 dark:text-teal-400 rounded-lg border border-teal-200 dark:border-teal-800/50">
+                                                        💰 Đã thanh toán
+                                                    </span>
+                                                ) : contract.ngayDuyetThanhToan ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-lg border border-green-200 dark:border-green-800/50">
+                                                        Đã duyệt thanh toán
+                                                    </span>
+                                                ) : contract.giaTriNghiemThu ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-lg border border-emerald-200 dark:border-emerald-800/50">
+                                                        Đã nghiệm thu
+                                                    </span>
+                                                ) : contract.giaTriGiaoNhan ? (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-800/50">
+                                                        Đang giao nhận
+                                                    </span>
+                                                ) : (
+                                                    <span className="px-2 py-0.5 text-[11px] font-medium bg-slate-100 dark:bg-slate-500/20 text-slate-500 dark:text-slate-400 rounded-lg border border-slate-200 dark:border-slate-500/30">
+                                                        Mới tạo
+                                                    </span>
+                                                )}
+                                            </div>
+
+                                            {/* 3. Tên hợp đồng */}
+                                            <span className={`text-[13px] line-clamp-2 mt-0.5 ${showWarning ? "text-red-400" : "text-slate-600 dark:text-slate-400"}`} title={contract.tenHopDong || undefined}>
+                                                {contract.tenHopDong || "—"}
+                                            </span>
+                                        </div>
                                     </td>
-                                    <td className={`px-4 py-4 max-w-[280px] ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
-                                        <span
-                                            className="line-clamp-3"
-                                            title={contract.tenHopDong || undefined}
-                                        >
-                                            {contract.tenHopDong || "—"}
-                                        </span>
-                                    </td>
-                                    <td className={`px-4 py-4 whitespace-nowrap ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <td className={`px-4 py-4 align-top whitespace-nowrap ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                         {contract.giaTriHopDong
                                             ? new Intl.NumberFormat("vi-VN", {
                                                 style: "currency",
@@ -299,47 +325,21 @@ export default function ContractsTable({
                                             }).format(contract.giaTriHopDong)
                                             : "—"}
                                     </td>
-                                    <td className={`px-4 py-4 whitespace-nowrap ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
+                                    <td className={`px-4 py-4 align-top whitespace-nowrap ${showWarning ? "text-red-400 animate-pulse-slow" : ""}`}>
                                         {contract.ngayKy
                                             ? new Date(contract.ngayKy).toLocaleDateString("vi-VN")
                                             : "—"}
                                     </td>
                                     {/* Người thực hiện - Chỉ hiển thị cho lãnh đạo */}
                                     {["USER1", "ADMIN"].includes(currentUser?.role || "") && (
-                                        <td className="px-4 py-4">
+                                        <td className="px-4 py-4 align-top">
                                             <span className={canReassign ? "text-purple-600 dark:text-purple-400" : "text-slate-700 dark:text-slate-300"}>
                                                 {contract.nguoiThucHien?.hoTen || "—"}
                                             </span>
                                         </td>
                                     )}
-                                    <td className="px-4 py-4 whitespace-nowrap">
-                                        {!contract.tenHopDong ? (
-                                            <span className="px-2 py-0.5 text-xs font-medium bg-yellow-500/10 dark:bg-yellow-500/20 text-yellow-700 dark:text-yellow-400 rounded-full border border-yellow-200 dark:border-yellow-800/50">
-                                                Chưa lập hợp đồng
-                                            </span>
-                                        ) : contract.daQuyetToan ? (
-                                            <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-500/20 text-slate-600 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-500/30">
-                                                ✅ Đã quyết toán
-                                            </span>
-                                        ) : contract.ngayDuyetThanhToan ? (
-                                            <span className="px-2 py-0.5 text-xs font-medium bg-green-500/10 dark:bg-green-500/20 text-green-700 dark:text-green-400 rounded-full border border-green-200 dark:border-green-800/50">
-                                                Đã duyệt thanh toán
-                                            </span>
-                                        ) : contract.giaTriNghiemThu ? (
-                                            <span className="px-2 py-0.5 text-xs font-medium bg-emerald-500/10 dark:bg-emerald-500/20 text-emerald-700 dark:text-emerald-400 rounded-full border border-emerald-200 dark:border-emerald-800/50">
-                                                Đã nghiệm thu
-                                            </span>
-                                        ) : contract.giaTriGiaoNhan ? (
-                                            <span className="px-2 py-0.5 text-xs font-medium bg-blue-500/10 dark:bg-blue-500/20 text-blue-700 dark:text-blue-400 rounded-full border border-blue-200 dark:border-blue-800/50">
-                                                Đang giao nhận
-                                            </span>
-                                        ) : (
-                                            <span className="px-2 py-0.5 text-xs font-medium bg-slate-100 dark:bg-slate-500/20 text-slate-500 dark:text-slate-400 rounded-full border border-slate-200 dark:border-slate-500/30">
-                                                Mới tạo
-                                            </span>
-                                        )}
-                                    </td>
-                                    <td className="px-4 py-4 whitespace-nowrap">
+
+                                    <td className="px-4 py-4 align-top whitespace-nowrap">
                                         <Link
                                             href={`/hop-dong/${contract.id}`}
                                             className="text-purple-600 dark:text-purple-400 hover:text-purple-500 dark:hover:text-purple-300 text-sm"

@@ -15,7 +15,7 @@ import {
 } from "docx";
 import ExcelJS from "exceljs";
 
-type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "completed";
+type ReportType = "all" | "incomplete" | "delivering" | "late" | "upcoming" | "slow_payment" | "expiring" | "accepted" | "paid" | "warranty" | "settled" | "completed";
 
 async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarranty?: boolean, isCompleted?: boolean) {
     const today = new Date();
@@ -38,7 +38,7 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarra
             break;
         case "delivering":
             where.giaTriGiaoNhan = { not: null };
-            where.ngayDuyetThanhToan = null;
+            where.giaTriNghiemThu = null;
             break;
         case "late":
             where.ngayGiaoHang = { lt: today };
@@ -60,10 +60,20 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarra
             where.ngayDuyetThanhToan = null;
             break;
         case "paid":
-            where.ngayDuyetThanhToan = { not: null };
+            where.giaTriThanhToan = { not: null };
+            where.daQuyetToan = false;
+            break;
+        case "warranty":
+            where.hanBaoHanh = { gte: today };
+            break;
+        case "settled":
+            where.daQuyetToan = true;
             break;
         case "completed":
-            where.hanBaoHanh = { lt: today };
+            where.OR = [
+                { hanBaoHanh: { lt: today } },
+                { hanBaoHanh: null, daQuyetToan: true }
+            ];
             break;
     }
 
