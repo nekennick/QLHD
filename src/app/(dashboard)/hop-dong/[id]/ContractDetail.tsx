@@ -384,7 +384,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
     const giaTriVTTDaXuLy = contract.giaTriVatTuThuaDaXuLy || 0;
     const vatTuThua = giaTriTTCalc - giaTriQT;
     const vatTuThuaChuaXuLy = giaTriTTCalc - (giaTriQT + giaTriVTTDaXuLy);
-    const giaTriHD = contract.giaTriHopDong || 0;
+
 
     // ========================================
     // Main Render

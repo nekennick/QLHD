@@ -77,7 +77,7 @@ async function getReportData(type: ReportType, nguoiThucHienId?: string, isWarra
             break;
     }
 
-    const andConditions: any[] = [];
+    const andConditions: Record<string, unknown>[] = [];
     if (isWarranty && !isCompleted) {
         andConditions.push({ hanBaoHanh: { gte: today } });
     } else if (isCompleted && !isWarranty) {
