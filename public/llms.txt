@@ -1,0 +1,78 @@
+# QLHĐ — Hệ thống Quản lý Hợp đồng
+
+> API Documentation cho AI/LLM. Chi tiết đầy đủ xem tại: /api/docs (OpenAPI 3.1 JSON)
+
+## Tổng quan
+
+Hệ thống quản lý vòng đời hợp đồng nội bộ doanh nghiệp. Xây dựng bằng Next.js 14 + Prisma + PostgreSQL.
+
+## Vòng đời hợp đồng
+
+```
+Tạo mới → Giao nhân viên → Nhập thông tin → Giao nhận → Nghiệm thu → Duyệt thanh toán → Thanh toán → Bảo hành → Quyết toán → Kết thúc
+```
+
+## Vai trò người dùng (Roles)
+
+| Role | Tên | Quyền |
+|------|-----|-------|
+| ADMIN | Quản trị viên | Toàn quyền hệ thống |
+| USER1 | Lãnh đạo phòng | Tạo HĐ, giao việc, xem báo cáo |
+| USER2 | Nhân viên HĐ | Nhập/sửa thông tin HĐ được giao |
+| USER2_TCKT | Nhân viên TCKT | Thanh toán và quyết toán HĐ |
+
+## API Endpoints
+
+### Hợp đồng
+- `GET /api/hop-dong` — Danh sách tất cả HĐ
+- `POST /api/hop-dong` — Tạo HĐ mới [AUTH: USER1, ADMIN]
+- `GET /api/hop-dong/{id}` — Chi tiết 1 HĐ
+- `PUT /api/hop-dong/{id}` — Cập nhật HĐ [AUTH: phân quyền theo role]
+- `DELETE /api/hop-dong/{id}` — Xóa HĐ [AUTH: USER1, ADMIN]
+- `POST /api/hop-dong/{id}/reassign` — Điều chuyển người thực hiện
+- `POST /api/hop-dong/{id}/assign-tckt` — Giao việc thanh toán TCKT
+
+### Người dùng
+- `GET /api/users` — Danh sách users [AUTH: USER1, ADMIN]
+- `POST /api/users` — Tạo tài khoản [AUTH: USER1, ADMIN]
+- `GET /api/me` — Thông tin user hiện tại
+
+### Báo cáo
+- `GET /api/bao-cao/export?type={type}&format={word|excel}` — Xuất báo cáo
+
+### Tài chính kế toán
+- `GET /api/tckt/cho-thanh-toan` — HĐ chờ thanh toán
+- `GET /api/tckt/nhan-vien` — Danh sách nhân viên TCKT
+
+### Thông báo
+- `GET /api/notifications` — Thông báo của user
+- `GET /api/notifications/unread-count` — Đếm chưa đọc
+
+## Data Model chính: HopDong
+
+| Trường | Kiểu | Mô tả |
+|--------|------|-------|
+| soHopDong | string (unique) | Số hợp đồng |
+| tenHopDong | string? | Tên hợp đồng |
+| giaTriHopDong | float? | Giá trị HĐ (VNĐ) |
+| ngayKy | datetime? | Ngày ký |
+| ngayHieuLuc | datetime? | Ngày hiệu lực |
+| hieuLucBaoDam | datetime? | Thời hạn bảo đảm |
+| ngayGiaoHang | datetime? | Ngày giao hàng KH |
+| giaTriGiaoNhan | float? | Giá trị giao nhận |
+| giaTriNghiemThu | float? | Giá trị nghiệm thu |
+| ngayDuyetThanhToan | datetime? | Ngày duyệt thanh toán |
+| giaTriThanhToan | float? | Tổng giá trị đã thanh toán |
+| hanBaoHanh | datetime? | Hạn bảo hành |
+| giaTriQuyetToan | float? | Trị giá quyết toán |
+| daQuyetToan | boolean | HĐ đã quyết toán (khóa) |
+| isConstructionInvestment | boolean | Là HĐ công trình ĐTXD |
+| isFrameworkContract | boolean | Là HĐ khung |
+
+## Authentication
+
+Sử dụng NextAuth.js session cookie. Đăng nhập tại `/api/auth/signin`.
+
+## OpenAPI Spec
+
+Đầy đủ tại: `GET /api/docs` (JSON format, public, readonly)
