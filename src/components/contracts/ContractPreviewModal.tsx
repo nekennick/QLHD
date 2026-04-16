@@ -98,10 +98,10 @@ export default function ContractPreviewModal({
                         <InfoItem label="Hạn bảo hành" value={formatDate(contract.hanBaoHanh)} />
                     </div>
 
-                    {/* Tu chỉnh (nếu có) */}
+                    {/* Ghi chú (nếu có) */}
                     {contract.tuChinhHopDong && (
                         <div className="bg-slate-100 dark:bg-slate-700/30 rounded-lg p-4">
-                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Tu chỉnh hợp đồng</p>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-1">Ghi chú hợp đồng</p>
                             <p className="text-slate-700 dark:text-slate-300 text-sm">{contract.tuChinhHopDong}</p>
                         </div>
                     )}
