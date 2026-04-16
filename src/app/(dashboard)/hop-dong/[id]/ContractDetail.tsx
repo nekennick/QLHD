@@ -79,7 +79,33 @@ interface ReassignConfirmState {
     newId: string;
     newName: string;
 }
+// ========================================
+// Helper Functions
+// ========================================
+const formatDate = (dateString: string | null) => {
+    if (!dateString) return "";
+    return new Date(dateString).toISOString().split("T")[0];
+};
 
+const formatNumberWithSeparator = (value: number | string | null): string => {
+    if (value === null || value === "" || value === undefined) return "";
+    const num = typeof value === "string" ? parseFloat(value.toString().replace(/\./g, "").replace(",", ".")) : value;
+    if (isNaN(num)) return "";
+    return new Intl.NumberFormat("vi-VN").format(num);
+};
+
+const parseFormattedNumber = (value: string): number => {
+    if (!value) return 0;
+    return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
+};
+
+const formatCurrency = (value: number | null) => {
+    if (value === null || value === undefined) return "—";
+    return new Intl.NumberFormat("vi-VN", {
+        style: "currency",
+        currency: "VND",
+    }).format(value);
+};
 
 
 export default function ContractDetail({ contract, canEdit, userRole, userId, users = [], tcktUsers = [] }: Props) {
@@ -93,8 +119,14 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         newName: "",
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [showValidationConfirm, setShowValidationConfirm] = useState(false);
 
     // Xử lý tự động tính Thời gian giao hàng theo yêu cầu
+    const [soHopDong, setSoHopDong] = useState(contract.soHopDong || "");
+    const [ngayKy, setNgayKy] = useState(formatDate(contract.ngayKy));
+    const [tenHopDong, setTenHopDong] = useState(contract.tenHopDong || "");
+    const [giaTriHopDong, setGiaTriHopDong] = useState<number>(contract.giaTriHopDong || 0);
+
     const [ngayHieuLuc, setNgayHieuLuc] = useState<string>(
         contract.ngayHieuLuc ? new Date(contract.ngayHieuLuc).toISOString().split("T")[0] : ""
     );
@@ -219,38 +251,30 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
         }
         setReassignConfirm({ show: false, type: "executor", newId: "", newName: "" });
     };
-    const formatDate = (dateString: string | null) => {
-        if (!dateString) return "";
-        return new Date(dateString).toISOString().split("T")[0];
-    };
-
-    const formatNumberWithSeparator = (value: number | string | null): string => {
-        if (value === null || value === "" || value === undefined) return "";
-        const num = typeof value === "string" ? parseFloat(value.toString().replace(/\./g, "").replace(",", ".")) : value;
-        if (isNaN(num)) return "";
-        return new Intl.NumberFormat("vi-VN").format(num);
-    };
-
-    const parseFormattedNumber = (value: string): number => {
-        if (!value) return 0;
-        return parseFloat(value.replace(/\./g, "").replace(",", ".")) || 0;
-    };
-
-    const formatCurrency = (value: number | null) => {
-        if (value === null || value === undefined) return "—";
-        return new Intl.NumberFormat("vi-VN", {
-            style: "currency",
-            currency: "VND",
-        }).format(value);
-    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
         if (!canEdit) return;
 
-        setLoading(true);
-
+        // Validation: Bắt buộc nhập đầy đủ thông tin từ Ghi chú trở lên (ngoại trừ Ghi chú)
         const formData = new FormData(e.currentTarget);
+        const hieuLucBaoDamVal = formData.get("hieuLucBaoDam") as string;
+
+        const isFormIncomplete = 
+            !soHopDong.trim() || 
+            !ngayKy || 
+            !tenHopDong.trim() || 
+            giaTriHopDong <= 0 || 
+            !ngayHieuLuc || 
+            !hieuLucBaoDamVal ||
+            !thoiGianDuration;
+
+        if (isFormIncomplete) {
+            setShowValidationConfirm(true);
+            return;
+        }
+
+        setLoading(true);
         const data: Record<string, unknown> = {};
 
         // Process form fields
@@ -450,18 +474,32 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
 
                     {/* === THÔNG TIN HỢP ĐỒNG === */}
                     <Row label="Số hợp đồng:">
-                        <input type="text" name="soHopDong" defaultValue={contract.soHopDong ?? ""} disabled={!canEditSoHopDong} className={inputClass} />
+                        <input 
+                            type="text" 
+                            name="soHopDong" 
+                            value={soHopDong}
+                            onChange={(e) => setSoHopDong(e.target.value)}
+                            disabled={!canEditSoHopDong} 
+                            className={inputClass} 
+                        />
                     </Row>
 
                     <Row label="Ngày ký HĐ:">
-                        <DatePickerVN name="ngayKy" defaultValue={formatDate(contract.ngayKy)} disabled={!isFieldEditable} className={inputClass + " max-w-[200px]"} />
+                        <DatePickerVN 
+                            name="ngayKy" 
+                            value={ngayKy}
+                            onChange={(v) => setNgayKy(v)}
+                            disabled={!isFieldEditable || !soHopDong.trim()} 
+                            className={inputClass + " max-w-[200px]"} 
+                        />
                     </Row>
 
                     <Row label="Tên HĐ:">
                         <textarea 
                             name="tenHopDong" 
-                            defaultValue={contract.tenHopDong ?? ""} 
-                            disabled={!canEditTenHopDong} 
+                            value={tenHopDong}
+                            onChange={(e) => setTenHopDong(e.target.value)}
+                            disabled={!canEditTenHopDong || !ngayKy} 
                             placeholder="Nhập tên hợp đồng" 
                             rows={2}
                             className={inputClass + " w-full resize-y"} 
@@ -479,14 +517,36 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                     </Row>
 
                     <Row label="Giá trị hợp đồng (Đồng):">
-                        <input type="text" name="giaTriHopDong" defaultValue={formatNumberWithSeparator(contract.giaTriHopDong)} onInput={handleCurrencyInput} disabled={!isFieldEditable} placeholder="0" className={inputClass + " text-right max-w-[200px]"} />
+                        <input 
+                            type="text" 
+                            name="giaTriHopDong" 
+                            value={formatNumberWithSeparator(giaTriHopDong)}
+                            onInput={(e) => {
+                                handleCurrencyInput(e);
+                                setGiaTriHopDong(parseFormattedNumber(e.currentTarget.value));
+                            }}
+                            disabled={!isFieldEditable || !tenHopDong.trim()} 
+                            placeholder="0" 
+                            className={inputClass + " text-right max-w-[200px]"} 
+                        />
                     </Row>
 
                     <Row label="HĐ hiệu lực từ ngày:">
                         <div className="flex items-center gap-2 flex-wrap">
-                            <DatePickerVN name="ngayHieuLuc" value={ngayHieuLuc} onChange={(v) => setNgayHieuLuc(v)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
+                            <DatePickerVN 
+                                name="ngayHieuLuc" 
+                                value={ngayHieuLuc} 
+                                onChange={(v) => setNgayHieuLuc(v)} 
+                                disabled={!isFieldEditable || giaTriHopDong <= 0} 
+                                className={inputClass + " max-w-[180px]"} 
+                            />
                             <span className="text-sm text-slate-500">đến ngày</span>
-                            <DatePickerVN name="hieuLucBaoDam" defaultValue={formatDate(contract.hieuLucBaoDam)} disabled={!isFieldEditable} className={inputClass + " max-w-[180px]"} />
+                            <DatePickerVN 
+                                name="hieuLucBaoDam" 
+                                defaultValue={formatDate(contract.hieuLucBaoDam)} 
+                                disabled={!isFieldEditable || giaTriHopDong <= 0} 
+                                className={inputClass + " max-w-[180px]"} 
+                            />
                         </div>
                     </Row>
 
@@ -498,7 +558,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                     name="thoiGianGiaoHang" 
                                     value={thoiGianDuration}
                                     onChange={(e) => setThoiGianDuration(e.target.value)}
-                                    disabled={!isFieldEditable} 
+                                    disabled={!isFieldEditable || !ngayHieuLuc} 
                                     placeholder="Nhập số..." 
                                     className={inputClass + " max-w-[100px] text-right"} 
                                     min="0"
@@ -507,7 +567,7 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                                     name="thoiGianUnit"
                                     value={thoiGianUnit}
                                     onChange={(e) => setThoiGianUnit(e.target.value as "days"|"weeks"|"months")}
-                                    disabled={!isFieldEditable}
+                                    disabled={!isFieldEditable || !ngayHieuLuc}
                                     className="px-2 py-1.5 bg-white dark:bg-slate-900 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-white outline-none focus:ring-1 focus:ring-purple-500"
                                 >
                                     <option value="days">Ngày</option>
@@ -523,8 +583,8 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                         </div>
                     </Row>
 
-                    <Row label="Thông tin tu chỉnh:">
-                        <textarea name="tuChinhHopDong" defaultValue={contract.tuChinhHopDong ?? ""} disabled={!isFieldEditable} placeholder="Nhập thông tin tu chỉnh nếu có" rows={2} className={inputClass} />
+                    <Row label="Ghi chú:">
+                        <textarea name="tuChinhHopDong" defaultValue={contract.tuChinhHopDong ?? ""} disabled={!isFieldEditable} placeholder="Nhập ghi chú nếu có" rows={2} className={inputClass} />
                     </Row>
 
                     {/* === TIẾN ĐỘ THỰC HIỆN === */}
@@ -768,6 +828,18 @@ export default function ContractDetail({ contract, canEdit, userRole, userId, us
                 variant="danger"
                 onConfirm={handleDelete}
                 onCancel={() => setShowDeleteConfirm(false)}
+            />
+
+            {/* Validation Warning Dialog */}
+            <ConfirmDialog
+                isOpen={showValidationConfirm}
+                title="Thông tin chưa đầy đủ"
+                description="Bạn phải nhập đủ thông tin hợp đồng trước khi lưu."
+                confirmLabel="Yes"
+                cancelLabel="No"
+                variant="warning"
+                onConfirm={() => setShowValidationConfirm(false)}
+                onCancel={() => router.push("/hop-dong")}
             />
         </div>
     );
