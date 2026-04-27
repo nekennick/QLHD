@@ -1,12 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
-import DatePicker, { registerLocale } from "react-datepicker";
-import { vi } from "date-fns/locale/vi";
-import "react-datepicker/dist/react-datepicker.css";
-import "@/styles/datepicker-custom.css";
-
-registerLocale("vi", vi);
+import { useEffect, useState } from "react";
 
 interface DatePickerVNProps {
     name: string;
@@ -23,12 +17,41 @@ function parseISODate(str: string | undefined): Date | null {
     return isNaN(d.getTime()) ? null : d;
 }
 
-function toISOString(date: Date | null): string {
+function formatDisplayDate(iso: string | undefined): string {
+    const date = parseISODate(iso);
     if (!date) return "";
-    const y = date.getFullYear();
-    const m = String(date.getMonth() + 1).padStart(2, "0");
-    const d = String(date.getDate()).padStart(2, "0");
-    return `${y}-${m}-${d}`;
+    const day = String(date.getDate()).padStart(2, "0");
+    const month = String(date.getMonth() + 1).padStart(2, "0");
+    const year = date.getFullYear();
+    return `${day}/${month}/${year}`;
+}
+
+function formatManualInput(value: string): string {
+    const digits = value.replace(/\D/g, "").slice(0, 8);
+    const day = digits.slice(0, 2);
+    const month = digits.slice(2, 4);
+    const year = digits.slice(4, 8);
+    return [day, month, year].filter(Boolean).join("/");
+}
+
+function parseDisplayDate(value: string): string {
+    const match = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(value);
+    if (!match) return "";
+
+    const day = Number(match[1]);
+    const month = Number(match[2]);
+    const year = Number(match[3]);
+    const date = new Date(year, month - 1, day);
+
+    if (
+        date.getFullYear() !== year ||
+        date.getMonth() !== month - 1 ||
+        date.getDate() !== day
+    ) {
+        return "";
+    }
+
+    return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
 export default function DatePickerVN({
@@ -40,90 +63,51 @@ export default function DatePickerVN({
     className = "",
 }: DatePickerVNProps) {
     const isControlled = value !== undefined;
-    const [isoValue, setIsoValue] = useState<string>(
-        (isControlled ? value : defaultValue) || ""
-    );
-    const [calendarOpen, setCalendarOpen] = useState(false);
-    const pickerRef = useRef<HTMLDivElement>(null);
+    const initialValue = (isControlled ? value : defaultValue) || "";
+    const [isoValue, setIsoValue] = useState<string>(initialValue);
+    const [displayValue, setDisplayValue] = useState<string>(formatDisplayDate(initialValue));
 
-    // Sync controlled value
     useEffect(() => {
         if (isControlled && value !== undefined) {
             setIsoValue(value);
+            setDisplayValue(formatDisplayDate(value));
         }
     }, [value, isControlled]);
 
-    // Native input change (user types in dd/mm/yyyy segments)
-    const handleNativeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const newVal = e.target.value; // always yyyy-mm-dd from native input
-        setIsoValue(newVal);
-        onChange?.(newVal);
-    };
+    const handleManualChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const display = formatManualInput(e.target.value);
+        setDisplayValue(display);
 
-    // Calendar pick
-    const handleCalendarSelect = (date: Date | null) => {
-        const iso = toISOString(date);
-        setIsoValue(iso);
-        setCalendarOpen(false);
-        onChange?.(iso);
-    };
-
-    // Close calendar on outside click
-    useEffect(() => {
-        const handleClickOutside = (e: MouseEvent) => {
-            if (pickerRef.current && !pickerRef.current.contains(e.target as Node)) {
-                setCalendarOpen(false);
-            }
-        };
-        if (calendarOpen) {
-            document.addEventListener("mousedown", handleClickOutside);
+        if (!display) {
+            setIsoValue("");
+            onChange?.("");
+            return;
         }
-        return () => document.removeEventListener("mousedown", handleClickOutside);
-    }, [calendarOpen]);
+
+        if (display.length === 10) {
+            const iso = parseDisplayDate(display);
+            setIsoValue(iso);
+            onChange?.(iso);
+            return;
+        }
+
+        setIsoValue("");
+    };
 
     return (
-        <div className="datepicker-vn-wrapper relative inline-block" ref={pickerRef}>
-            {/* Native date input — luôn controlled để đồng bộ với calendar */}
+        <div className="datepicker-vn-wrapper inline-block">
             <input
-                type="date"
-                name={name}
-                value={isoValue}
-                onChange={handleNativeChange}
+                type="text"
+                value={displayValue}
+                onChange={handleManualChange}
                 disabled={disabled}
-                max="9999-12-31"
-                className={className + " pr-8"}
+                inputMode="numeric"
+                maxLength={10}
+                placeholder="dd/mm/yyyy"
+                className={className}
+                aria-label={name}
             />
-
-            {/* Calendar icon inside input — click mở lịch tiếng Việt */}
-            {!disabled && (
-                <button
-                    type="button"
-                    onClick={() => setCalendarOpen(!calendarOpen)}
-                    className="absolute right-1.5 top-1/2 -translate-y-1/2 p-0.5 rounded text-slate-400 hover:text-purple-500 dark:text-slate-500 dark:hover:text-purple-400 transition-colors"
-                    title="Mở lịch tiếng Việt"
-                    tabIndex={-1}
-                >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                </button>
-            )}
-
-            {/* Vietnamese calendar popup */}
-            {calendarOpen && (
-                <div className="absolute top-full left-0 mt-1 z-50">
-                    <DatePicker
-                        selected={parseISODate(isoValue)}
-                        onChange={handleCalendarSelect}
-                        locale="vi"
-                        dateFormat="dd/MM/yyyy"
-                        inline
-                        showMonthDropdown
-                        showYearDropdown
-                        dropdownMode="select"
-                    />
-                </div>
-            )}
+            <input type="hidden" name={name} value={isoValue} disabled={disabled} />
         </div>
     );
 }
