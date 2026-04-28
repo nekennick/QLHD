@@ -167,8 +167,8 @@ export default function NotificationBell() {
         if (isOpen && buttonRef.current) {
             const rect = buttonRef.current.getBoundingClientRect();
             setCoords({
-                top: rect.bottom + window.scrollY,
-                left: rect.left + window.scrollX,
+                top: rect.bottom,
+                left: rect.left,
             });
         }
     }, [isOpen]);
